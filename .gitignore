@@ -1,0 +1,62 @@
+# ==============================================================================
+# PROJECT REVOLUTION — UNREAL ENGINE & DEVELOPMENT GITIGNORE
+# ==============================================================================
+
+# --- Unreal Engine Generated Directories ---
+**/Intermediate/
+**/Saved/
+**/DerivedDataCache/
+**/Binaries/
+**/Build/
+**/Script/
+
+# --- Unreal Engine Project Specific ---
+*.VC.db
+*.opensdf
+*.opendb
+*.sdf
+*.sln.docstates
+*.suo
+*.user
+*.useros_guid
+*.sln.ide/
+
+# Visual Studio / Visual Studio Code
+.vs/
+.vscode/
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+
+# Rider
+.idea/
+*.sln.iml
+
+# --- Packaged Builds & Archives ---
+/Build/*
+!/Build/.gitkeep
+/Backups/*
+!/Backups/.gitkeep
+/Logs/*
+!/Logs/.gitkeep
+
+# --- OS & Environment Artifacts ---
+.DS_Store
+Thumbs.db
+desktop.ini
+$RECYCLE.BIN/
+
+# --- Scratch & Temporary Files ---
+*.tmp
+*.temp
+*.log
+*.bak
+*.orig
+
+# --- Sensitive Files & Credentials ---
+*.env
+*.pem
+*.key
+*.pfx
+credentials.json
+secrets.json

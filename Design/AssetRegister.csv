@@ -1,0 +1,5 @@
+AssetID,AssetName,Category,SubCategory,SourceFilePath,ExportFilePath,UETargetPath,PolyCountBudget,TextureBudget,Status,AssignedTo,Notes
+AST-0001,SM_Hero_Mannequin,Character,Hero,Art/Blender/Hero_Base.blend,Art/Exports/SK_Hero_Mannequin.fbx,/Game/Characters/Hero/Meshes/,35000,2048x2048,Planned,TechArt,Initial validation skeletal mesh
+AST-0002,SM_Rock_Boulder_01,Environment,Props,Art/Blender/Rock_01.blend,Art/Exports/SM_Rock_Boulder_01.fbx,/Game/Environment/Rocks/,15000,2048x2048,Planned,EnvironmentArt,Nanite enabled test prop
+AST-0003,T_Landscape_Grass_01,Material,Terrain,Art/Blender/Textures/,Art/Exports/T_Grass_01_D.png,/Game/Environment/Materials/,0,2048x2048,Planned,TechArt,Albedo normal roughness pack
+AST-0004,M_Base_Master,Shader,Core,N/A,N/A,/Game/Core/Materials/M_Master,0,N/A,Planned,TechDirector,Master material template with feature switches

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Configuration xmlns="https://www.unrealengine.com/BuildConfiguration">
+  <BuildConfiguration>
+    <!-- Cap parallel compilation to 4 workers to match physical cores and prevent 16 GB RAM exhaustion -->
+    <MaxParallelActions>4</MaxParallelActions>
+    <bStopXGECompilationAfterErrors>true</bStopXGECompilationAfterErrors>
+  </BuildConfiguration>
+  <ParallelExecutor>
+    <!-- Limit simultaneous compiler processes -->
+    <MaxProcessorCount>4</MaxProcessorCount>
+  </ParallelExecutor>
+  <WindowsPlatform>
+    <!-- Target MSVC compiler toolchain -->
+    <Compiler>VisualStudio2022</Compiler>
+  </WindowsPlatform>
+</Configuration>
