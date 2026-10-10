@@ -96,6 +96,38 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			TEXT("Hardwood Charkhi (Kite Spool)"),
 			TEXT("A polished wooden spool strung with glass-coated cotton line used during Basant festivals. The young rooftop scouts of Kot Gurdarshan use high-flying fighter kites with colored tails to signal curfew patrols across the railway tracks."),
 			TEXT("Inspect Charkhi")
+		},
+		{
+			TEXT("/Game/Environment/Mohalla/Meshes/SM_Door_Deorhi_Teak_01.SM_Door_Deorhi_Teak_01"),
+			FVector(-20.0f, -240.0f, 10.0f),
+			FRotator(0.0f, 90.0f, 0.0f),
+			TEXT("Aged Teak Deorhi Gateway"),
+			TEXT("A heavy colonial-period threshold door forged from aged Burma teak and iron strap hinges. In traditional Punjabi architecture, the deorhi serves as the transition vestibule between public bazaar alleys and private family courtyards."),
+			TEXT("Inspect Gateway")
+		},
+		{
+			TEXT("/Game/Environment/Mohalla/Meshes/SM_Balcony_Jharokha_Wood_A.SM_Balcony_Jharokha_Wood_A"),
+			FVector(-200.0f, -80.0f, 320.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TEXT("Carved Teak Jharokha (Overhang Balcony)"),
+			TEXT("An overhanging wooden lattice balcony typical of Walled City mohallas. Women and elders observe bazaar commerce below without being viewed from the street, and scouts use its high vantage to monitor British garrison patrols."),
+			TEXT("Inspect Jharokha")
+		},
+		{
+			TEXT("/Game/Environment/Mohalla/Meshes/SM_Roof_Stairs_Masonry_01.SM_Roof_Stairs_Masonry_01"),
+			FVector(180.0f, -120.0f, 10.0f),
+			FRotator(0.0f, 180.0f, 0.0f),
+			TEXT("Masonry Rooftop Steps"),
+			TEXT("Narrow baked-brick stairs ascending from the family courtyard to the rooftop terrace. Interconnected rooftops formed the primary courier and escape routes for revolutionaries avoiding street curfews."),
+			TEXT("Inspect Steps")
+		},
+		{
+			TEXT("/Game/Environment/Mohalla/Meshes/SM_Roof_Parapet_4m_A.SM_Roof_Parapet_4m_A"),
+			FVector(0.0f, 260.0f, 400.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TEXT("Low Brick Roof Parapet"),
+			TEXT("A 1.1-meter high baked clay brick parapet dividing adjoining haveli terraces. Kabir traverses these rooftop boundaries through quick vaults to deliver clandestine pamphlets before dawn."),
+			TEXT("Inspect Parapet")
 		}
 	};
 

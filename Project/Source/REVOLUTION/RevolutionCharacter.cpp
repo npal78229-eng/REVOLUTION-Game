@@ -17,6 +17,8 @@
 #include "DrawDebugHelpers.h"
 #include "Animation/AnimInstance.h"
 #include "InteractableInterface.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "REVOLUTION.h"
 
 ARevolutionCharacter::ARevolutionCharacter()
@@ -97,6 +99,28 @@ ARevolutionCharacter::ARevolutionCharacter()
 	{
 		GetMesh()->SetAnimInstanceClass(AnimFinder.Class);
 	}
+
+	// Automatic Foley Audio Asset Bindings
+	static ConstructorHelpers::FObjectFinder<USoundBase> Brick01Finder(TEXT("/Game/Audio/SFX/SFX_Footstep_Brick_01.SFX_Footstep_Brick_01"));
+	if (Brick01Finder.Succeeded()) FootstepBrickSound01 = Brick01Finder.Object;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> Brick02Finder(TEXT("/Game/Audio/SFX/SFX_Footstep_Brick_02.SFX_Footstep_Brick_02"));
+	if (Brick02Finder.Succeeded()) FootstepBrickSound02 = Brick02Finder.Object;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> Wood01Finder(TEXT("/Game/Audio/SFX/SFX_Footstep_Wood_01.SFX_Footstep_Wood_01"));
+	if (Wood01Finder.Succeeded()) FootstepWoodSound01 = Wood01Finder.Object;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> Wood02Finder(TEXT("/Game/Audio/SFX/SFX_Footstep_Wood_02.SFX_Footstep_Wood_02"));
+	if (Wood02Finder.Succeeded()) FootstepWoodSound02 = Wood02Finder.Object;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> VaultFinder(TEXT("/Game/Audio/SFX/SFX_Vault_Whoosh_Cloth.SFX_Vault_Whoosh_Cloth"));
+	if (VaultFinder.Succeeded()) VaultSound = VaultFinder.Object;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> ParchmentOpenFinder(TEXT("/Game/Audio/SFX/SFX_Parchment_Open.SFX_Parchment_Open"));
+	if (ParchmentOpenFinder.Succeeded()) InspectOpenSound = ParchmentOpenFinder.Object;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> ParchmentCloseFinder(TEXT("/Game/Audio/SFX/SFX_Parchment_Close.SFX_Parchment_Close"));
+	if (ParchmentCloseFinder.Succeeded()) InspectCloseSound = ParchmentCloseFinder.Object;
 }
 
 void ARevolutionCharacter::BeginPlay()
@@ -153,6 +177,24 @@ void ARevolutionCharacter::Tick(float DeltaTime)
 	else if (CurrentStamina < MaxStamina)
 	{
 		CurrentStamina = FMath::Clamp(CurrentStamina + (StaminaRegenRate * DeltaTime), 0.0f, MaxStamina);
+	}
+
+	// Footstep cadence based on movement velocity
+	float CurrentSpeed = GetVelocity().Size2D();
+	if (CurrentSpeed > 35.0f && GetCharacterMovement()->IsMovingOnGround())
+	{
+		FootstepDistanceAccumulator += CurrentSpeed * DeltaTime;
+		// Step interval: Walk ~ 160cm, Sprint ~ 210cm
+		float StepInterval = bIsSprinting ? 210.0f : 160.0f;
+		if (FootstepDistanceAccumulator >= StepInterval)
+		{
+			FootstepDistanceAccumulator = 0.0f;
+			PlayFootstepAudio();
+		}
+	}
+	else
+	{
+		FootstepDistanceAccumulator = 0.0f;
 	}
 
 	CheckForInteractables();
@@ -315,6 +357,8 @@ void ARevolutionCharacter::TryVaultOrJump()
 		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
 		GetCharacterMovement()->Velocity = FVector::ZeroVector;
 
+		PlayVaultAudio();
+
 		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir vaulting over parapet to %s"), *TargetLocation.ToString());
 	}
 	else
@@ -375,6 +419,7 @@ void ARevolutionCharacter::StartInspection(const FText& InItemName, const FText&
 	InspectedItemName = InItemName;
 	InspectedItemLore = InLoreDescription;
 	StopSprinting();
+	PlayInspectAudio(true);
 	OnItemInspected.Broadcast(InItemName, InLoreDescription);
 	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir started inspection of: %s"), *InItemName.ToString());
 }
@@ -384,6 +429,7 @@ void ARevolutionCharacter::EndInspection()
 	bIsInspecting = false;
 	InspectedItemName = FText::GetEmpty();
 	InspectedItemLore = FText::GetEmpty();
+	PlayInspectAudio(false);
 	OnInspectionEnded.Broadcast();
 	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir closed inspection"));
 }
@@ -457,4 +503,62 @@ bool ARevolutionCharacter::DetectVaultableObstacle(FVector& OutVaultLocation)
 	}
 
 	return false;
+}
+
+void ARevolutionCharacter::PlayFootstepAudio()
+{
+	FVector Start = GetActorLocation();
+	FVector End = Start - FVector(0.f, 0.f, 90.f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	bool bOnWood = false;
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		if (Hit.GetActor() && Hit.GetActor()->GetName().Contains(TEXT("Wood"), ESearchCase::IgnoreCase))
+		{
+			bOnWood = true;
+		}
+		else if (Hit.Component.IsValid() && Hit.Component->GetName().Contains(TEXT("Wood"), ESearchCase::IgnoreCase))
+		{
+			bOnWood = true;
+		}
+	}
+
+	bFootstepAlternate = !bFootstepAlternate;
+	USoundBase* SoundToPlay = nullptr;
+	if (bOnWood)
+	{
+		SoundToPlay = bFootstepAlternate ? FootstepWoodSound01 : FootstepWoodSound02;
+	}
+	else
+	{
+		SoundToPlay = bFootstepAlternate ? FootstepBrickSound01 : FootstepBrickSound02;
+	}
+
+	if (SoundToPlay)
+	{
+		float PitchMod = FMath::RandRange(0.92f, 1.08f);
+		float VolumeMod = bIsSprinting ? 0.95f : 0.70f;
+		UGameplayStatics::PlaySoundAtLocation(this, SoundToPlay, GetActorLocation() - FVector(0.f, 0.f, 70.f), VolumeMod, PitchMod);
+	}
+}
+
+void ARevolutionCharacter::PlayVaultAudio()
+{
+	if (VaultSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, VaultSound, GetActorLocation(), 1.0f, FMath::RandRange(0.95f, 1.05f));
+	}
+}
+
+void ARevolutionCharacter::PlayInspectAudio(bool bOpen)
+{
+	USoundBase* SoundToPlay = bOpen ? InspectOpenSound : InspectCloseSound;
+	if (SoundToPlay)
+	{
+		UGameplayStatics::PlaySound2D(this, SoundToPlay, 0.85f, FMath::RandRange(0.96f, 1.04f));
+	}
 }

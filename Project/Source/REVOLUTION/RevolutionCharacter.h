@@ -11,6 +11,7 @@ class USpringArmComponent;
 class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
+class USoundBase;
 struct FInputActionValue;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionFocusChanged, bool, bHasFocus, FText, PromptText);
@@ -181,8 +182,42 @@ public:
 
 	void CheckForInteractables();
 
+	// --- AUDIO & HISTORICAL FOLEY ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* FootstepBrickSound01 = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* FootstepBrickSound02 = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* FootstepWoodSound01 = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* FootstepWoodSound02 = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* VaultSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* InspectOpenSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* InspectCloseSound = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Audio")
+	void PlayFootstepAudio();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Audio")
+	void PlayVaultAudio();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Audio")
+	void PlayInspectAudio(bool bOpen);
+
 private:
 	FVector VaultStartLocation;
 	FVector VaultTargetLocation;
 	float VaultProgress = 0.0f;
+
+	float FootstepDistanceAccumulator = 0.0f;
+	bool bFootstepAlternate = false;
 };
