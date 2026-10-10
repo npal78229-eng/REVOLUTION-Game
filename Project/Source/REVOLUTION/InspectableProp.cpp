@@ -25,6 +25,10 @@ AInspectableProp::AInspectableProp()
 void AInspectableProp::OnInteract_Implementation(ARevolutionCharacter* Interactor)
 {
 	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir inspected: %s - %s"), *ItemName.ToString(), *LoreDescription.ToString());
+	if (Interactor)
+	{
+		Interactor->StartInspection(ItemName, LoreDescription);
+	}
 }
 
 FText AInspectableProp::GetInteractionPrompt_Implementation() const

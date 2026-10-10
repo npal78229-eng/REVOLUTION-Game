@@ -13,4 +13,10 @@ class ARevolutionGameMode : public AGameModeBase
 
 public:
 	ARevolutionGameMode();
+
+protected:
+	virtual void BeginPlay() override;
+
+	/** Ensures interactive period artifacts and traversal obstacles exist in the courtyard */
+	void SpawnDefaultMohallaProps();
 };

@@ -14,6 +14,8 @@ class UInputAction;
 struct FInputActionValue;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionFocusChanged, bool, bHasFocus, FText, PromptText);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemInspected, FText, ItemName, FText, LoreDescription);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInspectionEnded);
 
 UCLASS(config=Game)
 class REVOLUTION_API ARevolutionCharacter : public ACharacter
@@ -141,11 +143,41 @@ public:
 	UPROPERTY(BlueprintAssignable, Category = "Revolution|Interaction")
 	FOnInteractionFocusChanged OnInteractionFocusChanged;
 
+	UPROPERTY(BlueprintAssignable, Category = "Revolution|Interaction")
+	FOnItemInspected OnItemInspected;
+
+	UPROPERTY(BlueprintAssignable, Category = "Revolution|Interaction")
+	FOnInspectionEnded OnInspectionEnded;
+
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Interaction")
 	AActor* CurrentInteractableActor = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Interaction")
 	float InteractionTraceDistance = 180.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Interaction")
+	bool bIsInspecting = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Interaction")
+	FText InspectedItemName;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Interaction")
+	FText InspectedItemLore;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Interaction")
+	void StartInspection(const FText& InItemName, const FText& InLoreDescription);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Interaction")
+	void EndInspection();
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Interaction")
+	bool IsInspecting() const { return bIsInspecting; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Interaction")
+	FText GetInspectedItemName() const { return InspectedItemName; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Interaction")
+	FText GetInspectedItemLore() const { return InspectedItemLore; }
 
 	void CheckForInteractables();
 

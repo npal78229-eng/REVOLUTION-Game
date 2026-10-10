@@ -199,11 +199,6 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	}
 
 	// 2. Direct Raw Input Bindings (Guarantees zero-dependency keyboard/mouse response)
-	PlayerInputComponent->BindAxisKey(EKeys::W, this, &ARevolutionCharacter::MoveForwardAxis);
-	PlayerInputComponent->BindAxisKey(EKeys::S, this, &ARevolutionCharacter::MoveForwardAxis);
-	PlayerInputComponent->BindAxisKey(EKeys::D, this, &ARevolutionCharacter::MoveRightAxis);
-	PlayerInputComponent->BindAxisKey(EKeys::A, this, &ARevolutionCharacter::MoveRightAxis);
-
 	PlayerInputComponent->BindAxisKey(EKeys::MouseX, this, &ARevolutionCharacter::TurnAxis);
 	PlayerInputComponent->BindAxisKey(EKeys::MouseY, this, &ARevolutionCharacter::LookUpAxis);
 
@@ -219,7 +214,7 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 void ARevolutionCharacter::Move(const FInputActionValue& Value)
 {
-	if (bIsVaulting) return;
+	if (bIsVaulting || bIsInspecting) return;
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -249,7 +244,7 @@ void ARevolutionCharacter::Look(const FInputActionValue& Value)
 
 void ARevolutionCharacter::MoveForwardAxis(float Value)
 {
-	if (bIsVaulting || FMath::IsNearlyZero(Value)) return;
+	if (bIsVaulting || bIsInspecting || FMath::IsNearlyZero(Value)) return;
 
 	if (Controller != nullptr)
 	{
@@ -262,7 +257,7 @@ void ARevolutionCharacter::MoveForwardAxis(float Value)
 
 void ARevolutionCharacter::MoveRightAxis(float Value)
 {
-	if (bIsVaulting || FMath::IsNearlyZero(Value)) return;
+	if (bIsVaulting || bIsInspecting || FMath::IsNearlyZero(Value)) return;
 
 	if (Controller != nullptr)
 	{
@@ -291,6 +286,12 @@ void ARevolutionCharacter::LookUpAxis(float Value)
 
 void ARevolutionCharacter::OnJumpPressed()
 {
+	if (bIsInspecting)
+	{
+		EndInspection();
+		return;
+	}
+
 	TryVaultOrJump();
 }
 
@@ -351,6 +352,12 @@ void ARevolutionCharacter::ToggleCrouch()
 
 void ARevolutionCharacter::OnInteract()
 {
+	if (bIsInspecting)
+	{
+		EndInspection();
+		return;
+	}
+
 	if (CurrentInteractableActor && CurrentInteractableActor->Implements<UInteractableInterface>())
 	{
 		IInteractableInterface::Execute_OnInteract(CurrentInteractableActor, this);
@@ -362,8 +369,32 @@ void ARevolutionCharacter::OnInteract()
 	}
 }
 
+void ARevolutionCharacter::StartInspection(const FText& InItemName, const FText& InLoreDescription)
+{
+	bIsInspecting = true;
+	InspectedItemName = InItemName;
+	InspectedItemLore = InLoreDescription;
+	StopSprinting();
+	OnItemInspected.Broadcast(InItemName, InLoreDescription);
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir started inspection of: %s"), *InItemName.ToString());
+}
+
+void ARevolutionCharacter::EndInspection()
+{
+	bIsInspecting = false;
+	InspectedItemName = FText::GetEmpty();
+	InspectedItemLore = FText::GetEmpty();
+	OnInspectionEnded.Broadcast();
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir closed inspection"));
+}
+
 void ARevolutionCharacter::CheckForInteractables()
 {
+	if (bIsInspecting)
+	{
+		return;
+	}
+
 	FVector Start = FollowCamera ? FollowCamera->GetComponentLocation() : (GetActorLocation() + FVector(0.f, 0.f, 40.f));
 	FVector Forward = FollowCamera ? FollowCamera->GetForwardVector() : GetActorForwardVector();
 	FVector End = Start + (Forward * InteractionTraceDistance);

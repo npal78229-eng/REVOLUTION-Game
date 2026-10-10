@@ -74,3 +74,29 @@ flowchart TD
 | `SM_` | Static Meshes | `SM_Rock_Granite_01`, `SM_Castle_Wall_Modular` |
 | `SK_` | Skeletal Meshes | `SK_Hero_Male`, `SK_Creature_Wyvern` |
 | `M_` / `MI_` | Master Materials / Instances | `M_Master_PBR`, `MI_Rock_Granite_01` |
+
+---
+
+## 4. In-Game HUD & Environmental Interaction Architecture
+
+### 4.1 Historical Aesthetic Direction
+The user interface follows a **Tactile Grounded Historical Realism** design philosophy, evoking 1919-era Punjabi records, hand-printed lithographic gazettes, and brass-fitted instruments:
+- **Parchment Vellum:** `FLinearColor(0.93f, 0.89f, 0.80f, 0.96f)`
+- **Dark Lithographic Ink:** `FLinearColor(0.12f, 0.10f, 0.08f, 1.0f)`
+- **Antique Cast Brass:** `FLinearColor(0.82f, 0.65f, 0.28f, 1.0f)`
+- **Muted Sepia:** `FLinearColor(0.42f, 0.35f, 0.26f, 1.0f)`
+
+### 4.2 Core Architecture
+1. **`ARevolutionHUD` (C++):**
+   - High-performance, zero-dependency Canvas rendering ensuring 100% immediate presentation across Standalone, Editor, and shipping builds.
+   - **Reticle:** Grounded minimal center point transitioning dynamically to a pulsing diamond brass focus frame when an interactable prop enters line of sight.
+   - **Interaction Prompt Badge:** Floating contextual `[ E ] <Action>` prompt rendered with brass key badge and shadowed text.
+   - **Historical Lore Modal:** Dimmed cinematic vignette overlay with double-bordered parchment card displaying item designation, archive catalog header, wrapped historical narrative, and dismissal prompt.
+   - **Dynamic Stamina Gauge:** Smoothly interpolated antique brass meter that fades in during sprint expenditure and auto-hides upon complete stamina recovery.
+   - **Mohalla Orientation Compass:** Top screen cardinal ticker tracking azimuth heading (N, NE, E, SE, S, SW, W, NW).
+2. **`URevolutionHUDWidget` (UMG / Slate):**
+   - Base C++ UUserWidget class bridging character delegates (`OnInteractionFocusChanged`, `OnItemInspected`, `OnInspectionEnded`) to designer UMG Blueprint widgets (`WBP_RevolutionHUD`).
+3. **`IInteractableInterface` & `AInspectableProp`:**
+   - Decoupled interface contract enabling any world actor to respond to Kabir's camera-trace interaction queries.
+   - Period props store historical provenance (`ItemName`, `LoreDescription`, `InteractionVerb`) and seamlessly trigger character lore modal state on interaction.
+
