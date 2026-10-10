@@ -3,7 +3,7 @@
 **Project Title:** REVOLUTION  
 **Genre:** Third-person, story-driven historical open-world action-adventure  
 **Setting:** Kot Gurdarshan, Central Punjab, British-ruled India (1919 – 1929)  
-**Visual Style Target:** Grounded Historical Realism (Red Dead Redemption 2 visual benchmark)  
+**Visual Style Target:** Grounded Historical Realism (Tactile, Grounded AAA Period Realism Benchmark)  
 **Document Status:** Approved Direction by Project Owner  
 **Version:** 1.0.0  
 **Date:** October 10, 2026  
@@ -24,7 +24,7 @@ Over a 10-year narrative span, Kabir matures into a 21-year-old young man who be
 
 1. **Grounded Historical Authenticity:**
    - Deeply researched material culture, architecture, and colonial administration. Real historical events (Rowlatt Act, Non-Cooperation, Simon Commission) form the backdrop, while the central cast and town are original.
-2. **The RDR2 Visual & Atmospheric Benchmark:**
+2. **Tactile Visual & Atmospheric Benchmark:**
    - Naturalistic lighting, volumetric dust/fog, tactile material weathering (chipped lime plaster, salt efflorescence on baked brick, frayed khadi, mud splatters), and dynamic weather states (scorching summer, monsoon deluge, winter mist).
 3. **Organic Character Growth & Evolving Perception:**
    - The world evolves alongside the protagonist. Early mechanics emphasize childhood agility (kite flying, slipping through tight alleys, fetching errands). Later mechanics emphasize stealth, covert courier delivery, intelligence gathering, and evading armed colonial police.
@@ -72,4 +72,4 @@ Kot Gurdarshan is an interconnected $1.8\text{ km}^2$ region divided into seven 
 ## 6. Revision History
 | Version | Date | Author | Status | Notes |
 | :--- | :--- | :--- | :--- | :--- |
-| 1.0.0 | 2026-10-10 | Senior Technical Director & Creative Lead | **Approved** | Setting locked to Central Punjab 1919–1929 (Kot Gurdarshan) with RDR2 visual baseline. |
+| 1.0.0 | 2026-10-10 | Senior Technical Director & Creative Lead | **Approved** | Setting locked to Central Punjab 1919–1929 (Kot Gurdarshan) with grounded AAA visual baseline. |

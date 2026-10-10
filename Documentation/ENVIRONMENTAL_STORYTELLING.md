@@ -1,7 +1,7 @@
 # PROJECT REVOLUTION — Environmental Storytelling & Narrative Artifacts
 
 **Setting:** Kot Gurdarshan, Central Punjab (1919 – 1929)  
-**Inspiration:** *Red Dead Redemption 2*, *Sardar Udham*, *Chernobyl* (Visual Storytelling)  
+**Inspiration:** *Sardar Udham*, *Chernobyl* (Silent Visual Storytelling)  
 **Philosophy:** Silent, Tactile World Building (Show, Never Over-Explain)  
 **Author:** Lead Narrative Designer & Environment Artist  
 **Date:** October 10, 2026  

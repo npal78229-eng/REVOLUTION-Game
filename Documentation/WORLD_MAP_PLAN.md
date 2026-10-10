@@ -50,7 +50,7 @@ flowchart TD
 
 ## 2. Landmark Visual Beacons & Lines of Sight
 
-In the tradition of *Red Dead Redemption 2*, open-world navigation relies on visible physical landmarks rather than cluttered mini-map icons. Kot Gurdarshan features five primary visual beacons visible across rooftops and avenues:
+In our environmental design philosophy, open-world navigation relies on visible physical landmarks rather than cluttered mini-map icons. Kot Gurdarshan features five primary visual beacons visible across rooftops and avenues:
 
 | Beacon ID | Landmark Name | Height | District Location | Visual & Narrative Purpose |
 | :--- | :--- | :---: | :--- | :--- |
@@ -100,7 +100,7 @@ To ensure rigorous quality and prevent unvalidated asset bloat, the world will e
 
 ```mermaid
 flowchart TD
-    S1["Stage 1: The Initial Prototype Gym (Current Target)\n• Footprint: 100m x 100m\n• Family Courtyard + 3 Adjoining Rooftops + Narrow Mohalla Alley\n• Validates: RDR2 lighting, brick materials, rooftop traversal, domestic audio"]
+    S1["Stage 1: The Initial Prototype Gym (Current Target)\n• Footprint: 100m x 100m\n• Family Courtyard + 3 Adjoining Rooftops + Narrow Mohalla Alley\n• Validates: Grounded lighting, brick materials, rooftop traversal, domestic audio"]
     S2["Stage 2: The Core Walled Town\n• Footprint: 400m x 400m\n• Adds: Grand Bazaar, Grain Mandi, Vernacular School, Akhara"]
     S3["Stage 3: The Industrial & Rural Fringe\n• Footprint: 800m x 600m\n• Adds: Railway Station, Freight Yards, Upper Bari Doab Canal, Mustard Fields"]
     S4["Stage 4: The Full Open World\n• Footprint: 1.5km x 1.2km\n• Adds: British Civil Lines, District Court, Cantonment, Outer Ruined Serai"]

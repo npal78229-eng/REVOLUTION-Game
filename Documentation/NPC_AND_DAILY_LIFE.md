@@ -2,7 +2,7 @@
 
 **Target Engine:** Unreal Engine 5 (AI State Trees, Mass Entity Crowd Baseline)  
 **Setting:** Kot Gurdarshan, Central Punjab (1919 – 1929)  
-**Design Philosophy:** RDR2-Style Grounded NPC Simulation (Scalable for Small Team & 16 GB RAM)  
+**Design Philosophy:** Grounded Living World Simulation (Scalable for Small Team & 16 GB RAM)  
 **Author:** Lead Systems Designer & Narrative Designer  
 **Date:** October 10, 2026  
 
@@ -28,7 +28,7 @@ flowchart TD
 
 ## 2. Diurnal Cycles & NPC Schedules
 
-In the spirit of *Red Dead Redemption 2*, characters do not stand idle waiting for player interaction. The town shifts across five realistic daily phases:
+In an authentic living world, characters do not stand idle waiting for player interaction. The town shifts across five realistic daily phases:
 
 ```mermaid
 timeline

@@ -10,7 +10,7 @@
 
 ## 1. Modular Kit Architecture
 
-To achieve AAA RDR2 visual fidelity with a small development team and 4 GB VRAM limits, the entire town of Kot Gurdarshan is built from four standardized, snap-aligned modular kits:
+To achieve grounded AAA visual fidelity with a small development team and 4 GB VRAM limits, the entire town of Kot Gurdarshan is built from four standardized, snap-aligned modular kits:
 
 ```mermaid
 flowchart TD

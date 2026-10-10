@@ -2,7 +2,7 @@
 
 **Target Engine:** Unreal Engine 5.4 / 5.5  
 **Target Hardware Baseline:** Intel i5-10200H (4C/8T) | 16 GB RAM | NVIDIA GTX 1650 (4 GB VRAM)  
-**Target Visual Fidelity:** Red Dead Redemption 2 Cinematic Standard  
+**Target Visual Fidelity:** Grounded Tactile Cinematic Realism  
 **Author:** Unreal Engine Technical Director & Lead Systems Architect  
 **Date:** October 10, 2026  
 
@@ -63,7 +63,7 @@ When transitioning from 1919 to 1920, the engine simply unloads `DL_Act1_1919` a
 
 ---
 
-## 3. RDR2 Shading Pipeline on GTX 1650 (4 GB VRAM)
+## 3. Tactile Shading Pipeline on GTX 1650 (4 GB VRAM)
 
 ```mermaid
 flowchart LR
@@ -77,7 +77,7 @@ flowchart LR
    - Enforce Software Ray Tracing (`r.Lumen.HardwareRayTracing=0`).
    - Screen probe gather downsample factor set to 16 to save 200 MB VRAM.
 2. **Temporal Super Resolution (TSR):**
-   - Viewport renders internally at $1440 \times 810$ (75% of 1080p) and upscales to native 1080p with temporal accumulation. Delivers crisp RDR2-like hair and fabric fibers with 35% higher framerate.
+   - Viewport renders internally at $1440 \times 810$ (75% of 1080p) and upscales to native 1080p with temporal accumulation. Delivers crisp texture and fabric fibers with 35% higher framerate.
 3. **Dynamic Weather via Material Parameter Collection (`MPC_Weather`):**
    - Single global scalar `Global_RainWetness` ($0.0 \rightarrow 1.0$) smoothly darkens albedo and lowers roughness across all master materials simultaneously during rain.
    - Zero additional memory overhead or bespoke wet shaders.

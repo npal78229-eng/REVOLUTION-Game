@@ -1,8 +1,8 @@
 # PROJECT REVOLUTION — Environment Art Bible & Visual Direction
-## The "Red Dead Redemption 2" Aesthetic in 1920s Colonial Punjab
+## Grounded Tactile Historical Realism in 1920s Colonial Punjab
 
-**Visual Target:** Grounded, Tactile, Cinematic Historical Realism (RDR2 Quality Baseline)  
-**Cinematic Influences:** *Red Dead Redemption 2*, *Sardar Udham* (Dir. Shoojit Sircar), *Pather Panchali* (Dir. Satyajit Ray)  
+**Visual Target:** Grounded, Tactile, Cinematic Historical Realism  
+**Cinematic Influences:** *Sardar Udham* (Dir. Shoojit Sircar), *Pather Panchali* (Dir. Satyajit Ray), 1920s British Library archival photography  
 **Engine & Shading:** Unreal Engine 5 (Lumen Software Ray Tracing, TSR, ORM PBR Pipeline)  
 **Hardware Target:** Optimized for NVIDIA GTX 1650 (4 GB VRAM) & 16 GB RAM  
 **Author:** Environment Art Director & Technical Artist  
@@ -14,7 +14,7 @@
 
 ```mermaid
 flowchart TD
-    subgraph Pillars["The Four Pillars of the RDR2 Aesthetic"]
+    subgraph Pillars["The Four Pillars of Tactile Historical Realism"]
         L["1. Naturalistic Lighting\nPhysically accurate sun angles, true exposure roll-off, zero fake ambient fill"]
         M["2. Tactile Material Authenticity\nLayered wear, chipped lime plaster, salt efflorescence, oily wood, frayed khadi"]
         A["3. Volumetric Atmosphere\nSun shafts through dust motes, railway coal smoke, heavy winter mist, monsoon humidity"]
@@ -36,7 +36,7 @@ flowchart TD
   - Layer 3: Dirt accumulation, soot smudges from evening oil lamps, and hand-rubbed wear near door handles.
 
 ### Pillar 3: Atmospheric Depth & Volumetric Air
-- **Air You Can Taste:** In RDR2, air is a physical volume. In Kot Gurdarshan, the air carries loamy alluvial dust, cow-dung smoke, roasting cumin, coal soot, and monsoon moisture.
+- **Air You Can Taste:** In our visual direction, air is a physical volume. In Kot Gurdarshan, the air carries loamy alluvial dust, cow-dung smoke, roasting cumin, coal soot, and monsoon moisture.
 - **Volumetric Light Shafts (*Crepuscular Rays*):** Sunlight slices through slatted wooden shutters, breaks through dense foliage of banyan trees, and pierces the dusty gloom of the locomotive shed.
 
 ### Pillar 4: Cinematic Framing & Grounded Camera
@@ -97,7 +97,7 @@ flowchart TD
 
 ## 4. Material Specifications & Texture Budget (GTX 1650 4 GB VRAM)
 
-To achieve RDR2 visual fidelity without exceeding 4 GB VRAM, the material pipeline enforces **Channel Packing**, **Macro/Micro Detail Normal Blending**, and **Master Material Instancing**:
+To achieve grounded AAA visual fidelity without exceeding 4 GB VRAM, the material pipeline enforces **Channel Packing**, **Macro/Micro Detail Normal Blending**, and **Master Material Instancing**:
 
 ```mermaid
 flowchart TD

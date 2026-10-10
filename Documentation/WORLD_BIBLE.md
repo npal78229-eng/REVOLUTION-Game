@@ -2,7 +2,7 @@
 
 **Setting:** Kot Gurdarshan, Central Punjab, British-ruled India  
 **Timeframe:** 1919 – 1929 (From the Rowlatt Act / Martial Law to the Simon Commission & HSRA Awakening)  
-**Visual Style Target:** Grounded Historical Realism (Inspired by *Red Dead Redemption 2*, *Sardar Udham*, and *Pather Panchali*)  
+**Visual Style Target:** Grounded Historical Realism (Inspired by *Sardar Udham*, *Pather Panchali*, and period archival photography)  
 **Classification:** Authoritative World Bible  
 **Author:** Creative Director, Historical Researcher & Narrative Lead  
 **Date:** October 10, 2026  
