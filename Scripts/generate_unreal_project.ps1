@@ -79,11 +79,11 @@ if (Test-Path $uprojectFile) {
     }
 }
 
-# 4. Generate Visual Studio Project Files if VS is available
-$generateBat = Join-Path $EngineRoot "Engine\Build\BatchFiles\GenerateProjectFiles.bat"
-if ((Test-Path $generateBat) -and (Test-Path $uprojectFile) -and (Test-Path $vswhere)) {
-    Write-Output "Generating Visual Studio Project files..."
-    & $generateBat -project="$uprojectFile" -game
+# 4. Generate Visual Studio Project Files
+$ubtExe = Join-Path $EngineRoot "Engine\Binaries\DotNET\UnrealBuildTool\UnrealBuildTool.exe"
+if ((Test-Path $ubtExe) -and (Test-Path $uprojectFile)) {
+    Write-Output "Generating Visual Studio Project files via UnrealBuildTool..."
+    & $ubtExe -projectfiles -project="$uprojectFile" -game -engine
 }
 
 Write-Output "=========================================================="
