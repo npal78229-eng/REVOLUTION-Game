@@ -67,6 +67,16 @@ protected:
 	/** Called for looking input */
 	void Look(const FInputActionValue& Value);
 
+	/** Direct axis and action bindings for guaranteed zero-dependency input */
+	void MoveForwardAxis(float Value);
+	void MoveRightAxis(float Value);
+	void TurnAxis(float Value);
+	void LookUpAxis(float Value);
+
+	/** Jump or vault */
+	void OnJumpPressed();
+	void OnJumpReleased();
+
 	/** Sprint start / stop */
 	void StartSprinting();
 	void StopSprinting();
@@ -107,7 +117,26 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Locomotion")
 	bool bIsSprinting = false;
 
-	/** Vault detection for waist-height parapets (1.0m - 1.2m) */
+	// --- VAULTING TRAVERSAL SYSTEM (1.1m Parapets & Obstacles) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Traversal")
+	bool bIsVaulting = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Traversal")
+	float VaultDuration = 0.35f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Traversal")
+	float VaultArcPeak = 25.0f;
+
+	/** Detects whether an obstacle in front is within vaulting height range (50cm - 125cm) */
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
 	bool DetectVaultableObstacle(FVector& OutVaultLocation);
+
+	/** Executes vault traversal over detected obstacle */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
+	void TryVaultOrJump();
+
+private:
+	FVector VaultStartLocation;
+	FVector VaultTargetLocation;
+	float VaultProgress = 0.0f;
 };

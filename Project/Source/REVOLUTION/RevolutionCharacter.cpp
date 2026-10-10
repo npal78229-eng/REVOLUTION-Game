@@ -4,13 +4,18 @@
 #include "Engine/LocalPlayer.h"
 #include "Camera/CameraComponent.h"
 #include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/SpringArmComponent.h"
 #include "GameFramework/Controller.h"
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "InputMappingContext.h"
+#include "InputAction.h"
+#include "UObject/ConstructorHelpers.h"
 #include "DrawDebugHelpers.h"
+#include "Animation/AnimInstance.h"
 #include "REVOLUTION.h"
 
 ARevolutionCharacter::ARevolutionCharacter()
@@ -49,6 +54,48 @@ ARevolutionCharacter::ARevolutionCharacter()
 	FollowCamera->bUsePawnControlRotation = false;
 
 	CurrentStamina = MaxStamina;
+
+	// Automatic Enhanced Input Asset Binding
+	static ConstructorHelpers::FObjectFinder<UInputMappingContext> DefaultMappingContextFinder(TEXT("/Game/Characters/Kabir/Input/IMC_Default.IMC_Default"));
+	if (DefaultMappingContextFinder.Succeeded())
+	{
+		DefaultMappingContext = DefaultMappingContextFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> MoveActionFinder(TEXT("/Game/Characters/Kabir/Input/Actions/IA_Move.IA_Move"));
+	if (MoveActionFinder.Succeeded())
+	{
+		MoveAction = MoveActionFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> LookActionFinder(TEXT("/Game/Characters/Kabir/Input/Actions/IA_Look.IA_Look"));
+	if (LookActionFinder.Succeeded())
+	{
+		LookAction = LookActionFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<UInputAction> JumpActionFinder(TEXT("/Game/Characters/Kabir/Input/Actions/IA_Jump.IA_Jump"));
+	if (JumpActionFinder.Succeeded())
+	{
+		JumpAction = JumpActionFinder.Object;
+	}
+
+	// Automatic Character Mannequin & Animation Setup
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshFinder(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
+	if (MeshFinder.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(MeshFinder.Object);
+		GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -71.f));
+		GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+		// Proportion scaling for 12-year-old Kabir (approx 78% of adult mannequin)
+		GetMesh()->SetRelativeScale3D(FVector(0.78f, 0.78f, 0.78f));
+	}
+
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimFinder(TEXT("/Game/Characters/Mannequins/Animations/ABP_Manny.ABP_Manny_C"));
+	if (AnimFinder.Succeeded())
+	{
+		GetMesh()->SetAnimInstanceClass(AnimFinder.Class);
+	}
 }
 
 void ARevolutionCharacter::BeginPlay()
@@ -72,6 +119,27 @@ void ARevolutionCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	// Vault traversal interpolation
+	if (bIsVaulting)
+	{
+		VaultProgress += (DeltaTime / FMath::Max(VaultDuration, 0.05f));
+		float ClampedProgress = FMath::Clamp(VaultProgress, 0.0f, 1.0f);
+
+		FVector CurrentLocation = FMath::Lerp(VaultStartLocation, VaultTargetLocation, ClampedProgress);
+		// Parabolic arc for natural body clearance over 1.1m parapet
+		float ArcOffset = VaultArcPeak * FMath::Sin(ClampedProgress * PI);
+		CurrentLocation.Z += ArcOffset;
+
+		SetActorLocation(CurrentLocation, true);
+
+		if (VaultProgress >= 1.0f)
+		{
+			bIsVaulting = false;
+			VaultProgress = 0.0f;
+			GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		}
+	}
+
 	// Stamina management
 	if (bIsSprinting && GetCharacterMovement()->Velocity.SizeSquared() > 100.0f)
 	{
@@ -91,50 +159,65 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
 
+	// 1. Enhanced Input Component Bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
 	{
-		// Jumping
 		if (JumpAction)
 		{
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ACharacter::Jump);
-			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ACharacter::StopJumping);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Started, this, &ARevolutionCharacter::OnJumpPressed);
+			EnhancedInputComponent->BindAction(JumpAction, ETriggerEvent::Completed, this, &ARevolutionCharacter::OnJumpReleased);
 		}
 
-		// Moving
 		if (MoveAction)
 		{
 			EnhancedInputComponent->BindAction(MoveAction, ETriggerEvent::Triggered, this, &ARevolutionCharacter::Move);
 		}
 
-		// Looking
 		if (LookAction)
 		{
 			EnhancedInputComponent->BindAction(LookAction, ETriggerEvent::Triggered, this, &ARevolutionCharacter::Look);
 		}
 
-		// Sprinting
 		if (SprintAction)
 		{
 			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Started, this, &ARevolutionCharacter::StartSprinting);
 			EnhancedInputComponent->BindAction(SprintAction, ETriggerEvent::Completed, this, &ARevolutionCharacter::StopSprinting);
 		}
 
-		// Crouching
 		if (CrouchAction)
 		{
 			EnhancedInputComponent->BindAction(CrouchAction, ETriggerEvent::Started, this, &ARevolutionCharacter::ToggleCrouch);
 		}
 
-		// Interaction
 		if (InteractAction)
 		{
 			EnhancedInputComponent->BindAction(InteractAction, ETriggerEvent::Started, this, &ARevolutionCharacter::OnInteract);
 		}
 	}
+
+	// 2. Direct Raw Input Bindings (Guarantees zero-dependency keyboard/mouse response)
+	PlayerInputComponent->BindAxisKey(EKeys::W, this, &ARevolutionCharacter::MoveForwardAxis);
+	PlayerInputComponent->BindAxisKey(EKeys::S, this, &ARevolutionCharacter::MoveForwardAxis);
+	PlayerInputComponent->BindAxisKey(EKeys::D, this, &ARevolutionCharacter::MoveRightAxis);
+	PlayerInputComponent->BindAxisKey(EKeys::A, this, &ARevolutionCharacter::MoveRightAxis);
+
+	PlayerInputComponent->BindAxisKey(EKeys::MouseX, this, &ARevolutionCharacter::TurnAxis);
+	PlayerInputComponent->BindAxisKey(EKeys::MouseY, this, &ARevolutionCharacter::LookUpAxis);
+
+	PlayerInputComponent->BindKey(EKeys::SpaceBar, IE_Pressed, this, &ARevolutionCharacter::OnJumpPressed);
+	PlayerInputComponent->BindKey(EKeys::SpaceBar, IE_Released, this, &ARevolutionCharacter::OnJumpReleased);
+
+	PlayerInputComponent->BindKey(EKeys::LeftShift, IE_Pressed, this, &ARevolutionCharacter::StartSprinting);
+	PlayerInputComponent->BindKey(EKeys::LeftShift, IE_Released, this, &ARevolutionCharacter::StopSprinting);
+
+	PlayerInputComponent->BindKey(EKeys::C, IE_Pressed, this, &ARevolutionCharacter::ToggleCrouch);
+	PlayerInputComponent->BindKey(EKeys::E, IE_Pressed, this, &ARevolutionCharacter::OnInteract);
 }
 
 void ARevolutionCharacter::Move(const FInputActionValue& Value)
 {
+	if (bIsVaulting) return;
+
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
 	if (Controller != nullptr)
@@ -158,6 +241,81 @@ void ARevolutionCharacter::Look(const FInputActionValue& Value)
 	{
 		AddControllerYawInput(LookAxisVector.X);
 		AddControllerPitchInput(LookAxisVector.Y);
+	}
+}
+
+void ARevolutionCharacter::MoveForwardAxis(float Value)
+{
+	if (bIsVaulting || FMath::IsNearlyZero(Value)) return;
+
+	if (Controller != nullptr)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+		AddMovementInput(ForwardDirection, Value);
+	}
+}
+
+void ARevolutionCharacter::MoveRightAxis(float Value)
+{
+	if (bIsVaulting || FMath::IsNearlyZero(Value)) return;
+
+	if (Controller != nullptr)
+	{
+		const FRotator Rotation = Controller->GetControlRotation();
+		const FRotator YawRotation(0, Rotation.Yaw, 0);
+		const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+		AddMovementInput(RightDirection, Value);
+	}
+}
+
+void ARevolutionCharacter::TurnAxis(float Value)
+{
+	if (!FMath::IsNearlyZero(Value) && Controller != nullptr)
+	{
+		AddControllerYawInput(Value);
+	}
+}
+
+void ARevolutionCharacter::LookUpAxis(float Value)
+{
+	if (!FMath::IsNearlyZero(Value) && Controller != nullptr)
+	{
+		AddControllerPitchInput(-Value);
+	}
+}
+
+void ARevolutionCharacter::OnJumpPressed()
+{
+	TryVaultOrJump();
+}
+
+void ARevolutionCharacter::OnJumpReleased()
+{
+	StopJumping();
+}
+
+void ARevolutionCharacter::TryVaultOrJump()
+{
+	if (bIsVaulting) return;
+
+	FVector TargetLocation;
+	if (DetectVaultableObstacle(TargetLocation))
+	{
+		bIsVaulting = true;
+		VaultProgress = 0.0f;
+		VaultStartLocation = GetActorLocation();
+		VaultTargetLocation = TargetLocation;
+
+		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		GetCharacterMovement()->Velocity = FVector::ZeroVector;
+
+		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir vaulting over parapet to %s"), *TargetLocation.ToString());
+	}
+	else
+	{
+		ACharacter::Jump();
 	}
 }
 
@@ -205,17 +363,19 @@ bool ARevolutionCharacter::DetectVaultableObstacle(FVector& OutVaultLocation)
 
 	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
 	{
-		// Check obstacle height (parapet is 1.0m to 1.2m)
-		FVector HeightCheckStart = Hit.Location + (Forward * 20.f) + FVector(0.f, 0.f, 130.f);
-		FVector HeightCheckEnd = HeightCheckStart - FVector(0.f, 0.f, 140.f);
+		// Top of obstacle height check (checks from 140cm above down to ground)
+		FVector HeightCheckStart = Hit.Location + (Forward * 35.f) + FVector(0.f, 0.f, 140.f);
+		FVector HeightCheckEnd = HeightCheckStart - FVector(0.f, 0.f, 160.f);
 		FHitResult HeightHit;
 
 		if (GetWorld()->LineTraceSingleByChannel(HeightHit, HeightCheckStart, HeightCheckEnd, ECC_Visibility, Params))
 		{
-			float ObstacleHeight = HeightHit.ImpactPoint.Z - GetActorLocation().Z;
-			if (ObstacleHeight >= 60.f && ObstacleHeight <= 130.f)
+			// Obstacle height relative to character ground base
+			float ObstacleHeight = (HeightHit.ImpactPoint.Z - GetActorLocation().Z) + 71.0f;
+			if (ObstacleHeight >= 50.f && ObstacleHeight <= 130.f)
 			{
-				OutVaultLocation = HeightHit.ImpactPoint;
+				// Vault destination: on top or clearance past obstacle
+				OutVaultLocation = HeightHit.ImpactPoint + (Forward * 45.f) + FVector(0.f, 0.f, 71.0f);
 				return true;
 			}
 		}
