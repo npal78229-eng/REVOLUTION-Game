@@ -13,6 +13,8 @@ class UInputMappingContext;
 class UInputAction;
 struct FInputActionValue;
 
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionFocusChanged, bool, bHasFocus, FText, PromptText);
+
 UCLASS(config=Game)
 class REVOLUTION_API ARevolutionCharacter : public ACharacter
 {
@@ -134,6 +136,18 @@ public:
 	/** Executes vault traversal over detected obstacle */
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
 	void TryVaultOrJump();
+
+	// --- INTERACTION & INSPECTION SYSTEM ---
+	UPROPERTY(BlueprintAssignable, Category = "Revolution|Interaction")
+	FOnInteractionFocusChanged OnInteractionFocusChanged;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Interaction")
+	AActor* CurrentInteractableActor = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Interaction")
+	float InteractionTraceDistance = 180.0f;
+
+	void CheckForInteractables();
 
 private:
 	FVector VaultStartLocation;

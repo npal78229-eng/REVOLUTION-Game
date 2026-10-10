@@ -16,6 +16,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "DrawDebugHelpers.h"
 #include "Animation/AnimInstance.h"
+#include "InteractableInterface.h"
 #include "REVOLUTION.h"
 
 ARevolutionCharacter::ARevolutionCharacter()
@@ -153,6 +154,8 @@ void ARevolutionCharacter::Tick(float DeltaTime)
 	{
 		CurrentStamina = FMath::Clamp(CurrentStamina + (StaminaRegenRate * DeltaTime), 0.0f, MaxStamina);
 	}
+
+	CheckForInteractables();
 }
 
 void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -348,7 +351,48 @@ void ARevolutionCharacter::ToggleCrouch()
 
 void ARevolutionCharacter::OnInteract()
 {
-	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir initiated interaction trace."));
+	if (CurrentInteractableActor && CurrentInteractableActor->Implements<UInteractableInterface>())
+	{
+		IInteractableInterface::Execute_OnInteract(CurrentInteractableActor, this);
+		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir interacted with %s"), *CurrentInteractableActor->GetName());
+	}
+	else
+	{
+		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir triggered interact, no interactable in focus."));
+	}
+}
+
+void ARevolutionCharacter::CheckForInteractables()
+{
+	FVector Start = FollowCamera ? FollowCamera->GetComponentLocation() : (GetActorLocation() + FVector(0.f, 0.f, 40.f));
+	FVector Forward = FollowCamera ? FollowCamera->GetForwardVector() : GetActorForwardVector();
+	FVector End = Start + (Forward * InteractionTraceDistance);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	AActor* FocusedActor = nullptr;
+	FText PromptText = FText::GetEmpty();
+
+	if (GetWorld()->SweepSingleByChannel(Hit, Start, End, FQuat::Identity, ECC_Visibility, FCollisionShape::MakeSphere(35.0f), Params))
+	{
+		if (Hit.GetActor() && Hit.GetActor()->Implements<UInteractableInterface>())
+		{
+			if (IInteractableInterface::Execute_CanInteract(Hit.GetActor(), this))
+			{
+				FocusedActor = Hit.GetActor();
+				PromptText = IInteractableInterface::Execute_GetInteractionPrompt(Hit.GetActor());
+			}
+		}
+	}
+
+	if (FocusedActor != CurrentInteractableActor)
+	{
+		CurrentInteractableActor = FocusedActor;
+		bool bHasFocus = (CurrentInteractableActor != nullptr);
+		OnInteractionFocusChanged.Broadcast(bHasFocus, PromptText);
+	}
 }
 
 bool ARevolutionCharacter::DetectVaultableObstacle(FVector& OutVaultLocation)
