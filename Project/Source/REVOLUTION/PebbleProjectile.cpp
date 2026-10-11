@@ -4,6 +4,7 @@
 #include "CurfewPatrolAI.h"
 #include "PigeonFlockActor.h"
 #include "PariahDogActor.h"
+#include "ChaffDustDecoyActor.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -109,6 +110,19 @@ void APebbleProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 					if (DistToDog <= Dog->PebbleHearingRadius)
 					{
 						Dog->DistractWithPebble(Hit.ImpactPoint);
+					}
+				}
+			}
+
+			for (TActorIterator<AChaffDustDecoyActor> ChaffIt(World); ChaffIt; ++ChaffIt)
+			{
+				AChaffDustDecoyActor* Chaff = *ChaffIt;
+				if (Chaff && !Chaff->bIsDischarged)
+				{
+					float DistToChaff = FVector::Dist(Chaff->GetActorLocation(), Hit.ImpactPoint);
+					if (DistToChaff <= 180.0f)
+					{
+						Chaff->TriggerChaffDust();
 					}
 				}
 			}

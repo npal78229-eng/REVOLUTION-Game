@@ -17,6 +17,7 @@
 #include "DoorDeorhiActor.h"
 #include "ChalkMarkActor.h"
 #include "ProclamationBoardActor.h"
+#include "ChaffDustDecoyActor.h"
 #include "EngineUtils.h"
 #include "REVOLUTION.h"
 
@@ -235,6 +236,21 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 	if (bHeadBlocked && bChestBlocked)
 	{
 		return false;
+	}
+
+	// Check if active wheat chaff particulate dust screen blocks sightlines
+	for (TActorIterator<AChaffDustDecoyActor> ChaffIt(GetWorld()); ChaffIt; ++ChaffIt)
+	{
+		AChaffDustDecoyActor* Chaff = *ChaffIt;
+		if (Chaff && Chaff->IsDustCloudActive())
+		{
+			float DistWatchman = FVector::Dist(GetActorLocation(), Chaff->GetActorLocation());
+			float DistPlayer = FVector::Dist(TargetPlayer->GetActorLocation(), Chaff->GetActorLocation());
+			if (DistWatchman <= Chaff->DustRadius || DistPlayer <= Chaff->DustRadius)
+			{
+				return false;
+			}
+		}
 	}
 
 	// Calculate base intensity based on distance falloff

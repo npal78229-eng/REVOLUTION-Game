@@ -21,6 +21,8 @@
 #include "PariahDogActor.h"
 #include "CheckpointBarrierActor.h"
 #include "ManjaTrapActor.h"
+#include "ChaffDustDecoyActor.h"
+#include "TelegraphWireActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -764,6 +766,54 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		if (ManjaTrap)
 		{
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Basant Glass Kite String Trap on rooftop terrace at (25, 120, 405)."));
+		}
+	}
+
+	// 19. Spawn Historical Wheat Chaff Winnowing Scoop Decoy (Bhoosa Dust Screen)
+	int32 ExistingChaff = 0;
+	for (TActorIterator<AChaffDustDecoyActor> ChaffIt(World); ChaffIt; ++ChaffIt)
+	{
+		ExistingChaff++;
+	}
+
+	if (ExistingChaff == 0)
+	{
+		FActorSpawnParameters ChaffSpawnParams;
+		ChaffSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AChaffDustDecoyActor* Chaff = World->SpawnActor<AChaffDustDecoyActor>(
+			AChaffDustDecoyActor::StaticClass(),
+			FVector(85.0f, 60.0f, 10.0f),
+			FRotator(0.0f, 35.0f, 0.0f),
+			ChaffSpawnParams
+		);
+		if (Chaff)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Harvest Wheat Chaff Decoy in courtyard granary corner at (85, 60, 10)."));
+		}
+	}
+
+	// 20. Spawn Historical British Military Telegraph Line Sabotage Post
+	int32 ExistingWires = 0;
+	for (TActorIterator<ATelegraphWireActor> WireIt(World); WireIt; ++WireIt)
+	{
+		ExistingWires++;
+	}
+
+	if (ExistingWires == 0)
+	{
+		FActorSpawnParameters WireSpawnParams;
+		WireSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ATelegraphWireActor* WirePost = World->SpawnActor<ATelegraphWireActor>(
+			ATelegraphWireActor::StaticClass(),
+			FVector(60.0f, 240.0f, 435.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			WireSpawnParams
+		);
+		if (WirePost)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned British Telegraph Wire Sabotage Post on rooftop parapet at (60, 240, 435)."));
 		}
 	}
 }
