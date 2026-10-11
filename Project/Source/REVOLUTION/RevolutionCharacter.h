@@ -141,6 +141,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
 	void TryVaultOrJump();
 
+	// --- LOW DRAIN CRAWLWAY TRAVERSAL SYSTEM (80cm Conduits & Foundation Breaches) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Traversal")
+	bool bIsCrawlTraversing = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Traversal")
+	float CrawlTraversalDuration = 1.6f;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
+	void StartCrawlTraversal(const FVector& StartLocation, const FVector& TargetLocation, float Duration);
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Traversal")
+	bool IsCrawlTraversing() const { return bIsCrawlTraversing; }
+
 	// --- INTERACTION & INSPECTION SYSTEM ---
 	UPROPERTY(BlueprintAssignable, Category = "Revolution|Interaction")
 	FOnInteractionFocusChanged OnInteractionFocusChanged;
@@ -266,6 +279,11 @@ private:
 	FVector VaultStartLocation;
 	FVector VaultTargetLocation;
 	float VaultProgress = 0.0f;
+
+	FVector CrawlStartLocation;
+	FVector CrawlTargetLocation;
+	float CrawlProgress = 0.0f;
+	float CurrentCrawlDuration = 1.6f;
 
 	float FootstepDistanceAccumulator = 0.0f;
 	bool bFootstepAlternate = false;

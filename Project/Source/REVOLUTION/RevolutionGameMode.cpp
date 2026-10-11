@@ -10,6 +10,7 @@
 #include "HidingSpotActor.h"
 #include "DoorDeorhiActor.h"
 #include "PigeonFlockActor.h"
+#include "CrawlSpaceActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -428,6 +429,30 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		if (RooftopFlock)
 		{
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Haveli Rooftop Pigeon Flock at (0, 255, 435)."));
+		}
+	}
+
+	// 8. Spawn Haveli Low Drain Crawlway (Mori / Parnala Arch)
+	int32 ExistingCrawlways = 0;
+	for (TActorIterator<ACrawlSpaceActor> CrawlIt(World); CrawlIt; ++CrawlIt)
+	{
+		ExistingCrawlways++;
+	}
+
+	if (ExistingCrawlways == 0)
+	{
+		FActorSpawnParameters CrawlSpawnParams;
+		CrawlSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ACrawlSpaceActor* DrainCrawlway = World->SpawnActor<ACrawlSpaceActor>(
+			ACrawlSpaceActor::StaticClass(),
+			FVector(-120.0f, 90.0f, 10.0f),
+			FRotator(0.0f, 90.0f, 0.0f),
+			CrawlSpawnParams
+		);
+		if (DrainCrawlway)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Haveli Low Drain Crawlway at (-120, 90, 10)."));
 		}
 	}
 }

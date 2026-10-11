@@ -476,6 +476,20 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 		DrawFramedBox(BadgeX, BadgeY, CoverW + 16.0f, CoverH + 8.0f, FLinearColor(0.04f, 0.12f, 0.06f, 0.85f), CoverCol, 1.5f);
 		DrawText(CoverText, CoverCol, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
 	}
+	else if (Kabir->IsCrawlTraversing() && SmallFont)
+	{
+		FString CrawlText = TEXT("[ LOW DRAIN CRAWL — UNSEEN ]");
+		float CrawlW = 0.0f, CrawlH = 0.0f;
+		GetTextSize(CrawlText, CrawlW, CrawlH, SmallFont);
+
+		float BadgeX = 36.0f;
+		float BadgeY = Canvas->ClipY * 0.81f;
+
+		// Terracotta amber tone for enclosed conduit crawl
+		FLinearColor CrawlCol = FLinearColor(0.88f, 0.58f, 0.22f, 0.95f);
+		DrawFramedBox(BadgeX, BadgeY, CrawlW + 16.0f, CrawlH + 8.0f, FLinearColor(0.12f, 0.06f, 0.02f, 0.85f), CrawlCol, 1.5f);
+		DrawText(CrawlText, CrawlCol, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
+	}
 	else if (Kabir->bIsCrouched && SmallFont)
 	{
 		FString StanceText = TEXT("[ CROUCHED — CONCEALED ]");

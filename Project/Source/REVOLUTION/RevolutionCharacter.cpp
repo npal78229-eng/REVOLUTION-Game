@@ -175,6 +175,33 @@ void ARevolutionCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	// Low drain crawlway traversal interpolation
+	if (bIsCrawlTraversing)
+	{
+		CrawlProgress += (DeltaTime / FMath::Max(CurrentCrawlDuration, 0.1f));
+		float ClampedProgress = FMath::Clamp(CrawlProgress, 0.0f, 1.0f);
+		float SmoothedProgress = FMath::InterpEaseInOut(0.0f, 1.0f, ClampedProgress, 2.0f);
+
+		FVector CurrentLocation = FMath::Lerp(CrawlStartLocation, CrawlTargetLocation, SmoothedProgress);
+		SetActorLocation(CurrentLocation, true);
+
+		// Orient smoothly towards travel direction
+		FVector TravelDir = (CrawlTargetLocation - CrawlStartLocation).GetSafeNormal2D();
+		if (!TravelDir.IsNearlyZero())
+		{
+			SetActorRotation(TravelDir.Rotation());
+		}
+
+		if (CrawlProgress >= 1.0f)
+		{
+			bIsCrawlTraversing = false;
+			CrawlProgress = 0.0f;
+			GetCapsuleComponent()->SetCapsuleHalfHeight(58.0f);
+			GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+			Crouch(); // Keep player in crouched stealth posture upon emerging
+		}
+	}
+
 	// Stamina management
 	if (bIsSprinting && GetCharacterMovement()->Velocity.SizeSquared() > 100.0f)
 	{
@@ -269,7 +296,7 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 void ARevolutionCharacter::Move(const FInputActionValue& Value)
 {
-	if (bIsVaulting || bIsInspecting) return;
+	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing) return;
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -308,7 +335,7 @@ void ARevolutionCharacter::Look(const FInputActionValue& Value)
 
 void ARevolutionCharacter::MoveForwardAxis(float Value)
 {
-	if (bIsVaulting || bIsInspecting || FMath::IsNearlyZero(Value)) return;
+	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || FMath::IsNearlyZero(Value)) return;
 
 	if (bIsHidingInCover)
 	{
@@ -330,7 +357,7 @@ void ARevolutionCharacter::MoveForwardAxis(float Value)
 
 void ARevolutionCharacter::MoveRightAxis(float Value)
 {
-	if (bIsVaulting || bIsInspecting || FMath::IsNearlyZero(Value)) return;
+	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || FMath::IsNearlyZero(Value)) return;
 
 	if (bIsHidingInCover)
 	{
@@ -368,9 +395,12 @@ void ARevolutionCharacter::LookUpAxis(float Value)
 
 void ARevolutionCharacter::OnJumpPressed()
 {
-	if (bIsInspecting)
+	if (bIsInspecting || bIsCrawlTraversing)
 	{
-		EndInspection();
+		if (bIsInspecting)
+		{
+			EndInspection();
+		}
 		return;
 	}
 
@@ -770,6 +800,27 @@ void ARevolutionCharacter::ExitHidingSpot()
 	OnInteractionFocusChanged.Broadcast(false, FText::GetEmpty());
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir re-emerged from concealment."));
+}
+
+void ARevolutionCharacter::StartCrawlTraversal(const FVector& StartLocation, const FVector& TargetLocation, float Duration)
+{
+	if (bIsCrawlTraversing) return;
+
+	bIsCrawlTraversing = true;
+	CrawlProgress = 0.0f;
+	CurrentCrawlDuration = FMath::Max(Duration, 0.2f);
+	CrawlStartLocation = StartLocation;
+	CrawlTargetLocation = TargetLocation;
+
+	StopSprinting();
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->DisableMovement();
+
+	// Lower capsule for low conduit clearance
+	GetCapsuleComponent()->SetCapsuleHalfHeight(30.0f);
+	SetActorLocation(StartLocation, true);
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir started low drain crawlway traversal from %s to %s"), *StartLocation.ToString(), *TargetLocation.ToString());
 }
 
 

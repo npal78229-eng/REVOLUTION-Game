@@ -121,8 +121,8 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 	OutPerceptionIntensity = 0.0f;
 	if (!TargetPlayer || !GetWorld()) return false;
 
-	// If player is concealed inside a hiding spot, watchman perception is completely broken
-	if (TargetPlayer->IsHidingInCover())
+	// If player is concealed inside a hiding spot or low drain conduit, watchman perception is completely broken
+	if (TargetPlayer->IsHidingInCover() || TargetPlayer->IsCrawlTraversing())
 	{
 		return false;
 	}
