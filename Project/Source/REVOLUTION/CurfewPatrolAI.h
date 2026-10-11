@@ -10,6 +10,7 @@ class UPointLightComponent;
 class USpotLightComponent;
 class UStaticMeshComponent;
 class ARevolutionCharacter;
+class USoundBase;
 
 UENUM(BlueprintType)
 enum class ECurfewAlertState : uint8
@@ -95,6 +96,13 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Components")
 	USpotLightComponent* LanternBeam;
+
+	// --- AUDIO & VOICE LINES ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* WatchmanCalloutSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* WatchmanWhistleSound = nullptr;
 
 	// --- LORE & DESIGNATION ---
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Dialogue")

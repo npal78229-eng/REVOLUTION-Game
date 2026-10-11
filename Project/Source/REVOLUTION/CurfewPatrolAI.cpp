@@ -11,6 +11,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "REVOLUTION.h"
 
 ACurfewPatrolAI::ACurfewPatrolAI()
@@ -79,6 +80,18 @@ ACurfewPatrolAI::ACurfewPatrolAI()
 	LanternBeam->SetCastShadows(true);
 
 	WatchmanTitle = FText::FromString(TEXT("Kot Gurdarshan Chaukidar (Night Watchman)"));
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> CalloutSoundFinder(TEXT("/Game/Audio/SFX/SFX_Watchman_Callout.SFX_Watchman_Callout"));
+	if (CalloutSoundFinder.Succeeded())
+	{
+		WatchmanCalloutSound = CalloutSoundFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> WhistleSoundFinder(TEXT("/Game/Audio/SFX/SFX_Watchman_Whistle.SFX_Watchman_Whistle"));
+	if (WhistleSoundFinder.Succeeded())
+	{
+		WatchmanWhistleSound = WhistleSoundFinder.Object;
+	}
 }
 
 void ACurfewPatrolAI::BeginPlay()
@@ -322,6 +335,15 @@ void ACurfewPatrolAI::SetAlertState(ECurfewAlertState NewState)
 	{
 		AlertState = NewState;
 		OnWatchmanAlertChanged.Broadcast(AlertState, DetectionMeter);
+
+		if (AlertState == ECurfewAlertState::Suspicious && WatchmanCalloutSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, WatchmanCalloutSound, GetActorLocation(), 1.0f);
+		}
+		else if (AlertState == ECurfewAlertState::Alerted && WatchmanWhistleSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, WatchmanWhistleSound, GetActorLocation(), 1.15f);
+		}
 
 		FString StateStr;
 		switch (AlertState)

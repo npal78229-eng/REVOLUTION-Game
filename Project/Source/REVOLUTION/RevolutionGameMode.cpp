@@ -5,6 +5,7 @@
 #include "RevolutionHUD.h"
 #include "InspectableProp.h"
 #include "CurfewPatrolAI.h"
+#include "ObjectiveTriggerActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -177,6 +178,127 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			Watchman->PatrolWaypoints.Add(FVector(-140.0f, 80.0f, 10.0f));   // Jute ration sacks alley corner
 
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Curfew Patrol Watchman with Kerosene Lantern at (-20, -220, 10)."));
+		}
+	}
+
+	// 3. Spawn Clandestine Mission Triggers (Leaflet Pickup, Rooftop Route, Courier Stash, Courtyard Return)
+	int32 ExistingTriggers = 0;
+	for (TActorIterator<AObjectiveTriggerActor> It(World); It; ++It)
+	{
+		ExistingTriggers++;
+	}
+
+	if (ExistingTriggers == 0)
+	{
+		FActorSpawnParameters TriggerSpawnParams;
+		TriggerSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		// Objective 1 Trigger: Clandestine Leaflet Dispatch near courtyard charpai
+		AObjectiveTriggerActor* LeafletTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(115.0f, 135.0f, 25.0f),
+			FRotator(0.0f, 15.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (LeafletTrigger)
+		{
+			LeafletTrigger->RequiredMissionStage = ECourierMissionStage::Stage_RetrievePamphlets;
+			LeafletTrigger->InteractionPrompt = FText::FromString(TEXT("Retrieve Leaflets"));
+			LeafletTrigger->ItemTitle = FText::FromString(TEXT("Anti-Rowlatt Pamphlet Dispatch"));
+			LeafletTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Urdu and Gurmukhi leaflets printed in secret calling for an immediate town-wide Hartal (general shutdown). Kabir tucks them under his vest to cross the rooftops unseen.")
+			);
+			LeafletTrigger->bHideMeshOnTrigger = true;
+
+			UStaticMesh* LeafletMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_GrainSack_Jute_01.SM_Prop_GrainSack_Jute_01"));
+			if (LeafletMesh && LeafletTrigger->MeshComponent)
+			{
+				LeafletTrigger->MeshComponent->SetStaticMesh(LeafletMesh);
+				LeafletTrigger->MeshComponent->SetRelativeScale3D(FVector(0.28f, 0.28f, 0.28f));
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective 1: Pamphlet Pickup at (115, 135, 25)."));
+		}
+
+		// Objective 2 Trigger: Rooftop Terrace Parapet Waypoint
+		AObjectiveTriggerActor* RooftopTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(0.0f, 240.0f, 410.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (RooftopTrigger)
+		{
+			RooftopTrigger->RequiredMissionStage = ECourierMissionStage::Stage_RooftopInfiltration;
+			RooftopTrigger->InteractionPrompt = FText::FromString(TEXT("Survey Rooftop Route"));
+			RooftopTrigger->ItemTitle = FText::FromString(TEXT("Mohalla Rooftop Vantage"));
+			RooftopTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("From this high brick terrace ledge, Kabir spots the colonial patrol lantern below in the alley. The drop box near the Jharokha balcony is now reachable across the rooftops.")
+			);
+			RooftopTrigger->bHideMeshOnTrigger = false;
+
+			UStaticMesh* SpoolMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_Kite_Spool_Charkhi.SM_Prop_Kite_Spool_Charkhi"));
+			if (SpoolMesh && RooftopTrigger->MeshComponent)
+			{
+				RooftopTrigger->MeshComponent->SetStaticMesh(SpoolMesh);
+				RooftopTrigger->MeshComponent->SetRelativeScale3D(FVector(0.6f, 0.6f, 0.6f));
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective 2: Rooftop Waypoint at (0, 240, 410)."));
+		}
+
+		// Objective 3 Trigger: Secret Courier Stash Box near upper Jharokha Balcony
+		AObjectiveTriggerActor* StashTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(-190.0f, -60.0f, 325.0f),
+			FRotator(0.0f, 90.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (StashTrigger)
+		{
+			StashTrigger->RequiredMissionStage = ECourierMissionStage::Stage_DeliverToStash;
+			StashTrigger->InteractionPrompt = FText::FromString(TEXT("Deposit in Courier Stash"));
+			StashTrigger->ItemTitle = FText::FromString(TEXT("Underground Mohalla Courier Stash"));
+			StashTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("A carved sandalwood lockbox hidden behind the cedar jharokha lattice. Fellow anti-Rowlatt dispatch riders will retrieve the bulletins here before dawn to distribute along the railway lines.")
+			);
+			StashTrigger->bHideMeshOnTrigger = false;
+
+			UStaticMesh* StashMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_Charpai_RopeBed.SM_Prop_Charpai_RopeBed"));
+			if (StashMesh && StashTrigger->MeshComponent)
+			{
+				StashTrigger->MeshComponent->SetStaticMesh(StashMesh);
+				StashTrigger->MeshComponent->SetRelativeScale3D(FVector(0.20f, 0.20f, 0.25f));
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective 3: Courier Stash at (-190, -60, 325)."));
+		}
+
+		// Objective 4 Trigger: Safe Return Spot in Courtyard
+		AObjectiveTriggerActor* ReturnTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(10.0f, 20.0f, 15.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (ReturnTrigger)
+		{
+			ReturnTrigger->RequiredMissionStage = ECourierMissionStage::Stage_EvadeAndSurvive;
+			ReturnTrigger->InteractionPrompt = FText::FromString(TEXT("Conclude Courier Mission"));
+			ReturnTrigger->ItemTitle = FText::FromString(TEXT("Haveli Family Courtyard"));
+			ReturnTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("The courtyard deorhi gate clicks shut. As dawn breaks over the haveli terracotta roofs, temple and gurdwara bells herald the town-wide Hartal. All bazaar shops will remain shut in protest against wartime emergency laws.")
+			);
+			ReturnTrigger->bHideMeshOnTrigger = true;
+
+			UStaticMesh* LanternMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_HurricaneLantern.SM_Prop_HurricaneLantern"));
+			if (LanternMesh && ReturnTrigger->MeshComponent)
+			{
+				ReturnTrigger->MeshComponent->SetStaticMesh(LanternMesh);
+				ReturnTrigger->MeshComponent->SetRelativeScale3D(FVector(0.4f, 0.4f, 0.4f));
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective 4: Return Courtyard Trigger at (10, 20, 15)."));
 		}
 	}
 }

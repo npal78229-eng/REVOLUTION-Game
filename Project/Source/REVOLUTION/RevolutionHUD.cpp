@@ -9,6 +9,7 @@
 #include "Camera/CameraComponent.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
+#include "RevolutionMissionSubsystem.h"
 
 ARevolutionHUD::ARevolutionHUD()
 {
@@ -60,6 +61,7 @@ void ARevolutionHUD::DrawHUD()
 		DrawInteractionPrompt(Kabir);
 		DrawStaminaGauge(Kabir);
 		DrawStealthAndDetection(Kabir);
+		DrawMissionDirectiveBanner(Kabir);
 	}
 }
 
@@ -495,3 +497,68 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 		}
 	}
 }
+
+void ARevolutionHUD::DrawMissionDirectiveBanner(ARevolutionCharacter* Kabir)
+{
+	if (!bShowMissionBanner || !Canvas || !Kabir) return;
+
+	URevolutionMissionSubsystem* Subsystem = GetWorld()->GetSubsystem<URevolutionMissionSubsystem>();
+	if (!Subsystem) return;
+
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	const ECourierMissionStage CurrentStage = Subsystem->GetCurrentStage();
+	const FString Title = Subsystem->GetCurrentStageTitle().ToString();
+	const FString Directive = Subsystem->GetCurrentStageDirective().ToString();
+
+	const float BannerX = 36.0f;
+	const float BannerY = 28.0f;
+	const float BannerWidth = 390.0f;
+
+	TArray<FString> WrappedDirectiveLines = WrapText(Directive, SmallFont, BannerWidth - 32.0f);
+	const float LineHeight = 16.0f;
+	const float HeaderHeight = 44.0f;
+	const float BannerHeight = HeaderHeight + (WrappedDirectiveLines.Num() * LineHeight) + 12.0f;
+
+	// Background and Border
+	const FLinearColor BgColor = (CurrentStage == ECourierMissionStage::Stage_Completed)
+		? FLinearColor(0.04f, 0.10f, 0.05f, 0.82f)
+		: FLinearColor(0.07f, 0.06f, 0.05f, 0.80f);
+
+	const FLinearColor BorderCol = (CurrentStage == ECourierMissionStage::Stage_Completed)
+		? FLinearColor(0.35f, 0.85f, 0.45f, 0.95f)
+		: AntiqueBrassColor;
+
+	DrawFramedBox(BannerX, BannerY, BannerWidth, BannerHeight, BgColor, BorderCol, 1.5f);
+
+	// Stage Indicator Tag
+	FString StageTag;
+	switch (CurrentStage)
+	{
+	case ECourierMissionStage::Stage_RetrievePamphlets: StageTag = TEXT("1919 COURIER  —  OBJECTIVE 1 OF 4"); break;
+	case ECourierMissionStage::Stage_RooftopInfiltration: StageTag = TEXT("1919 COURIER  —  OBJECTIVE 2 OF 4"); break;
+	case ECourierMissionStage::Stage_DeliverToStash: StageTag = TEXT("1919 COURIER  —  OBJECTIVE 3 OF 4"); break;
+	case ECourierMissionStage::Stage_EvadeAndSurvive: StageTag = TEXT("1919 COURIER  —  OBJECTIVE 4 OF 4"); break;
+	case ECourierMissionStage::Stage_Completed: StageTag = TEXT("1919 CLANDESTINE DISPATCH  —  ACCOMPLISHED"); break;
+	}
+
+	// Draw Tag
+	DrawText(StageTag, BorderCol, BannerX + 16.0f, BannerY + 8.0f, SmallFont);
+
+	// Draw Title
+	const FLinearColor TitleCol = (CurrentStage == ECourierMissionStage::Stage_Completed)
+		? FLinearColor(0.92f, 1.0f, 0.92f, 1.0f)
+		: FLinearColor(0.96f, 0.93f, 0.86f, 1.0f);
+	DrawText(Title, TitleCol, BannerX + 16.0f, BannerY + 24.0f, SmallFont);
+
+	// Draw Wrapped Directive Lines
+	float CurrY = BannerY + HeaderHeight;
+	const FLinearColor DescCol = FLinearColor(0.80f, 0.78f, 0.72f, 0.95f);
+	for (const FString& Line : WrappedDirectiveLines)
+	{
+		DrawText(Line, DescCol, BannerX + 16.0f, CurrY, SmallFont);
+		CurrY += LineHeight;
+	}
+}
+
