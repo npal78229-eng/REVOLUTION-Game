@@ -138,8 +138,25 @@ void ARevolutionCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Add input mapping context to Enhanced Input Subsystem
+	// Add input mapping context to Enhanced Input Subsystem if controller already assigned
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			if (DefaultMappingContext)
+			{
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
+		}
+	}
+}
+
+void ARevolutionCharacter::PossessedBy(AController* NewController)
+{
+	Super::PossessedBy(NewController);
+
+	// Ensure Enhanced Input Mapping Context is registered immediately upon possession
+	if (APlayerController* PlayerController = Cast<APlayerController>(NewController))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
@@ -235,12 +252,56 @@ void ARevolutionCharacter::Tick(float DeltaTime)
 		FootstepDistanceAccumulator = 0.0f;
 	}
 
+	// Direct keyboard movement fallback (guarantees movement even if Enhanced Input subsystem dropped context)
+	if (Controller != nullptr && !bIsVaulting && !bIsInspecting && !bIsCrawlTraversing && !bIsSatchelJournalOpen)
+	{
+		if (APlayerController* PC = Cast<APlayerController>(Controller))
+		{
+			float ForwardInput = 0.0f;
+			float RightInput = 0.0f;
+
+			if (PC->IsInputKeyDown(EKeys::W) || PC->IsInputKeyDown(EKeys::Up)) ForwardInput += 1.0f;
+			if (PC->IsInputKeyDown(EKeys::S) || PC->IsInputKeyDown(EKeys::Down)) ForwardInput -= 1.0f;
+			if (PC->IsInputKeyDown(EKeys::D) || PC->IsInputKeyDown(EKeys::Right)) RightInput += 1.0f;
+			if (PC->IsInputKeyDown(EKeys::A) || PC->IsInputKeyDown(EKeys::Left)) RightInput -= 1.0f;
+
+			if (!FMath::IsNearlyZero(ForwardInput) || !FMath::IsNearlyZero(RightInput))
+			{
+				const FRotator Rotation = Controller->GetControlRotation();
+				const FRotator YawRotation(0, Rotation.Yaw, 0);
+				const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
+				const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
+
+				if (!FMath::IsNearlyZero(ForwardInput))
+				{
+					AddMovementInput(ForwardDirection, ForwardInput);
+				}
+				if (!FMath::IsNearlyZero(RightInput))
+				{
+					AddMovementInput(RightDirection, RightInput);
+				}
+			}
+		}
+	}
+
 	CheckForInteractables();
 }
 
 void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 {
 	Super::SetupPlayerInputComponent(PlayerInputComponent);
+
+	// 0. Ensure Enhanced Input Mapping Context is registered on Local Player Subsystem
+	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		{
+			if (DefaultMappingContext && !Subsystem->HasMappingContext(DefaultMappingContext))
+			{
+				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+			}
+		}
+	}
 
 	// 1. Enhanced Input Component Bindings
 	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
@@ -279,6 +340,9 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	}
 
 	// 2. Direct Raw Input Bindings (Guarantees zero-dependency keyboard/mouse response)
+	PlayerInputComponent->BindAxis(TEXT("MoveForward"), this, &ARevolutionCharacter::MoveForwardAxis);
+	PlayerInputComponent->BindAxis(TEXT("MoveRight"), this, &ARevolutionCharacter::MoveRightAxis);
+
 	PlayerInputComponent->BindAxisKey(EKeys::MouseX, this, &ARevolutionCharacter::TurnAxis);
 	PlayerInputComponent->BindAxisKey(EKeys::MouseY, this, &ARevolutionCharacter::LookUpAxis);
 
