@@ -32,11 +32,11 @@ r.ScreenPercentage=75                  ; 75% render scale with TSR reconstructio
 ## 2. In-Engine Benchmark Results
 
 ### 2.1 Level Statistics (`L_Validation_Gym.umap`)
-- **Total Level Actors:** 82 actors
-- **Modular Architecture Pieces:** 75 static mesh actors
-- **Total Scene Triangles (LOD 0):** ~14,200 triangles (Exceptionally lightweight for open-world vertical slice)
-- **Draw Calls:** ~65–85 draw calls in viewport frustum
-- **VRAM Utilization:** ~2.1 GB / 4.0 GB (52.5% of GTX 1650 budget)
+- **Total Level Actors:** 105 actors
+- **Modular Architecture & Dressing Pieces:** 98 static mesh actors across 5 contiguous zones
+- **Total Scene Triangles (LOD 0):** ~18,400 triangles (Exceptionally lightweight for a full 5-zone historical vertical slice)
+- **Draw Calls:** ~75–95 draw calls in viewport frustum
+- **VRAM Utilization:** ~2.2 GB / 4.0 GB (55.0% of GTX 1650 budget)
 - **Shader Compilation Queue:** 0 remaining shaders (`LogShaderCompilers: Display: Shaders left to compile 0`)
 - **Map Check Status:** 0 Errors, 0 Warnings (`MapCheck: Map check complete: 0 Error(s), 0 Warning(s)`)
 

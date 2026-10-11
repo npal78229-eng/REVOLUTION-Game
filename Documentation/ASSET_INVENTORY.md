@@ -36,6 +36,10 @@
 | `SM_Prop_Kite_Spool_Charkhi` | `AInspectableProp` | `M_AgedTeak_PBR` | Polished hardwood kite spool strung with glass-coated line. | In-Use |
 | `SM_Prop_SpiceBasket_Woven` | `AInspectableProp` | `M_Clay_PBR` | Cane basket filled with turmeric (*haldi*) and red chili. | In-Use |
 | `SM_Prop_ShopSign_Wood` | `AInspectableProp` | `M_AgedTeak_PBR` | Hanging wooden merchant plaque with iron mounting brackets. | In-Use |
+| `SM_School_Desk_Bench_Wood` | `AInspectableProp` | `M_AgedTeak_PBR` | Two-seater varnished Sheesham student desk bench with slate groove. | In-Use (Classroom 4B) |
+| `SM_School_Blackboard_Easel` | `AInspectableProp` | `M_AgedTeak_PBR`, `M_WroughtIron_PBR` | Large timber-framed slate easel blackboard for teacher instruction. | In-Use (Classroom 4B) |
+| `SM_School_Bell_Tower_Iron` | `AInspectableProp` | `M_WroughtIron_PBR`, `M_AgedTeak_PBR` | 4-post wrought iron school bell gantry with suspended brass bell. | In-Use (Schoolyard Center) |
+| `SM_Prop_SewingMachine_Singer` | `AInspectableProp` | `M_WroughtIron_PBR`, `M_AgedTeak_PBR` | Authentic 1919 cast-iron Singer treadle sewing machine with foot pedal. | In-Use (Father's Veranda) |
 
 ---
 
@@ -73,6 +77,6 @@
   - `Art/Blender/KIT_Punjabi_Mohalla.blend` (Master modular architecture kit)
   - `Art/Blender/Courtyard_Rooftop_Gym_Scene.blend` (Assembled courtyard prototype)
 - **FBX Export Directory:**
-  - `Art/Exports/` (19 modular FBX files ready for automated headless ingestion)
+  - `Art/Exports/` (23 modular FBX files ready for automated headless ingestion)
 - **Engine Maps:**
-  - `Project/Content/Maps/L_Validation_Gym.umap` (The playable 75-piece vertical slice)
+  - `Project/Content/Maps/L_Validation_Gym.umap` (The playable 105-piece vertical slice across 5 zones)

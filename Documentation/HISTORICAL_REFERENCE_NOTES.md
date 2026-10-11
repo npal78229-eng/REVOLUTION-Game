@@ -42,3 +42,8 @@ The environment, architecture, social structures, and material culture in **PROJ
 ### 2.5 Lighting & Atmosphere: Punjab Golden Hour (3200K)
 - **Historical Reality:** Late afternoon in April Punjab brings dry heat, heavy golden sunlight, loamy dust kicked up by bullock carts, and woodsmoke rising from evening cook fires (*chulhas*).
 - **Engine Shading:** Set Directional Sun light to 3200K Kelvin warm illumination, 75000 lux intensity, and soft volumetric height fog scattering golden light shafts through narrow alleyways.
+
+### 2.6 The Anglo-Vernacular Middle School (Colonial Education & Quiet Defiance)
+- **Historical Reality:** Punjab Education Department schools in 1919 operated under strict colonial inspection codes. Classrooms maintained portraits of King George V, rigid timber bench rows, and regimented bell schedules. Instruction balanced basic arithmetic and English handwriting with Persian-script Urdu literacy.
+- **Narrative Resonance:** In Classroom 4B, 12-year-old Kabir experiences the cognitive dissonance of reciting loyalist poetry while his classmates' older brothers distribute banned copies of the seditious newspaper *Zamindar* and handwritten notices calling for the *hartal* (general strike). The cast-iron bell marks not just the end of school, but the countdown to the evening curfew.
+

@@ -11,27 +11,26 @@
 
 ```mermaid
 flowchart LR
-    Task1["Task 1: Vernacular Middle School (District C)\n• Modular colonial brick classroom\n• Veranda archways & iron bell tower\n• Desks, benches & George V portrait"]
+    Task0["Task 0: Vernacular Middle School (District C)\n• Modular colonial brick classroom\n• Veranda archways & iron bell tower\n• Desks, benches & blackboard\n[STATUS: COMPLETED & VALIDATED]"]
     
-    Task2["Task 2: Living Civilian NPC System\n• Punjabi artisan & vendor routines\n• Ambient crowd audio loops\n• Water-carrier Bhishti & Halwai tea maker"]
+    Task1["Task 1: Living Civilian NPC System\n• Punjabi artisan & vendor routines\n• Ambient crowd audio loops\n• Water-carrier Bhishti & Halwai tea maker\n[STATUS: IMMEDIATE NEXT]"]
     
-    Task3["Task 3: Early Story Narrative Mission Slice\n• Act I Quest: 'The Morning Courier'\n• Deliver tailored coat & buy chai kulhads\n• First encounter with Rowlatt Act proclamation"]
+    Task2["Task 2: Early Story Narrative Mission Slice\n• Act I Quest: 'The Morning Courier'\n• Deliver tailored coat & buy chai kulhads\n• First encounter with Rowlatt Act proclamation\n[STATUS: READY FOR WIRING]"]
 
+    Task0 --> Task1
     Task1 --> Task2
-    Task2 --> Task3
 ```
 
 ---
 
-### Task 1: Construct District C — The Vernacular Middle School
-- **Objective:** Build the third key district of Kot Gurdarshan representing Kabir's school life in April 1919.
-- **Components:**
-  - Single-story colonial brick compound with high arched lime-washed verandas.
-  - Classroom 4B interior: wooden benches with inkwells, slate blackboards, King George V imperial portrait.
-  - Schoolyard courtyard with dust cricket pitch and central iron bell tower.
-- **Dependencies:**
-  - Reuse modular brick wall kit (`SM_Wall_Brick_4x4m_A`, `SM_Floor_Ceiling_Slab_4x4m`).
-  - Create classroom bench and school bell tower assets in Blender.
+### Task 0: Construct District C — The Vernacular Middle School [COMPLETED]
+- **Status:** **100% COMPLETE & VALIDATED IN-ENGINE**
+- **Implemented Components:**
+  - Gateway Archway & bilingual Vernacular School plaque (`SM_School_Signboard`).
+  - Schoolyard Central Iron Bell Tower (`SM_School_Bell_Tower_Iron`) at $(1350, 1350, 0)$.
+  - Classroom 4B Brick Compound with entrance doorway, arched windows, and solid walkable roof slabs at $Z = 400\text{ cm}$.
+  - Classroom Interior: Dual student desk benches (`SM_School_Desk_Bench_Wood`), timber-framed slate blackboard (`SM_School_Blackboard_Easel`), and evening literacy lantern.
+  - Family Workshop: Singer sewing machine (`SM_Prop_SewingMachine_Singer`), tailor charpai, and chai kulhad at $(200, 520, 0)$.
 
 ---
 

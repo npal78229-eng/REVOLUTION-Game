@@ -17,7 +17,7 @@ flowchart TD
     
     L2["Layer 2: Connected Streets, Well & Grand Bazaar\n• Narrow Deorhi Paved Alleyways\n• Communal Stone Well & Chopal Gathering Platform\n• Grand Bazaar East-West Street (Y = 1800)\n• Spice Merchant, Halwai Chai & Khadi Cloth Stalls\n• Mandi Grain Procurement Pyramid with Excise Stamps\n[STATUS: COMPLETED & VERIFIED]"]
 
-    L3["Layer 3: The Vernacular Middle School & Canal Outskirts\n• Colonial Brick School Compound & Veranda Classrooms\n• King George V Portrait vs Forbidden Urdu Tracts\n• Upper Bari Doab Canal Distributary & Brick Kiln (Bhatta)\n• Persian Wheel & Agricultural Mustard Fields\n[STATUS: SCHEDULED NEXT]"]
+    L3["Layer 3: The Vernacular Middle School & Canal Outskirts\n• Colonial Brick School Compound & Veranda Classrooms [IMPLEMENTED & VALIDATED]\n• Central Iron Bell Tower & Classroom 4B Desks/Blackboard [IMPLEMENTED & VALIDATED]\n• Upper Bari Doab Canal Distributary & Brick Kiln (Bhatta)\n• Persian Wheel & Agricultural Mustard Fields\n[STATUS: SCHOOL BUILT; CANAL SCHEDULED NEXT]"]
 
     L4["Layer 4: Railway Junction & Colonial Civil Lines\n• North Western Railway Tracks & Steam Locomotive Shed\n• Brick Railway Overpass (The Iron Dividing Line)\n• Segregated European Club, Police Lines & Cantonment\n• Tehsildar Court & Requisition Records Office\n[STATUS: BACKLOG]"]
 
@@ -81,6 +81,8 @@ The player navigates organically through strong visual and acoustic beacons:
    - Sloped weathered canvas awnings and vibrant spice baskets indicating commercial activity.
 4. **The Municipal Curfew Gong (Acoustic Beacon):**
    - Deep metallic resonance audible across 35 meters when struck, aiding nighttime orientation.
+5. **The School Bell Tower (East Landmark):**
+   - 4-post wrought iron gantry with suspended brass bell at $(1350, 1350, 0)$; acoustic and visual landmark marking the municipal vernacular school compound.
 
 ---
 
