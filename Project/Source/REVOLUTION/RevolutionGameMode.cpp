@@ -8,6 +8,7 @@
 #include "ObjectiveTriggerActor.h"
 #include "RevolutionAtmosphereController.h"
 #include "HidingSpotActor.h"
+#include "DoorDeorhiActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -102,12 +103,12 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			TEXT("Inspect Charkhi")
 		},
 		{
-			TEXT("/Game/Environment/Mohalla/Meshes/SM_Door_Deorhi_Teak_01.SM_Door_Deorhi_Teak_01"),
-			FVector(-20.0f, -240.0f, 10.0f),
-			FRotator(0.0f, 90.0f, 0.0f),
-			TEXT("Aged Teak Deorhi Gateway"),
-			TEXT("A heavy colonial-period threshold door forged from aged Burma teak and iron strap hinges. In traditional Punjabi architecture, the deorhi serves as the transition vestibule between public bazaar alleys and private family courtyards."),
-			TEXT("Inspect Gateway")
+			TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_GrainSack_Jute_01.SM_Prop_GrainSack_Jute_01"),
+			FVector(130.0f, 90.0f, 10.0f),
+			FRotator(0.0f, 20.0f, 0.0f),
+			TEXT("Stack of Moonj Hemp Sacks"),
+			TEXT("Coarse woven hemp sacks stacked in the haveli courtyard. Artisans and cloth merchants stored cotton bolts and indigo-dyed fabric inside during curfew shutdowns."),
+			TEXT("Inspect Hemp Sacks")
 		},
 		{
 			TEXT("/Game/Environment/Mohalla/Meshes/SM_Balcony_Jharokha_Wood_A.SM_Balcony_Jharokha_Wood_A"),
@@ -376,6 +377,32 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 				Spot2->CoverMesh->SetRelativeScale3D(FVector(0.9f, 0.9f, 1.2f));
 			}
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Environmental Hiding Spot 2 (Deorhi Alcove) at (-45, -220, 10)."));
+		}
+	}
+
+	// 6. Spawn Interactive Haveli Deorhi Door with Iron Kundi Latch
+	int32 ExistingDoors = 0;
+	for (TActorIterator<ADoorDeorhiActor> DoorIt(World); DoorIt; ++DoorIt)
+	{
+		ExistingDoors++;
+	}
+
+	if (ExistingDoors == 0)
+	{
+		FActorSpawnParameters DoorSpawnParams;
+		DoorSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ADoorDeorhiActor* DeorhiDoor = World->SpawnActor<ADoorDeorhiActor>(
+			ADoorDeorhiActor::StaticClass(),
+			FVector(-20.0f, -240.0f, 10.0f),
+			FRotator(0.0f, 90.0f, 0.0f),
+			DoorSpawnParams
+		);
+		if (DeorhiDoor)
+		{
+			DeorhiDoor->bIsBolted = true;
+			DeorhiDoor->bIsOpen = false;
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Interactive Deorhi Door with Iron Kundi at (-20, -240, 10)."));
 		}
 	}
 }

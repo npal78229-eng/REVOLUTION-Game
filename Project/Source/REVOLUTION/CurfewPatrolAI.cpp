@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "RevolutionAtmosphereController.h"
+#include "DoorDeorhiActor.h"
 #include "EngineUtils.h"
 #include "REVOLUTION.h"
 
@@ -276,6 +277,38 @@ void ACurfewPatrolAI::UpdateDetection(float DeltaTime)
 void ACurfewPatrolAI::UpdatePatrol(float DeltaTime)
 {
 	FVector Destination = GetActorLocation();
+
+	if (AlertState == ECurfewAlertState::Alerted || AlertState == ECurfewAlertState::Searching)
+	{
+		// Check if a closed and bolted haveli door is blocking the path in front of watchman
+		for (TActorIterator<ADoorDeorhiActor> DoorIt(GetWorld()); DoorIt; ++DoorIt)
+		{
+			ADoorDeorhiActor* Door = *DoorIt;
+			if (Door && !Door->IsDoorOpen() && Door->IsDoorBolted())
+			{
+				float DistToDoor = FVector::Dist2D(GetActorLocation(), Door->GetActorLocation());
+				if (DistToDoor < 155.0f)
+				{
+					// Watchman is blocked by the bolted door!
+					Door->WatchmanBangOnDoor(this);
+
+					// Face the locked door
+					FVector DirToDoor = (Door->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+					if (!DirToDoor.IsNearlyZero())
+					{
+						SetActorRotation(FMath::RInterpTo(GetActorRotation(), DirToDoor.Rotation(), DeltaTime, 8.0f));
+					}
+
+					// Drop alert to searching, reset detection meter, delay pursuit
+					DetectionMeter = 25.0f;
+					SetAlertState(ECurfewAlertState::Searching);
+					SearchTimer = 0.0f;
+					GetCharacterMovement()->StopMovementImmediately();
+					return;
+				}
+			}
+		}
+	}
 
 	if (AlertState == ECurfewAlertState::Alerted)
 	{
