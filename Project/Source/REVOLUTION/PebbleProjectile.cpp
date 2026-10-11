@@ -2,6 +2,7 @@
 
 #include "PebbleProjectile.h"
 #include "CurfewPatrolAI.h"
+#include "PigeonFlockActor.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -81,6 +82,19 @@ void APebbleProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 					if (Dist <= SoundAlertRadius)
 					{
 						Watchman->InvestigateSoundLocation(Hit.ImpactPoint);
+					}
+				}
+			}
+
+			for (TActorIterator<APigeonFlockActor> FlockIt(World); FlockIt; ++FlockIt)
+			{
+				APigeonFlockActor* Flock = *FlockIt;
+				if (Flock && !Flock->HasScattered())
+				{
+					float DistToFlock = FVector::Dist(Flock->GetActorLocation(), Hit.ImpactPoint);
+					if (DistToFlock <= 250.0f)
+					{
+						Flock->TriggerScatterFlock();
 					}
 				}
 			}

@@ -9,6 +9,7 @@
 #include "RevolutionAtmosphereController.h"
 #include "HidingSpotActor.h"
 #include "DoorDeorhiActor.h"
+#include "PigeonFlockActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -403,6 +404,30 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			DeorhiDoor->bIsBolted = true;
 			DeorhiDoor->bIsOpen = false;
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Interactive Deorhi Door with Iron Kundi at (-20, -240, 10)."));
+		}
+	}
+
+	// 7. Spawn Haveli Rooftop Pigeon Flock (Kabootar)
+	int32 ExistingFlocks = 0;
+	for (TActorIterator<APigeonFlockActor> FlockIt(World); FlockIt; ++FlockIt)
+	{
+		ExistingFlocks++;
+	}
+
+	if (ExistingFlocks == 0)
+	{
+		FActorSpawnParameters FlockSpawnParams;
+		FlockSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		APigeonFlockActor* RooftopFlock = World->SpawnActor<APigeonFlockActor>(
+			APigeonFlockActor::StaticClass(),
+			FVector(0.0f, 255.0f, 435.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			FlockSpawnParams
+		);
+		if (RooftopFlock)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Haveli Rooftop Pigeon Flock at (0, 255, 435)."));
 		}
 	}
 }
