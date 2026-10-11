@@ -12,6 +12,7 @@ class UCameraComponent;
 class UInputMappingContext;
 class UInputAction;
 class USoundBase;
+class AHidingSpotActor;
 struct FInputActionValue;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionFocusChanged, bool, bHasFocus, FText, PromptText);
@@ -244,6 +245,22 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
 	int32 GetChalkCount() const { return ChalkCount; }
+
+	// --- CONCEALMENT & HIDING SPOT SYSTEM ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Concealment")
+	bool bIsHidingInCover = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Concealment")
+	AHidingSpotActor* CurrentHidingSpot = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Concealment")
+	void EnterHidingSpot(AHidingSpotActor* Spot);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Concealment")
+	void ExitHidingSpot();
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Concealment")
+	bool IsHidingInCover() const { return bIsHidingInCover; }
 
 private:
 	FVector VaultStartLocation;

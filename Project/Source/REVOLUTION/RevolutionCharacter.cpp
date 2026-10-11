@@ -21,6 +21,7 @@
 #include "Sound/SoundBase.h"
 #include "PebbleProjectile.h"
 #include "ChalkMarkActor.h"
+#include "HidingSpotActor.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "REVOLUTION.h"
 
@@ -272,6 +273,15 @@ void ARevolutionCharacter::Move(const FInputActionValue& Value)
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
+	if (bIsHidingInCover)
+	{
+		if (MovementVector.SizeSquared() > 0.35f && CurrentHidingSpot)
+		{
+			CurrentHidingSpot->EjectOccupant();
+		}
+		return;
+	}
+
 	if (Controller != nullptr)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -300,6 +310,15 @@ void ARevolutionCharacter::MoveForwardAxis(float Value)
 {
 	if (bIsVaulting || bIsInspecting || FMath::IsNearlyZero(Value)) return;
 
+	if (bIsHidingInCover)
+	{
+		if (FMath::Abs(Value) > 0.4f && CurrentHidingSpot)
+		{
+			CurrentHidingSpot->EjectOccupant();
+		}
+		return;
+	}
+
 	if (Controller != nullptr)
 	{
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -312,6 +331,15 @@ void ARevolutionCharacter::MoveForwardAxis(float Value)
 void ARevolutionCharacter::MoveRightAxis(float Value)
 {
 	if (bIsVaulting || bIsInspecting || FMath::IsNearlyZero(Value)) return;
+
+	if (bIsHidingInCover)
+	{
+		if (FMath::Abs(Value) > 0.4f && CurrentHidingSpot)
+		{
+			CurrentHidingSpot->EjectOccupant();
+		}
+		return;
+	}
 
 	if (Controller != nullptr)
 	{
@@ -343,6 +371,12 @@ void ARevolutionCharacter::OnJumpPressed()
 	if (bIsInspecting)
 	{
 		EndInspection();
+		return;
+	}
+
+	if (bIsHidingInCover && CurrentHidingSpot)
+	{
+		CurrentHidingSpot->EjectOccupant();
 		return;
 	}
 
@@ -414,6 +448,12 @@ void ARevolutionCharacter::OnInteract()
 		return;
 	}
 
+	if (bIsHidingInCover && CurrentHidingSpot)
+	{
+		CurrentHidingSpot->EjectOccupant();
+		return;
+	}
+
 	if (CurrentInteractableActor && CurrentInteractableActor->Implements<UInteractableInterface>())
 	{
 		IInteractableInterface::Execute_OnInteract(CurrentInteractableActor, this);
@@ -450,6 +490,16 @@ void ARevolutionCharacter::CheckForInteractables()
 {
 	if (bIsInspecting)
 	{
+		return;
+	}
+
+	if (bIsHidingInCover && CurrentHidingSpot)
+	{
+		if (CurrentInteractableActor != CurrentHidingSpot)
+		{
+			CurrentInteractableActor = CurrentHidingSpot;
+			OnInteractionFocusChanged.Broadcast(true, CurrentHidingSpot->ExitPrompt);
+		}
 		return;
 	}
 
@@ -671,5 +721,56 @@ void ARevolutionCharacter::DrawChalkMark()
 		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir inscribed tailor's chalk mark on surface at %s. Chalk remaining: %d"), *SpawnLoc.ToString(), ChalkCount);
 	}
 }
+
+void ARevolutionCharacter::EnterHidingSpot(AHidingSpotActor* Spot)
+{
+	if (!Spot) return;
+
+	bIsHidingInCover = true;
+	CurrentHidingSpot = Spot;
+
+	StopSprinting();
+	if (bIsCrouched)
+	{
+		UnCrouch();
+	}
+
+	GetCharacterMovement()->StopMovementImmediately();
+	GetCharacterMovement()->DisableMovement();
+
+	if (Spot->HidingPoint)
+	{
+		SetActorLocationAndRotation(Spot->HidingPoint->GetComponentLocation(), Spot->HidingPoint->GetComponentRotation());
+	}
+
+	GetMesh()->SetVisibility(false);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+
+	CurrentInteractableActor = Spot;
+	OnInteractionFocusChanged.Broadcast(true, Spot->ExitPrompt);
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir entered concealment cover in %s"), *Spot->SpotName.ToString());
+}
+
+void ARevolutionCharacter::ExitHidingSpot()
+{
+	bIsHidingInCover = false;
+
+	if (CurrentHidingSpot && CurrentHidingSpot->ExitPoint)
+	{
+		SetActorLocationAndRotation(CurrentHidingSpot->ExitPoint->GetComponentLocation(), CurrentHidingSpot->ExitPoint->GetComponentRotation());
+	}
+
+	GetMesh()->SetVisibility(true);
+	GetCapsuleComponent()->SetCollisionResponseToChannel(ECC_Pawn, ECR_Block);
+	GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+
+	CurrentHidingSpot = nullptr;
+	CurrentInteractableActor = nullptr;
+	OnInteractionFocusChanged.Broadcast(false, FText::GetEmpty());
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir re-emerged from concealment."));
+}
+
 
 

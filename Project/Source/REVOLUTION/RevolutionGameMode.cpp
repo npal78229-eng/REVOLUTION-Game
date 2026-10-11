@@ -7,6 +7,7 @@
 #include "CurfewPatrolAI.h"
 #include "ObjectiveTriggerActor.h"
 #include "RevolutionAtmosphereController.h"
+#include "HidingSpotActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -324,6 +325,57 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		if (Atmosphere)
 		{
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned RevolutionAtmosphereController for dynamic Curfew-to-Dawn lighting."));
+		}
+	}
+
+	// 5. Spawn Environmental Hiding Spots (Jute sack barricades & Haveli deorhi alcove)
+	int32 ExistingHidingSpots = 0;
+	for (TActorIterator<AHidingSpotActor> It(World); It; ++It)
+	{
+		ExistingHidingSpots++;
+	}
+
+	if (ExistingHidingSpots == 0)
+	{
+		FActorSpawnParameters HidingSpawnParams;
+		HidingSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		// Hiding Spot 1: Alley corner jute ration sacks
+		AHidingSpotActor* Spot1 = World->SpawnActor<AHidingSpotActor>(
+			AHidingSpotActor::StaticClass(),
+			FVector(-175.0f, 155.0f, 10.0f),
+			FRotator(0.0f, 45.0f, 0.0f),
+			HidingSpawnParams
+		);
+		if (Spot1)
+		{
+			Spot1->SpotName = FText::FromString(TEXT("Jute Ration Sacks Stack"));
+			Spot1->ConcealPrompt = FText::FromString(TEXT("Crouch Behind Sacks"));
+			Spot1->ExitPrompt = FText::FromString(TEXT("Emerge From Sacks"));
+			if (Spot1->CoverMesh)
+			{
+				Spot1->CoverMesh->SetRelativeScale3D(FVector(1.1f, 1.1f, 1.0f));
+			}
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Environmental Hiding Spot 1 (Jute Sacks) at (-175, 155, 10)."));
+		}
+
+		// Hiding Spot 2: Deorhi threshold shadow alcove
+		AHidingSpotActor* Spot2 = World->SpawnActor<AHidingSpotActor>(
+			AHidingSpotActor::StaticClass(),
+			FVector(-45.0f, -220.0f, 10.0f),
+			FRotator(0.0f, -90.0f, 0.0f),
+			HidingSpawnParams
+		);
+		if (Spot2)
+		{
+			Spot2->SpotName = FText::FromString(TEXT("Haveli Deorhi Shadow Alcove"));
+			Spot2->ConcealPrompt = FText::FromString(TEXT("Conceal in Archway Shadow"));
+			Spot2->ExitPrompt = FText::FromString(TEXT("Step Out of Shadow"));
+			if (Spot2->CoverMesh)
+			{
+				Spot2->CoverMesh->SetRelativeScale3D(FVector(0.9f, 0.9f, 1.2f));
+			}
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Environmental Hiding Spot 2 (Deorhi Alcove) at (-45, -220, 10)."));
 		}
 	}
 }

@@ -11,6 +11,8 @@
 #include "Engine/Engine.h"
 #include "RevolutionMissionSubsystem.h"
 #include "ChalkMarkActor.h"
+#include "RevolutionAtmosphereController.h"
+#include "HidingSpotActor.h"
 #include "Sound/SoundBase.h"
 #include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
@@ -459,8 +461,22 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 
 	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
 
-	// 1. Stance Concealment Badge (Lower Left)
-	if (Kabir->bIsCrouched && SmallFont)
+	// 1. Stance / Concealment Badge (Lower Left)
+	if (Kabir->IsHidingInCover() && SmallFont)
+	{
+		FString CoverText = TEXT("[ FULLY CONCEALED IN COVER ]");
+		float CoverW = 0.0f, CoverH = 0.0f;
+		GetTextSize(CoverText, CoverW, CoverH, SmallFont);
+
+		float BadgeX = 36.0f;
+		float BadgeY = Canvas->ClipY * 0.81f;
+
+		// Emerald jade green banner for 100% concealment in cover
+		FLinearColor CoverCol = FLinearColor(0.24f, 0.88f, 0.48f, 0.96f);
+		DrawFramedBox(BadgeX, BadgeY, CoverW + 16.0f, CoverH + 8.0f, FLinearColor(0.04f, 0.12f, 0.06f, 0.85f), CoverCol, 1.5f);
+		DrawText(CoverText, CoverCol, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
+	}
+	else if (Kabir->bIsCrouched && SmallFont)
 	{
 		FString StanceText = TEXT("[ CROUCHED — CONCEALED ]");
 		float StanceW = 0.0f, StanceH = 0.0f;
@@ -501,6 +517,8 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 		DrawFramedBox(ChalkBadgeX, ChalkBadgeY, ChalkW + 16.0f, ChalkH + 8.0f, FLinearColor(0.06f, 0.05f, 0.04f, 0.65f), MutedSepiaColor, 1.0f);
 		DrawText(ChalkText, ChalkCol, ChalkBadgeX + 8.0f, ChalkBadgeY + 4.0f, SmallFont);
 	}
+
+	float TopNotificationY = 58.0f;
 
 	// 3. Scan for active Watchman Detection
 	ACurfewPatrolAI* HighestThreatWatchman = nullptr;
@@ -571,11 +589,40 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 			float BannerW = AlertW + 32.0f;
 			float BannerH = AlertH + 12.0f;
 			float BannerX = (Canvas->ClipX - BannerW) * 0.5f;
-			float BannerY = 58.0f;
 
-			DrawFramedBox(BannerX, BannerY, BannerW, BannerH, FLinearColor(0.12f, 0.02f, 0.02f, 0.85f), ThreatColor, 1.5f);
-			DrawText(AlertText, FLinearColor(1.0f, 0.9f, 0.85f, 1.0f), BannerX + 16.0f, BannerY + 6.0f, SmallFont);
+			DrawFramedBox(BannerX, TopNotificationY, BannerW, BannerH, FLinearColor(0.12f, 0.02f, 0.02f, 0.85f), ThreatColor, 1.5f);
+			DrawText(AlertText, FLinearColor(1.0f, 0.9f, 0.85f, 1.0f), BannerX + 16.0f, TopNotificationY + 6.0f, SmallFont);
+
+			TopNotificationY += BannerH + 6.0f;
 		}
+	}
+
+	// 4. North Western Railway Acoustic Sound Masking Indicator
+	bool bSoundMasked = false;
+	for (TActorIterator<ARevolutionAtmosphereController> AtmoIt(GetWorld()); AtmoIt; ++AtmoIt)
+	{
+		if (AtmoIt->IsSoundMasked())
+		{
+			bSoundMasked = true;
+			break;
+		}
+	}
+
+	if (bSoundMasked && SmallFont)
+	{
+		FString TrainText = TEXT("~  SOUND MASKED — NORTH WESTERN RAILWAY PASSING  ~");
+		float TrainW = 0.0f, TrainH = 0.0f;
+		GetTextSize(TrainText, TrainW, TrainH, SmallFont);
+
+		float TrainPulse = 0.75f + 0.25f * FMath::Sin(GetWorld()->GetTimeSeconds() * 6.0f);
+		FLinearColor TrainCol = FLinearColor(0.55f, 0.80f, 0.98f, TrainPulse);
+
+		float BoxW = TrainW + 28.0f;
+		float BoxH = TrainH + 10.0f;
+		float BoxX = (Canvas->ClipX - BoxW) * 0.5f;
+
+		DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.04f, 0.08f, 0.12f, 0.82f), TrainCol, 1.2f);
+		DrawText(TrainText, TrainCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
 	}
 }
 

@@ -42,13 +42,24 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
 	USoundBase* DawnTempleBellSound = nullptr;
 
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Atmosphere")
-	float TransitionDuration = 5.0f;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* TrainDistantSound = nullptr;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	bool bIsSoundMasked = false;
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	bool IsSoundMasked() const { return bIsSoundMasked; }
 
 	UFUNCTION()
 	void HandleMissionDirectiveChanged(ECourierMissionStage NewStage, FText Title, FText Directive);
 
 private:
+	float TrainScheduleTimer = 0.0f;
+	float TrainMaskDurationTimer = 0.0f;
+	const float TrainInterval = 32.0f;
+	const float TrainDuration = 8.0f;
+	const float TransitionDuration = 12.0f;
 	bool bIsTransitioningToDawn = false;
 	float TransitionProgress = 0.0f;
 

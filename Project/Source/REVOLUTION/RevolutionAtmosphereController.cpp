@@ -34,6 +34,12 @@ ARevolutionAtmosphereController::ARevolutionAtmosphereController()
 	{
 		DawnTempleBellSound = BellSoundFinder.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> TrainSoundFinder(TEXT("/Game/Audio/SFX/SFX_Train_Distant_Rumble.SFX_Train_Distant_Rumble"));
+	if (TrainSoundFinder.Succeeded())
+	{
+		TrainDistantSound = TrainSoundFinder.Object;
+	}
 }
 
 void ARevolutionAtmosphereController::BeginPlay()
@@ -97,6 +103,35 @@ void ARevolutionAtmosphereController::BeginPlay()
 void ARevolutionAtmosphereController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	// Periodic Environmental Sound Masking (North Western Railway Steam Train)
+	if (!bIsSoundMasked)
+	{
+		TrainScheduleTimer += DeltaTime;
+		if (TrainScheduleTimer >= TrainInterval)
+		{
+			TrainScheduleTimer = 0.0f;
+			bIsSoundMasked = true;
+			TrainMaskDurationTimer = 0.0f;
+
+			if (TrainDistantSound)
+			{
+				UGameplayStatics::PlaySound2D(this, TrainDistantSound, 0.85f);
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("North Western Railway train rumble echoing across Kot Gurdarshan: Footstep noise masked!"));
+		}
+	}
+	else
+	{
+		TrainMaskDurationTimer += DeltaTime;
+		if (TrainMaskDurationTimer >= TrainDuration)
+		{
+			bIsSoundMasked = false;
+			TrainMaskDurationTimer = 0.0f;
+			UE_LOG(LogREVOLUTION, Log, TEXT("Train rumble faded: Environmental acoustic masking ended."));
+		}
+	}
 
 	if (bIsTransitioningToDawn)
 	{

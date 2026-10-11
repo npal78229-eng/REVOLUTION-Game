@@ -12,6 +12,8 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "RevolutionAtmosphereController.h"
+#include "EngineUtils.h"
 #include "REVOLUTION.h"
 
 ACurfewPatrolAI::ACurfewPatrolAI()
@@ -118,6 +120,12 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 	OutPerceptionIntensity = 0.0f;
 	if (!TargetPlayer || !GetWorld()) return false;
 
+	// If player is concealed inside a hiding spot, watchman perception is completely broken
+	if (TargetPlayer->IsHidingInCover())
+	{
+		return false;
+	}
+
 	const FVector WatchmanEye = GetActorLocation() + FVector(0.0f, 0.0f, 70.0f);
 	const FVector PlayerBase = TargetPlayer->GetActorLocation();
 	const FVector PlayerHead = PlayerBase + FVector(0.0f, 0.0f, TargetPlayer->bIsCrouched ? 35.0f : 68.0f);
@@ -138,7 +146,20 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 	bool bAudibleHearing = false;
 	if (DotProduct < MinDot)
 	{
-		if (Distance <= HearingRadius && TargetPlayer->bIsSprinting && TargetPlayer->GetVelocity().SizeSquared() > 100.0f)
+		// Check for sound masking from environmental controller (steam train passing)
+		bool bSoundMasked = false;
+		for (TActorIterator<ARevolutionAtmosphereController> It(GetWorld()); It; ++It)
+		{
+			if (It->IsSoundMasked())
+			{
+				bSoundMasked = true;
+				break;
+			}
+		}
+
+		float EffectiveHearingRadius = bSoundMasked ? (HearingRadius * 0.22f) : HearingRadius;
+
+		if (Distance <= EffectiveHearingRadius && TargetPlayer->bIsSprinting && TargetPlayer->GetVelocity().SizeSquared() > 100.0f)
 		{
 			bAudibleHearing = true;
 		}
