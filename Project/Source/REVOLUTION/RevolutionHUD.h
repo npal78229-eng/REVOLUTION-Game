@@ -8,6 +8,7 @@
 
 class ARevolutionCharacter;
 class URevolutionHUDWidget;
+class USoundBase;
 
 /**
  * Historical Cinematic HUD for REVOLUTION
@@ -52,6 +53,12 @@ protected:
 	/** Draw clandestine courier mission directive banner */
 	void DrawMissionDirectiveBanner(ARevolutionCharacter* Kabir);
 
+	/** Draw anamorphic 2.39:1 letterbox bars */
+	void DrawCinematicLetterbox(float DeltaTime, bool bForceActive);
+
+	/** Draw historical prologue title sequence */
+	void DrawOpeningPrologueCard(float DeltaTime);
+
 	/** Helper to draw a framed card with outer/inner borders */
 	void DrawFramedBox(float X, float Y, float Width, float Height, const FLinearColor& FillColor, const FLinearColor& BorderColor, float BorderThickness = 2.0f);
 
@@ -92,10 +99,18 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
 	TSubclassOf<URevolutionHUDWidget> HUDWidgetClass;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
+	bool bEnableCinematicLetterbox = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* CurfewBellTollSound = nullptr;
+
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Revolution|UI")
 	URevolutionHUDWidget* HUDWidgetInstance = nullptr;
 
 private:
 	float StaminaDisplayAlpha = 0.0f;
 	float ReticleFocusPulse = 0.0f;
+	float LetterboxAlpha = 0.0f;
+	float OpeningPrologueTimer = 0.0f;
 };

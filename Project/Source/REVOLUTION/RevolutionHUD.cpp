@@ -10,6 +10,10 @@
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 #include "RevolutionMissionSubsystem.h"
+#include "ChalkMarkActor.h"
+#include "Sound/SoundBase.h"
+#include "Kismet/GameplayStatics.h"
+#include "UObject/ConstructorHelpers.h"
 
 ARevolutionHUD::ARevolutionHUD()
 {
@@ -21,11 +25,24 @@ ARevolutionHUD::ARevolutionHUD()
 
 	StaminaDisplayAlpha = 0.0f;
 	ReticleFocusPulse = 0.0f;
+	LetterboxAlpha = 0.0f;
+	OpeningPrologueTimer = 0.0f;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> BellFinder(TEXT("/Game/Audio/SFX/SFX_Curfew_Bell_Toll.SFX_Curfew_Bell_Toll"));
+	if (BellFinder.Succeeded())
+	{
+		CurfewBellTollSound = BellFinder.Object;
+	}
 }
 
 void ARevolutionHUD::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (CurfewBellTollSound && GetWorld())
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), CurfewBellTollSound, 0.95f);
+	}
 
 	if (HUDWidgetClass && GetOwningPlayerController())
 	{
@@ -50,6 +67,9 @@ void ARevolutionHUD::DrawHUD()
 	ARevolutionCharacter* Kabir = Cast<ARevolutionCharacter>(GetOwningPawn());
 	if (!Kabir) return;
 
+	float DeltaTime = GetWorld()->GetDeltaSeconds();
+	OpeningPrologueTimer += DeltaTime;
+
 	if (Kabir->IsInspecting())
 	{
 		DrawInspectionModal(Kabir);
@@ -62,6 +82,14 @@ void ARevolutionHUD::DrawHUD()
 		DrawStaminaGauge(Kabir);
 		DrawStealthAndDetection(Kabir);
 		DrawMissionDirectiveBanner(Kabir);
+	}
+
+	bool bForceLetterbox = (OpeningPrologueTimer < 7.5f) || Kabir->IsInspecting();
+	DrawCinematicLetterbox(DeltaTime, bForceLetterbox);
+
+	if (OpeningPrologueTimer < 7.5f)
+	{
+		DrawOpeningPrologueCard(DeltaTime);
 	}
 }
 
@@ -399,6 +427,30 @@ void ARevolutionHUD::DrawCompass(ARevolutionCharacter* Kabir)
 			DrawText(Mark.Label, MarkColor, ScreenX - (TextW * 0.5f), TapeY + 4.0f, SmallFont);
 		}
 	}
+
+	// Draw Scout Chalk Waypoints on Compass Tape
+	for (TActorIterator<AChalkMarkActor> It(GetWorld()); It; ++It)
+	{
+		AChalkMarkActor* ChalkActor = *It;
+		if (ChalkActor)
+		{
+			FVector DirToMark = (ChalkActor->GetActorLocation() - Kabir->GetActorLocation()).GetSafeNormal2D();
+			float MarkAngle = FMath::RadiansToDegrees(FMath::Atan2(DirToMark.Y, DirToMark.X));
+			float Diff = MarkAngle - PlayerYaw;
+			while (Diff > 180.0f) Diff -= 360.0f;
+			while (Diff < -180.0f) Diff += 360.0f;
+
+			if (FMath::Abs(Diff) <= VisibleAngleHalfRange)
+			{
+				float ScreenX = CenterX + (Diff * PixelsPerDegree);
+				FLinearColor ChalkWayColor = FLinearColor(0.96f, 0.95f, 0.90f, 0.92f);
+				DrawLine(ScreenX - 3.0f, TapeY + TapeHeight * 0.5f, ScreenX, TapeY + 3.0f, ChalkWayColor, 1.5f);
+				DrawLine(ScreenX, TapeY + 3.0f, ScreenX + 3.0f, TapeY + TapeHeight * 0.5f, ChalkWayColor, 1.5f);
+				DrawLine(ScreenX + 3.0f, TapeY + TapeHeight * 0.5f, ScreenX, TapeY + TapeHeight - 3.0f, ChalkWayColor, 1.5f);
+				DrawLine(ScreenX, TapeY + TapeHeight - 3.0f, ScreenX - 3.0f, TapeY + TapeHeight * 0.5f, ChalkWayColor, 1.5f);
+			}
+		}
+	}
 }
 
 void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
@@ -415,7 +467,7 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 		GetTextSize(StanceText, StanceW, StanceH, SmallFont);
 
 		float BadgeX = 36.0f;
-		float BadgeY = Canvas->ClipY * 0.86f;
+		float BadgeY = Canvas->ClipY * 0.81f;
 
 		DrawFramedBox(BadgeX, BadgeY, StanceW + 16.0f, StanceH + 8.0f, FLinearColor(0.06f, 0.05f, 0.04f, 0.70f), AntiqueBrassColor, 1.0f);
 		DrawText(StanceText, AntiqueBrassColor, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
@@ -430,11 +482,24 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 		GetTextSize(PebbleText, PebbleW, PebbleH, SmallFont);
 
 		float PebbleBadgeX = 36.0f;
-		float PebbleBadgeY = Canvas->ClipY * 0.91f;
+		float PebbleBadgeY = Canvas->ClipY * 0.865f;
 
 		FLinearColor TextCol = (Pebbles > 0) ? FLinearColor(0.88f, 0.85f, 0.78f, 0.92f) : FLinearColor(0.55f, 0.50f, 0.45f, 0.60f);
 		DrawFramedBox(PebbleBadgeX, PebbleBadgeY, PebbleW + 16.0f, PebbleH + 8.0f, FLinearColor(0.06f, 0.05f, 0.04f, 0.65f), MutedSepiaColor, 1.0f);
 		DrawText(PebbleText, TextCol, PebbleBadgeX + 8.0f, PebbleBadgeY + 4.0f, SmallFont);
+
+		// 3. Scout Chalk Badge (Lower Left)
+		int32 Chalk = Kabir->GetChalkCount();
+		FString ChalkText = FString::Printf(TEXT("[T] SCOUT CHALK  (%d / %d)"), Chalk, Kabir->MaxChalk);
+		float ChalkW = 0.0f, ChalkH = 0.0f;
+		GetTextSize(ChalkText, ChalkW, ChalkH, SmallFont);
+
+		float ChalkBadgeX = 36.0f;
+		float ChalkBadgeY = Canvas->ClipY * 0.92f;
+
+		FLinearColor ChalkCol = (Chalk > 0) ? FLinearColor(0.95f, 0.94f, 0.90f, 0.95f) : FLinearColor(0.55f, 0.50f, 0.45f, 0.60f);
+		DrawFramedBox(ChalkBadgeX, ChalkBadgeY, ChalkW + 16.0f, ChalkH + 8.0f, FLinearColor(0.06f, 0.05f, 0.04f, 0.65f), MutedSepiaColor, 1.0f);
+		DrawText(ChalkText, ChalkCol, ChalkBadgeX + 8.0f, ChalkBadgeY + 4.0f, SmallFont);
 	}
 
 	// 3. Scan for active Watchman Detection
@@ -577,4 +642,83 @@ void ARevolutionHUD::DrawMissionDirectiveBanner(ARevolutionCharacter* Kabir)
 		CurrY += LineHeight;
 	}
 }
+
+void ARevolutionHUD::DrawCinematicLetterbox(float DeltaTime, bool bForceActive)
+{
+	if (!bEnableCinematicLetterbox || !Canvas) return;
+
+	float TargetAlpha = bForceActive ? 1.0f : 0.0f;
+	LetterboxAlpha = FMath::FInterpTo(LetterboxAlpha, TargetAlpha, DeltaTime, 3.2f);
+
+	if (LetterboxAlpha > 0.005f)
+	{
+		// 2.39:1 Anamorphic Cinema scope calculation
+		float CinematicHeight = Canvas->ClipX / 2.39f;
+		float FullBarHeight = FMath::Max(0.0f, (Canvas->ClipY - CinematicHeight) * 0.5f);
+		float CurrentBarHeight = FullBarHeight * LetterboxAlpha;
+
+		FLinearColor MatteColor(0.015f, 0.015f, 0.015f, 1.0f);
+		// Top Bar
+		DrawRect(MatteColor, 0.0f, 0.0f, Canvas->ClipX, CurrentBarHeight);
+		// Bottom Bar
+		DrawRect(MatteColor, 0.0f, Canvas->ClipY - CurrentBarHeight, Canvas->ClipX, CurrentBarHeight);
+	}
+}
+
+void ARevolutionHUD::DrawOpeningPrologueCard(float DeltaTime)
+{
+	if (!Canvas) return;
+
+	UFont* LargeFont = GEngine ? GEngine->GetLargeFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	// Calculate smooth fade envelope (in over 1.8s, out after 5.5s)
+	float CardAlpha = 1.0f;
+	if (OpeningPrologueTimer < 1.8f)
+	{
+		CardAlpha = OpeningPrologueTimer / 1.8f;
+	}
+	else if (OpeningPrologueTimer > 5.5f)
+	{
+		CardAlpha = FMath::Clamp((7.5f - OpeningPrologueTimer) / 2.0f, 0.0f, 1.0f);
+	}
+
+	if (CardAlpha <= 0.01f) return;
+
+	const float CenterX = Canvas->ClipX * 0.5f;
+	const float CenterY = Canvas->ClipY * 0.44f;
+
+	// 1. Region & Period Tag
+	FString RegionTag = TEXT("P U N J A B   •   A P R I L   1 9 1 9");
+	float RegW = 0.0f, RegH = 0.0f;
+	GetTextSize(RegionTag, RegW, RegH, SmallFont);
+	FLinearColor TagColor = AntiqueBrassColor;
+	TagColor.A = CardAlpha * 0.95f;
+	DrawText(RegionTag, TagColor, CenterX - (RegW * 0.5f), CenterY - 45.0f, SmallFont);
+
+	// 2. Main Title (Town Location)
+	FString TownTitle = TEXT("K O T   G U R D A R S H A N");
+	float TownW = 0.0f, TownH = 0.0f;
+	UFont* TitleFont = LargeFont ? LargeFont : (MediumFont ? MediumFont : SmallFont);
+	GetTextSize(TownTitle, TownW, TownH, TitleFont);
+	FLinearColor TownColor = FLinearColor(0.96f, 0.93f, 0.86f, CardAlpha);
+	DrawText(TownTitle, TownColor, CenterX - (TownW * 0.5f), CenterY - 15.0f, TitleFont);
+
+	// 3. Historical Curfew Notice
+	FString CurfewNotice = TEXT("8 : 0 0   P M   M A R T I A L   C U R F E W   I N   E F F E C T");
+	float CurfW = 0.0f, CurfH = 0.0f;
+	GetTextSize(CurfewNotice, CurfW, CurfH, SmallFont);
+	FLinearColor CurfewColor = FLinearColor(0.88f, 0.35f, 0.25f, CardAlpha * 0.90f);
+	DrawText(CurfewNotice, CurfewColor, CenterX - (CurfW * 0.5f), CenterY + 28.0f, SmallFont);
+
+	// 4. Historical Context Line
+	FString ContextLine = TEXT("Anti-Rowlatt Emergency Laws  —  Clandestine Courier Dispatch");
+	float CtxW = 0.0f, CtxH = 0.0f;
+	GetTextSize(ContextLine, CtxW, CtxH, SmallFont);
+	FLinearColor ContextColor = FLinearColor(0.72f, 0.68f, 0.60f, CardAlpha * 0.75f);
+	DrawText(ContextLine, ContextColor, CenterX - (CtxW * 0.5f), CenterY + 50.0f, SmallFont);
+}
+
 

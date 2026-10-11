@@ -229,6 +229,22 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
 	int32 GetPebbleCount() const { return PebbleCount; }
 
+	// --- TAILOR'S CHALK SCOUT MARKING SYSTEM ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Stealth")
+	int32 ChalkCount = 8;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Stealth")
+	int32 MaxChalk = 10;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* ChalkDrawSound = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void DrawChalkMark();
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	int32 GetChalkCount() const { return ChalkCount; }
+
 private:
 	FVector VaultStartLocation;
 	FVector VaultTargetLocation;

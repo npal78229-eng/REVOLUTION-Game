@@ -20,6 +20,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "PebbleProjectile.h"
+#include "ChalkMarkActor.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "REVOLUTION.h"
 
@@ -126,6 +127,9 @@ ARevolutionCharacter::ARevolutionCharacter()
 
 	static ConstructorHelpers::FObjectFinder<USoundBase> PebbleThrowFinder(TEXT("/Game/Audio/SFX/SFX_Pebble_Throw.SFX_Pebble_Throw"));
 	if (PebbleThrowFinder.Succeeded()) PebbleThrowSound = PebbleThrowFinder.Object;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> ChalkSoundFinder(TEXT("/Game/Audio/SFX/SFX_Chalk_Draw.SFX_Chalk_Draw"));
+	if (ChalkSoundFinder.Succeeded()) ChalkDrawSound = ChalkSoundFinder.Object;
 }
 
 void ARevolutionCharacter::BeginPlay()
@@ -259,6 +263,7 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindKey(EKeys::E, IE_Pressed, this, &ARevolutionCharacter::OnInteract);
 	PlayerInputComponent->BindKey(EKeys::F, IE_Pressed, this, &ARevolutionCharacter::ThrowPebble);
 	PlayerInputComponent->BindKey(EKeys::G, IE_Pressed, this, &ARevolutionCharacter::ThrowPebble);
+	PlayerInputComponent->BindKey(EKeys::T, IE_Pressed, this, &ARevolutionCharacter::DrawChalkMark);
 }
 
 void ARevolutionCharacter::Move(const FInputActionValue& Value)
@@ -619,4 +624,52 @@ void ARevolutionCharacter::ThrowPebble()
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir threw distraction pebble! Pebbles remaining: %d"), PebbleCount);
 }
+
+void ARevolutionCharacter::DrawChalkMark()
+{
+	if (bIsInspecting || ChalkCount <= 0)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	FVector TraceStart = GetActorLocation() + FVector(0.f, 0.f, 20.f);
+	FVector TraceEnd = TraceStart + (GetActorForwardVector() * 180.f);
+
+	if (FollowCamera)
+	{
+		TraceStart = FollowCamera->GetComponentLocation();
+		TraceEnd = TraceStart + (FollowCamera->GetForwardVector() * 220.f);
+	}
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (World->LineTraceSingleByChannel(Hit, TraceStart, TraceEnd, ECC_Visibility, Params))
+	{
+		ChalkCount--;
+
+		FVector SpawnLoc = Hit.ImpactPoint + (Hit.ImpactNormal * 1.5f);
+		FRotator SpawnRot = Hit.ImpactNormal.Rotation();
+
+		FActorSpawnParameters SpawnParams;
+		SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AChalkMarkActor* Mark = World->SpawnActor<AChalkMarkActor>(AChalkMarkActor::StaticClass(), SpawnLoc, SpawnRot, SpawnParams);
+
+		if (ChalkDrawSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, ChalkDrawSound, Hit.ImpactPoint, 1.0f, FMath::RandRange(0.96f, 1.04f));
+		}
+
+		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir inscribed tailor's chalk mark on surface at %s. Chalk remaining: %d"), *SpawnLoc.ToString(), ChalkCount);
+	}
+}
+
 
