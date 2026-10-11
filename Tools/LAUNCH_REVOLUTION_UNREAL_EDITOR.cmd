@@ -11,4 +11,4 @@ echo Default Map: L_Validation_Gym (1919 Punjab Courtyard & Rooftop Gym)
 echo C++ Architecture: ARevolutionCharacter with 1.1m Vaulting Trace
 echo Renderer: Software Lumen Ray Tracing (Optimized for GTX 1650)
 echo.
-start "" "C:\Program Files\Epic Games\UE_5.5\Engine\Binaries\Win64\UnrealEditor.exe" "C:\Users\npal7\PROJECT\REVOLUTION\Project\REVOLUTION.uproject" -log
+start "" "C:\Program Files\Epic Games\UE_5.5\Engine\Binaries\Win64\UnrealEditor.exe" "C:\Users\npal7\PROJECT\REVOLUTION\Project\REVOLUTION.uproject"
