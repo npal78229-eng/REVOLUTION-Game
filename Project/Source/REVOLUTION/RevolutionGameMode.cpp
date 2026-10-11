@@ -14,6 +14,8 @@
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
 #include "REVOLUTION.h"
 
@@ -456,3 +458,112 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		}
 	}
 }
+
+void ARevolutionGameMode::HandlePlayerApprehended(ACurfewPatrolAI* Watchman, ARevolutionCharacter* CaughtPlayer)
+{
+	if (bIsPlayerApprehended) return;
+
+	bIsPlayerApprehended = true;
+	ApprehensionTimer = 0.0f;
+
+	UE_LOG(LogREVOLUTION, Warning, TEXT("=== SECTION 144 APPREHENSION: Kabir cornered by Curfew Watchman! ==="));
+
+	if (CaughtPlayer)
+	{
+		// Halt player locomotion immediately
+		if (CaughtPlayer->GetCharacterMovement())
+		{
+			CaughtPlayer->GetCharacterMovement()->StopMovementImmediately();
+			CaughtPlayer->GetCharacterMovement()->DisableMovement();
+		}
+
+		if (CaughtPlayer->IsHidingInCover())
+		{
+			CaughtPlayer->ExitHidingSpot();
+		}
+
+		CaughtPlayer->bIsSatchelJournalOpen = false;
+
+		// Face Kabir towards apprehending watchman
+		if (Watchman)
+		{
+			FVector DirToWatchman = (Watchman->GetActorLocation() - CaughtPlayer->GetActorLocation()).GetSafeNormal2D();
+			if (!DirToWatchman.IsNearlyZero())
+			{
+				CaughtPlayer->SetActorRotation(DirToWatchman.Rotation());
+			}
+		}
+	}
+
+	if (Watchman)
+	{
+		// Halt watchman pursuit and face Kabir
+		if (Watchman->GetCharacterMovement())
+		{
+			Watchman->GetCharacterMovement()->StopMovementImmediately();
+		}
+
+		if (CaughtPlayer)
+		{
+			FVector DirToPlayer = (CaughtPlayer->GetActorLocation() - Watchman->GetActorLocation()).GetSafeNormal2D();
+			if (!DirToPlayer.IsNearlyZero())
+			{
+				Watchman->SetActorRotation(DirToPlayer.Rotation());
+			}
+		}
+
+		// Play watchman whistle and challenge callout
+		if (Watchman->WatchmanWhistleSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, Watchman->WatchmanWhistleSound, Watchman->GetActorLocation(), 1.25f);
+		}
+		if (Watchman->WatchmanCalloutSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, Watchman->WatchmanCalloutSound, Watchman->GetActorLocation(), 1.0f);
+		}
+	}
+}
+
+void ARevolutionGameMode::RespawnPlayerAtCheckpoint()
+{
+	if (!bIsPlayerApprehended) return;
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("Respawning Kabir at checkpoint: %s"), *CheckpointLocation.ToString());
+
+	bIsPlayerApprehended = false;
+	ApprehensionTimer = 0.0f;
+
+	ARevolutionCharacter* Kabir = Cast<ARevolutionCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	if (Kabir)
+	{
+		// Teleport to latest safe checkpoint
+		Kabir->TeleportTo(CheckpointLocation, CheckpointRotation, false, true);
+
+		// Restore player movement
+		if (Kabir->GetCharacterMovement())
+		{
+			Kabir->GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+			Kabir->GetCharacterMovement()->Velocity = FVector::ZeroVector;
+		}
+
+		// Replenish minimum consumable gear for next attempt
+		Kabir->ChalkCount = FMath::Max(Kabir->ChalkCount, 4);
+		Kabir->PebbleCount = FMath::Max(Kabir->PebbleCount, 3);
+		Kabir->CurrentStamina = Kabir->MaxStamina;
+		Kabir->UnCrouch();
+	}
+
+	// Reset all curfew watchmen in level to their initial unaware patrol routine
+	for (TActorIterator<ACurfewPatrolAI> It(GetWorld()); It; ++It)
+	{
+		It->ResetPatrolState();
+	}
+}
+
+void ARevolutionGameMode::SetCheckpoint(const FVector& NewLocation, const FRotator& NewRotation)
+{
+	CheckpointLocation = NewLocation;
+	CheckpointRotation = NewRotation;
+	UE_LOG(LogREVOLUTION, Log, TEXT("Checkpoint updated to %s (Yaw: %.1f)"), *NewLocation.ToString(), NewRotation.Yaw);
+}
+

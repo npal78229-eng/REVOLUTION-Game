@@ -13,6 +13,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "RevolutionAtmosphereController.h"
+#include "RevolutionGameMode.h"
 #include "DoorDeorhiActor.h"
 #include "EngineUtils.h"
 #include "REVOLUTION.h"
@@ -111,6 +112,13 @@ void ACurfewPatrolAI::BeginPlay()
 void ACurfewPatrolAI::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+
+	ARevolutionGameMode* GM = Cast<ARevolutionGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GM && GM->IsPlayerApprehended())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+		return;
+	}
 
 	UpdateDetection(DeltaTime);
 	UpdatePatrol(DeltaTime);
@@ -317,6 +325,21 @@ void ACurfewPatrolAI::UpdatePatrol(float DeltaTime)
 		Destination = Player ? Player->GetActorLocation() : LastKnownPlayerLocation;
 		GetCharacterMovement()->MaxWalkSpeed = AlertChaseSpeed;
 		bIsWaitingAtWaypoint = false;
+
+		// Check proximity apprehension (cornered Kabir within 125cm)
+		if (Player && !Player->IsHidingInCover() && !Player->IsCrawlTraversing())
+		{
+			float DistToPlayer = FVector::Dist(GetActorLocation(), Player->GetActorLocation());
+			if (DistToPlayer <= 125.0f)
+			{
+				ARevolutionGameMode* GM = Cast<ARevolutionGameMode>(UGameplayStatics::GetGameMode(this));
+				if (GM && !GM->IsPlayerApprehended())
+				{
+					GM->HandlePlayerApprehended(this, Player);
+					return;
+				}
+			}
+		}
 	}
 	else if (AlertState == ECurfewAlertState::Searching)
 	{
@@ -433,3 +456,29 @@ void ACurfewPatrolAI::InvestigateSoundLocation(const FVector& DisturbanceLocatio
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("Watchman diverted by acoustic disturbance to %s"), *DisturbanceLocation.ToString());
 }
+
+void ACurfewPatrolAI::ResetPatrolState()
+{
+	DetectionMeter = 0.0f;
+	SetAlertState(ECurfewAlertState::Unaware);
+	bIsWaitingAtWaypoint = false;
+	WaypointWaitTimer = 0.0f;
+	SearchTimer = 0.0f;
+	ScanLookTimer = 0.0f;
+
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+		GetCharacterMovement()->MaxWalkSpeed = PatrolWalkSpeed;
+	}
+
+	if (PatrolWaypoints.Num() > 0)
+	{
+		CurrentWaypointIndex = 0;
+		SetActorLocation(PatrolWaypoints[0]);
+		LastKnownPlayerLocation = PatrolWaypoints[0];
+	}
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("Watchman %s reset to unaware patrol at origin waypoint."), *GetName());
+}
+

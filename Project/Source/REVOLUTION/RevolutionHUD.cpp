@@ -14,6 +14,7 @@
 #include "RevolutionAtmosphereController.h"
 #include "HidingSpotActor.h"
 #include "Sound/SoundBase.h"
+#include "RevolutionGameMode.h"
 #include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -72,7 +73,21 @@ void ARevolutionHUD::DrawHUD()
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
 	OpeningPrologueTimer += DeltaTime;
 
-	if (Kabir->IsInspecting())
+	ARevolutionGameMode* GM = Cast<ARevolutionGameMode>(GetWorld()->GetAuthGameMode());
+	URevolutionMissionSubsystem* Subsystem = GetWorld()->GetSubsystem<URevolutionMissionSubsystem>();
+
+	const bool bApprehended = GM && GM->IsPlayerApprehended();
+	const bool bMissionComplete = Subsystem && Subsystem->IsMissionComplete();
+
+	if (bApprehended)
+	{
+		DrawApprehendedCard(Kabir);
+	}
+	else if (bMissionComplete)
+	{
+		DrawMissionAccomplishedCard(Kabir);
+	}
+	else if (Kabir->IsInspecting())
 	{
 		DrawInspectionModal(Kabir);
 	}
@@ -90,10 +105,10 @@ void ARevolutionHUD::DrawHUD()
 		DrawMissionDirectiveBanner(Kabir);
 	}
 
-	bool bForceLetterbox = (OpeningPrologueTimer < 7.5f) || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen();
+	bool bForceLetterbox = (OpeningPrologueTimer < 7.5f) || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen() || bApprehended || bMissionComplete;
 	DrawCinematicLetterbox(DeltaTime, bForceLetterbox);
 
-	if (OpeningPrologueTimer < 7.5f)
+	if (OpeningPrologueTimer < 7.5f && !bApprehended && !bMissionComplete)
 	{
 		DrawOpeningPrologueCard(DeltaTime);
 	}
@@ -1193,5 +1208,135 @@ void ARevolutionHUD::DrawSatchelTabDispatchesLore(ARevolutionCharacter* Kabir, f
 		}
 	}
 }
+
+void ARevolutionHUD::DrawApprehendedCard(ARevolutionCharacter* Kabir)
+{
+	if (!Canvas || !Kabir) return;
+
+	UFont* LargeFont = GEngine ? GEngine->GetLargeFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	// Dark crimson / charcoal curfew apprehension vignette
+	DrawRect(FLinearColor(0.06f, 0.015f, 0.015f, 0.88f), 0.0f, 0.0f, Canvas->ClipX, Canvas->ClipY);
+
+	const float CenterX = Canvas->ClipX * 0.5f;
+	const float CenterY = Canvas->ClipY * 0.5f;
+
+	const float CardW = FMath::Min(560.0f, Canvas->ClipX * 0.90f);
+	const float CardH = 260.0f;
+	const float CardX = CenterX - (CardW * 0.5f);
+	const float CardY = CenterY - (CardH * 0.5f);
+
+	// Heavy framed modal box in deep aged parchment/sepia with crimson-gold border
+	FLinearColor ApprehendedBorder(0.85f, 0.22f, 0.18f, 0.98f);
+	DrawFramedBox(CardX, CardY, CardW, CardH, FLinearColor(0.09f, 0.07f, 0.06f, 0.96f), ApprehendedBorder, 2.0f);
+
+	// Header Tag
+	FString HeaderTag = TEXT("M A R T I A L   L A W   E D I C T   •   S E C T I O N   1 4 4");
+	float TagW = 0.0f, TagH = 0.0f;
+	GetTextSize(HeaderTag, TagW, TagH, SmallFont);
+	DrawText(HeaderTag, ApprehendedBorder, CenterX - (TagW * 0.5f), CardY + 16.0f, SmallFont);
+
+	// Thin crimson divider
+	DrawLine(CardX + 24.0f, CardY + 36.0f, CardX + CardW - 24.0f, CardY + 36.0f, ApprehendedBorder, 1.0f);
+
+	// Main Title
+	FString MainTitle = TEXT("APPREHENDED BY CURFEW PATROL");
+	float TitleW = 0.0f, TitleH = 0.0f;
+	UFont* TitleFont = LargeFont ? LargeFont : (MediumFont ? MediumFont : SmallFont);
+	GetTextSize(MainTitle, TitleW, TitleH, TitleFont);
+	DrawText(MainTitle, FLinearColor(0.98f, 0.92f, 0.86f, 1.0f), CenterX - (TitleW * 0.5f), CardY + 48.0f, TitleFont);
+
+	// Historical Context Lore
+	FString LoreText = TEXT("Kot Gurdarshan, April 1919. Night movement without an official British military permit is strictly forbidden under Section 144. Kabir has been cornered by the mohalla chaukidar and detained under suspicion of carrying anti-Rowlatt clandestine dispatches.");
+	TArray<FString> WrappedLore = WrapText(LoreText, SmallFont, CardW - 48.0f);
+	float LoreY = CardY + 90.0f;
+	for (const FString& Line : WrappedLore)
+	{
+		DrawText(Line, FLinearColor(0.82f, 0.78f, 0.72f, 0.95f), CardX + 24.0f, LoreY, SmallFont);
+		LoreY += 15.0f;
+	}
+
+	// Bottom Retry Badges
+	const float ButtonW = CardW - 48.0f;
+	const float ButtonH = 34.0f;
+	const float ButtonX = CardX + 24.0f;
+	const float ButtonY = CardY + CardH - 48.0f;
+
+	float Pulse = 0.75f + 0.25f * FMath::Sin(GetWorld()->GetTimeSeconds() * 6.0f);
+	FLinearColor ButtonBorder(0.92f, 0.76f, 0.32f, Pulse);
+	DrawFramedBox(ButtonX, ButtonY, ButtonW, ButtonH, FLinearColor(0.18f, 0.12f, 0.08f, 0.90f), ButtonBorder, 1.5f);
+
+	FString PromptStr = TEXT("[ SPACE / ENTER / E ]   RETRY FROM LAST SAFE CHECKPOINT");
+	float PromptW = 0.0f, PromptH = 0.0f;
+	GetTextSize(PromptStr, PromptW, PromptH, SmallFont);
+	DrawText(PromptStr, FLinearColor(1.0f, 0.92f, 0.78f, 1.0f), CenterX - (PromptW * 0.5f), ButtonY + ((ButtonH - PromptH) * 0.5f), SmallFont);
+}
+
+void ARevolutionHUD::DrawMissionAccomplishedCard(ARevolutionCharacter* Kabir)
+{
+	if (!Canvas || !Kabir) return;
+
+	UFont* LargeFont = GEngine ? GEngine->GetLargeFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	// Warm golden dawn atmospheric wash
+	DrawRect(FLinearColor(0.04f, 0.06f, 0.03f, 0.82f), 0.0f, 0.0f, Canvas->ClipX, Canvas->ClipY);
+
+	const float CenterX = Canvas->ClipX * 0.5f;
+	const float CenterY = Canvas->ClipY * 0.5f;
+
+	const float CardW = FMath::Min(620.0f, Canvas->ClipX * 0.92f);
+	const float CardH = 280.0f;
+	const float CardX = CenterX - (CardW * 0.5f);
+	const float CardY = CenterY - (CardH * 0.5f);
+
+	// Framed victory ledger in deep forest lacquer and polished gold
+	FLinearColor DawnGold(0.95f, 0.82f, 0.38f, 0.98f);
+	DrawFramedBox(CardX, CardY, CardW, CardH, FLinearColor(0.05f, 0.08f, 0.06f, 0.96f), DawnGold, 2.0f);
+
+	// Header Tag
+	FString HeaderTag = TEXT("D A W N   R E S O L U T I O N   •   P U N J A B   R E S I S T A N C E   1 9 1 9");
+	float TagW = 0.0f, TagH = 0.0f;
+	GetTextSize(HeaderTag, TagW, TagH, SmallFont);
+	DrawText(HeaderTag, DawnGold, CenterX - (TagW * 0.5f), CardY + 16.0f, SmallFont);
+
+	// Gold divider
+	DrawLine(CardX + 24.0f, CardY + 36.0f, CardX + CardW - 24.0f, CardY + 36.0f, DawnGold, 1.0f);
+
+	// Main Title
+	FString MainTitle = TEXT("MISSION ACCOMPLISHED — THE HARTAL COMMENCES");
+	float TitleW = 0.0f, TitleH = 0.0f;
+	UFont* TitleFont = LargeFont ? LargeFont : (MediumFont ? MediumFont : SmallFont);
+	GetTextSize(MainTitle, TitleW, TitleH, TitleFont);
+	DrawText(MainTitle, FLinearColor(0.98f, 0.96f, 0.88f, 1.0f), CenterX - (TitleW * 0.5f), CardY + 48.0f, TitleFont);
+
+	// Historical Chronicle Lore
+	FString LoreText = TEXT("Before the first morning light crested the baked terracotta rooftops of Kot Gurdarshan, Kabir deposited the clandestine anti-Rowlatt bulletins into the courier stash. As morning temple and gurdwara bells toll across the havelis, bazaar shutters remain bolted shut in complete civil strike.");
+	TArray<FString> WrappedLore = WrapText(LoreText, SmallFont, CardW - 48.0f);
+	float LoreY = CardY + 88.0f;
+	for (const FString& Line : WrappedLore)
+	{
+		DrawText(Line, FLinearColor(0.85f, 0.88f, 0.82f, 0.95f), CardX + 24.0f, LoreY, SmallFont);
+		LoreY += 15.0f;
+	}
+
+	// Status confirmation
+	FString StatusText = TEXT("Clandestine Route Cleared   •   All 4 Mohalla Directives Completed");
+	float StatW = 0.0f, StatH = 0.0f;
+	GetTextSize(StatusText, StatW, StatH, SmallFont);
+	DrawText(StatusText, FLinearColor(0.45f, 0.88f, 0.55f, 1.0f), CenterX - (StatW * 0.5f), CardY + CardH - 68.0f, SmallFont);
+
+	// Footer Action Prompt
+	FString FooterStr = TEXT("[ TAB / J ] View Chronicle Journal   •   Roam Kot Gurdarshan at Dawn");
+	float FootW = 0.0f, FootH = 0.0f;
+	GetTextSize(FooterStr, FootW, FootH, SmallFont);
+	DrawText(FooterStr, DawnGold, CenterX - (FootW * 0.5f), CardY + CardH - 36.0f, SmallFont);
+}
+
 
 

@@ -65,6 +65,12 @@ protected:
 	void DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
 	void DrawSatchelTabDispatchesLore(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
 
+	/** Draw Section 144 martial law curfew apprehension modal card */
+	void DrawApprehendedCard(ARevolutionCharacter* Kabir);
+
+	/** Draw dawn mission accomplished & town-wide Hartal chronicle modal card */
+	void DrawMissionAccomplishedCard(ARevolutionCharacter* Kabir);
+
 	/** Helper to draw a framed card with outer/inner borders */
 	void DrawFramedBox(float X, float Y, float Width, float Height, const FLinearColor& FillColor, const FLinearColor& BorderColor, float BorderThickness = 2.0f);
 

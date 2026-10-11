@@ -124,6 +124,10 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Perception")
 	void InvestigateSoundLocation(const FVector& DisturbanceLocation);
 
+	/** Resets watchman awareness and returns to first patrol waypoint upon checkpoint respawn */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Perception")
+	void ResetPatrolState();
+
 protected:
 	void UpdatePatrol(float DeltaTime);
 	void UpdateDetection(float DeltaTime);

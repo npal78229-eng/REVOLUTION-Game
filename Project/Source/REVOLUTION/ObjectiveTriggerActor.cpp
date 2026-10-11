@@ -3,6 +3,7 @@
 #include "ObjectiveTriggerActor.h"
 #include "RevolutionCharacter.h"
 #include "RevolutionMissionSubsystem.h"
+#include "RevolutionGameMode.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
 #include "Engine/World.h"
@@ -57,6 +58,12 @@ void AObjectiveTriggerActor::OnInteract_Implementation(ARevolutionCharacter* Int
 		if (URevolutionMissionSubsystem* Subsystem = World->GetSubsystem<URevolutionMissionSubsystem>())
 		{
 			Subsystem->AdvanceMissionStage();
+		}
+
+		if (ARevolutionGameMode* GM = Cast<ARevolutionGameMode>(World->GetAuthGameMode()))
+		{
+			FVector CheckpointPos = GetActorLocation() + FVector(0.0f, 0.0f, 15.0f);
+			GM->SetCheckpoint(CheckpointPos, GetActorRotation());
 		}
 	}
 

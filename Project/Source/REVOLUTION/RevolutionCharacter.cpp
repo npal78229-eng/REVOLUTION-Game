@@ -22,6 +22,7 @@
 #include "PebbleProjectile.h"
 #include "ChalkMarkActor.h"
 #include "HidingSpotActor.h"
+#include "RevolutionGameMode.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "REVOLUTION.h"
 
@@ -289,6 +290,7 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindKey(EKeys::C, IE_Pressed, this, &ARevolutionCharacter::ToggleCrouch);
 	PlayerInputComponent->BindKey(EKeys::E, IE_Pressed, this, &ARevolutionCharacter::OnInteract);
+	PlayerInputComponent->BindKey(EKeys::Enter, IE_Pressed, this, &ARevolutionCharacter::OnInteract);
 	PlayerInputComponent->BindKey(EKeys::F, IE_Pressed, this, &ARevolutionCharacter::ThrowPebble);
 	PlayerInputComponent->BindKey(EKeys::G, IE_Pressed, this, &ARevolutionCharacter::ThrowPebble);
 	PlayerInputComponent->BindKey(EKeys::T, IE_Pressed, this, &ARevolutionCharacter::DrawChalkMark);
@@ -401,6 +403,13 @@ void ARevolutionCharacter::LookUpAxis(float Value)
 
 void ARevolutionCharacter::OnJumpPressed()
 {
+	ARevolutionGameMode* GM = Cast<ARevolutionGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GM && GM->IsPlayerApprehended())
+	{
+		GM->RespawnPlayerAtCheckpoint();
+		return;
+	}
+
 	if (bIsInspecting || bIsCrawlTraversing)
 	{
 		if (bIsInspecting)
@@ -478,6 +487,13 @@ void ARevolutionCharacter::ToggleCrouch()
 
 void ARevolutionCharacter::OnInteract()
 {
+	ARevolutionGameMode* GM = Cast<ARevolutionGameMode>(UGameplayStatics::GetGameMode(this));
+	if (GM && GM->IsPlayerApprehended())
+	{
+		GM->RespawnPlayerAtCheckpoint();
+		return;
+	}
+
 	if (bIsSatchelJournalOpen)
 	{
 		ToggleSatchelJournal();
