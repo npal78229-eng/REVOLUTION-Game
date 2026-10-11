@@ -128,6 +128,19 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Perception")
 	void ResetPatrolState();
 
+	// --- LANTERN WIND FLICKER & TURBULENCE ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Perception")
+	bool bIsLanternFlickering = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Perception")
+	float LanternFlickerInterval = 18.0f; // Seconds between nocturnal gusts
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Perception")
+	float LanternFlickerDuration = 2.8f; // Duration of wind turbulence
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Perception")
+	bool IsLanternFlickering() const { return bIsLanternFlickering; }
+
 protected:
 	void UpdatePatrol(float DeltaTime);
 	void UpdateDetection(float DeltaTime);
@@ -140,4 +153,6 @@ private:
 	FVector LastKnownPlayerLocation;
 	float SearchTimer = 0.0f;
 	float ScanLookTimer = 0.0f;
+	float LanternFlickerTimer = 0.0f;
+	float LanternFlickerCycleTimer = 0.0f;
 };

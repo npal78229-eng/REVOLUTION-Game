@@ -121,6 +121,45 @@ void ACurfewPatrolAI::Tick(float DeltaTime)
 		return;
 	}
 
+	// Update nocturnal wind turbulence flicker on kerosene lantern
+	LanternFlickerCycleTimer += DeltaTime;
+	if (!bIsLanternFlickering)
+	{
+		if (LanternFlickerCycleTimer >= LanternFlickerInterval)
+		{
+			bIsLanternFlickering = true;
+			LanternFlickerTimer = 0.0f;
+			LanternFlickerCycleTimer = 0.0f;
+		}
+	}
+	else
+	{
+		LanternFlickerTimer += DeltaTime;
+		float FlickerOscillation = 0.38f + 0.22f * FMath::Sin(LanternFlickerTimer * 14.0f);
+		if (LanternLight)
+		{
+			LanternLight->SetIntensity(1400.0f * FlickerOscillation);
+		}
+		if (LanternBeam)
+		{
+			LanternBeam->SetIntensity(3200.0f * FlickerOscillation);
+		}
+
+		if (LanternFlickerTimer >= LanternFlickerDuration)
+		{
+			bIsLanternFlickering = false;
+			LanternFlickerTimer = 0.0f;
+			if (LanternLight)
+			{
+				LanternLight->SetIntensity(1400.0f);
+			}
+			if (LanternBeam)
+			{
+				LanternBeam->SetIntensity(3200.0f);
+			}
+		}
+	}
+
 	UpdateDetection(DeltaTime);
 	UpdatePatrol(DeltaTime);
 }
@@ -142,7 +181,8 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 	const FVector PlayerChest = PlayerBase + FVector(0.0f, 0.0f, TargetPlayer->bIsCrouched ? 20.0f : 45.0f);
 
 	const float Distance = FVector::Dist(WatchmanEye, PlayerBase);
-	if (Distance > SightRadius)
+	const float EffectiveSightRadius = bIsLanternFlickering ? (SightRadius * 0.58f) : SightRadius;
+	if (Distance > EffectiveSightRadius)
 	{
 		return false;
 	}
@@ -197,7 +237,7 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 	}
 
 	// Calculate base intensity based on distance falloff
-	float DistanceFactor = 1.0f - FMath::Clamp(Distance / SightRadius, 0.0f, 1.0f);
+	float DistanceFactor = 1.0f - FMath::Clamp(Distance / EffectiveSightRadius, 0.0f, 1.0f);
 
 	// Stance concealment multiplier
 	float StanceMultiplier = 1.0f;
@@ -225,7 +265,10 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 	// Partial concealment (e.g. head visible over parapet while standing)
 	float CoverageFactor = (bChestBlocked || bHeadBlocked) ? 0.45f : 1.0f;
 
-	OutPerceptionIntensity = DistanceFactor * StanceMultiplier * CoverageFactor;
+	// Wind flicker turbulence reduces visual discernment intensity
+	float FlickerMultiplier = bIsLanternFlickering ? 0.65f : 1.0f;
+
+	OutPerceptionIntensity = DistanceFactor * StanceMultiplier * CoverageFactor * FlickerMultiplier;
 	return OutPerceptionIntensity > 0.05f;
 }
 
@@ -514,6 +557,18 @@ void ACurfewPatrolAI::ResetPatrolState()
 		CurrentWaypointIndex = 0;
 		SetActorLocation(PatrolWaypoints[0]);
 		LastKnownPlayerLocation = PatrolWaypoints[0];
+	}
+
+	bIsLanternFlickering = false;
+	LanternFlickerTimer = 0.0f;
+	LanternFlickerCycleTimer = 0.0f;
+	if (LanternLight)
+	{
+		LanternLight->SetIntensity(1400.0f);
+	}
+	if (LanternBeam)
+	{
+		LanternBeam->SetIntensity(3200.0f);
 	}
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("Watchman %s reset to unaware patrol at origin waypoint."), *GetName());

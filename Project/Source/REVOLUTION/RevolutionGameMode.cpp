@@ -14,6 +14,7 @@
 #include "TerracottaHazardActor.h"
 #include "HandpumpActor.h"
 #include "ClotheslineActor.h"
+#include "RoshandanActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -545,6 +546,31 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		if (Clothesline)
 		{
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Rooftop Clothesline (Sukhne) at (-20, 180, 405)."));
+		}
+	}
+
+	// 12. Spawn Historical Haveli Rooftop Roshandan (Lightwell / Ventilation Opening)
+	int32 ExistingRoshandans = 0;
+	for (TActorIterator<ARoshandanActor> RoshIt(World); RoshIt; ++RoshIt)
+	{
+		ExistingRoshandans++;
+	}
+
+	if (ExistingRoshandans == 0)
+	{
+		FActorSpawnParameters RoshSpawnParams;
+		RoshSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ARoshandanActor* Roshandan = World->SpawnActor<ARoshandanActor>(
+			ARoshandanActor::StaticClass(),
+			FVector(30.0f, 60.0f, 405.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			RoshSpawnParams
+		);
+		if (Roshandan)
+		{
+			Roshandan->DropTargetLocation = FVector(30.0f, 60.0f, 15.0f);
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Haveli Rooftop Roshandan at (30, 60, 405) with courtyard drop target (30, 60, 15)."));
 		}
 	}
 }

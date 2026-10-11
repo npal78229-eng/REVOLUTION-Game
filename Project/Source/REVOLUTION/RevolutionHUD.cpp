@@ -691,6 +691,36 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 
 		DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.10f, 0.06f, 0.03f, 0.85f), HazCol, 1.2f);
 		DrawText(HazText, HazCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
+		TopNotificationY += BoxH + 6.0f;
+	}
+
+	// 6. Watchman Lantern Wind Turbulence Stealth Cue
+	bool bAnyLanternFlickering = false;
+	for (TActorIterator<ACurfewPatrolAI> It(GetWorld()); It; ++It)
+	{
+		ACurfewPatrolAI* Watchman = *It;
+		if (Watchman && Watchman->IsLanternFlickering())
+		{
+			bAnyLanternFlickering = true;
+			break;
+		}
+	}
+
+	if (bAnyLanternFlickering && SmallFont)
+	{
+		FString GustText = TEXT("~  WIND GUST — WATCHMAN LANTERN FLICKERING (VISION REDUCED)  ~");
+		float GustW = 0.0f, GustH = 0.0f;
+		GetTextSize(GustText, GustW, GustH, SmallFont);
+
+		float GustPulse = 0.70f + 0.30f * FMath::Sin(GetWorld()->GetTimeSeconds() * 8.0f);
+		FLinearColor GustCol = FLinearColor(1.0f, 0.82f, 0.40f, GustPulse);
+
+		float BoxW = GustW + 28.0f;
+		float BoxH = GustH + 10.0f;
+		float BoxX = (Canvas->ClipX - BoxW) * 0.5f;
+
+		DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.12f, 0.08f, 0.02f, 0.82f), GustCol, 1.2f);
+		DrawText(GustText, GustCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
 	}
 }
 
