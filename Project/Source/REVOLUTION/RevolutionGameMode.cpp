@@ -12,6 +12,8 @@
 #include "PigeonFlockActor.h"
 #include "CrawlSpaceActor.h"
 #include "TerracottaHazardActor.h"
+#include "HandpumpActor.h"
+#include "ClotheslineActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -495,6 +497,54 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		{
 			CourtyardHazard->HazardName = FText::FromString(TEXT("Courtyard Broken Earthen Kulhad Shards"));
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Terracotta Hazard 2 (Courtyard Shards) at (-80, -110, 10)."));
+		}
+	}
+
+	// 10. Spawn Historical Cast-Iron Courtyard Handpump (Nalka Acoustic Decoy)
+	int32 ExistingHandpumps = 0;
+	for (TActorIterator<AHandpumpActor> PumpIt(World); PumpIt; ++PumpIt)
+	{
+		ExistingHandpumps++;
+	}
+
+	if (ExistingHandpumps == 0)
+	{
+		FActorSpawnParameters PumpSpawnParams;
+		PumpSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AHandpumpActor* Handpump = World->SpawnActor<AHandpumpActor>(
+			AHandpumpActor::StaticClass(),
+			FVector(30.0f, 150.0f, 10.0f),
+			FRotator(0.0f, -45.0f, 0.0f),
+			PumpSpawnParams
+		);
+		if (Handpump)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Cast-Iron Courtyard Handpump (Nalka) at (30, 150, 10)."));
+		}
+	}
+
+	// 11. Spawn Historical Rooftop Clothesline (Tangan / Sukhne Cloth Drying Line)
+	int32 ExistingClotheslines = 0;
+	for (TActorIterator<AClotheslineActor> LineIt(World); LineIt; ++LineIt)
+	{
+		ExistingClotheslines++;
+	}
+
+	if (ExistingClotheslines == 0)
+	{
+		FActorSpawnParameters LineSpawnParams;
+		LineSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AClotheslineActor* Clothesline = World->SpawnActor<AClotheslineActor>(
+			AClotheslineActor::StaticClass(),
+			FVector(-20.0f, 180.0f, 405.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			LineSpawnParams
+		);
+		if (Clothesline)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Rooftop Clothesline (Sukhne) at (-20, 180, 405)."));
 		}
 	}
 }
