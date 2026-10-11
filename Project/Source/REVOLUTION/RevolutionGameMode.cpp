@@ -25,6 +25,7 @@
 #include "TelegraphWireActor.h"
 #include "MatkaStandActor.h"
 #include "CurfewGongActor.h"
+#include "CivilianNPCActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -864,6 +865,110 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		if (Gong)
 		{
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Municipal Curfew Gong on gateway tower at (-60, -200, 180)."));
+		}
+	}
+
+	// 23. Spawn Historical Foliage & Nature (Sacred Peepal Tree & Courtyard Tulsi Pedestal)
+	int32 ExistingTulsi = 0;
+	for (TActorIterator<AInspectableProp> PropIt(World); PropIt; ++PropIt)
+	{
+		if (PropIt->ItemName.ToString().Contains(TEXT("Tulsi")))
+		{
+			ExistingTulsi++;
+		}
+	}
+
+	if (ExistingTulsi == 0)
+	{
+		FActorSpawnParameters FoliageSpawnParams;
+		FoliageSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		// Sacred Peepal Tree with Chabutra Shrine in Zone C Well Square
+		AInspectableProp* PeepalTree = World->SpawnActor<AInspectableProp>(
+			AInspectableProp::StaticClass(),
+			FVector(380.0f, 1350.0f, 0.0f),
+			FRotator(0.0f, 45.0f, 0.0f),
+			FoliageSpawnParams
+		);
+		if (PeepalTree)
+		{
+			PeepalTree->ItemName = FText::FromString(TEXT("Sacred Peepal Tree (Bodhi Chabutra)"));
+			PeepalTree->LoreDescription = FText::FromString(
+				TEXT("An ancient sacred Peepal tree (Ficus religiosa) revered by both Hindu and Sikh residents. Around its raised Lahori brick chabutra (plinth), elders gather at twilight to discuss political news from Lahore and light earthen mustard-oil lamps.")
+			);
+			PeepalTree->InteractionVerb = FText::FromString(TEXT("Rest Under"));
+			UStaticMesh* PeepalMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Foliage_PeepalTree_Shrine.SM_Foliage_PeepalTree_Shrine"));
+			if (PeepalMesh && PeepalTree->MeshComponent)
+			{
+				PeepalTree->MeshComponent->SetStaticMesh(PeepalMesh);
+			}
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Sacred Peepal Tree with Chabutra Shrine at (380, 1350, 0)."));
+		}
+
+		// Courtyard Sacred Tulsi Planter Pedestal in Zone A Haveli Courtyard
+		AInspectableProp* TulsiPedestal = World->SpawnActor<AInspectableProp>(
+			AInspectableProp::StaticClass(),
+			FVector(120.0f, 80.0f, 10.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			FoliageSpawnParams
+		);
+		if (TulsiPedestal)
+		{
+			TulsiPedestal->ItemName = FText::FromString(TEXT("Courtyard Tulsi Chaura (Holy Basil Shrine)"));
+			TulsiPedestal->LoreDescription = FText::FromString(
+				TEXT("A carved brick pedestal holding a thriving holy basil (Tulsi) plant in the inner family courtyard. Each morning before sunrise, Kabir's mother Parvati waters the plant and lights a small clay diya, praying for peace and the safe return of family members.")
+			);
+			TulsiPedestal->InteractionVerb = FText::FromString(TEXT("Pay Respects at"));
+			UStaticMesh* TulsiMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_Tulsi_Pedestal.SM_Prop_Tulsi_Pedestal"));
+			if (TulsiMesh && TulsiPedestal->MeshComponent)
+			{
+				TulsiPedestal->MeshComponent->SetStaticMesh(TulsiMesh);
+			}
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Courtyard Tulsi Chaura Pedestal at (120, 80, 10)."));
+		}
+	}
+
+	// 24. Spawn Historical Civilian NPCs (Ram Lubhaya, Hira Halwai, Ghasita Bhishti, Lala Karam Chand, Pandit Kashi Ram)
+	int32 ExistingCivilians = 0;
+	for (TActorIterator<ACivilianNPCActor> CivIt(World); CivIt; ++CivIt)
+	{
+		ExistingCivilians++;
+	}
+
+	if (ExistingCivilians == 0)
+	{
+		FActorSpawnParameters CivSpawnParams;
+		CivSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		struct FCivDef
+		{
+			ECivilianOccupation Occupation;
+			FVector Location;
+			FRotator Rotation;
+			const TCHAR* LogName;
+		};
+
+		const FCivDef CiviliansToSpawn[] = {
+			{ ECivilianOccupation::FatherTailor, FVector(200.0f, 480.0f, 10.0f), FRotator(0.0f, 90.0f, 0.0f), TEXT("Ram Lubhaya (Father Tailor)") },
+			{ ECivilianOccupation::BhishtiWaterCarrier, FVector(-80.0f, 1320.0f, 10.0f), FRotator(0.0f, 45.0f, 0.0f), TEXT("Ghasita Bhishti (Water-Carrier)") },
+			{ ECivilianOccupation::HalwaiChaiVendor, FVector(-200.0f, 1680.0f, 10.0f), FRotator(0.0f, 90.0f, 0.0f), TEXT("Hira Halwai (Tea Stall Owner)") },
+			{ ECivilianOccupation::ClothMerchant, FVector(200.0f, 1980.0f, 10.0f), FRotator(0.0f, -90.0f, 0.0f), TEXT("Lala Karam Chand (Cloth Merchant)") },
+			{ ECivilianOccupation::SchoolHeadmaster, FVector(1350.0f, 1420.0f, 10.0f), FRotator(0.0f, -90.0f, 0.0f), TEXT("Pandit Kashi Ram (School Headmaster)") }
+		};
+
+		for (const FCivDef& Def : CiviliansToSpawn)
+		{
+			ACivilianNPCActor* NewCiv = World->SpawnActor<ACivilianNPCActor>(
+				ACivilianNPCActor::StaticClass(),
+				Def.Location,
+				Def.Rotation,
+				CivSpawnParams
+			);
+			if (NewCiv)
+			{
+				NewCiv->ConfigureOccupation(Def.Occupation);
+				UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Civilian NPC: %s at %s"), Def.LogName, *Def.Location.ToString());
+			}
 		}
 	}
 }

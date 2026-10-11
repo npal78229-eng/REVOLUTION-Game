@@ -23,17 +23,18 @@ The player steps into the shoes of **Kabir**, a 12-year-old son of a traditional
 
 ---
 
-## 2. Playable Vertical Slice (105 Actors across 5 Contiguous Zones)
+## 2. Playable Vertical Slice (114 Actors across 5 Contiguous Zones)
 
 The project currently features a contiguous, high-fidelity historical environment assembled in `Project/Content/Maps/L_Validation_Gym.umap`:
 
 ```mermaid
 flowchart TD
-    subgraph ZoneA["Zone A: Kabir's Family Haveli & Workshop (43 Actors)"]
+    subgraph ZoneA["Zone A: Kabir's Family Haveli & Workshop (44 Actors)"]
         A1["Father's Singer Treadle Sewing Machine\n(Workstation, charpai, clay chai kulhad)"]
-        A2["Masonry Stone Staircase (4.0m ascent)"]
-        A3["1F Solid Rooftop Terrace (Z = 400cm, Charpai, Basant kites)"]
-        A4["1.1m Vaultable Parapets & Carved Teak Jharokha"]
+        A2["Ram Lubhaya (Father / Master Tailor NPC)\n(Contextual dialogue & Satchel lore)"]
+        A3["Courtyard Sacred Tulsi Planter Shrine\n(Carved brick Tulsi Chaura)"]
+        A4["1F Solid Rooftop Terrace (Z = 400cm, Charpai, Basant kites)"]
+        A5["1.1m Vaultable Parapets & Carved Teak Jharokha"]
     end
 
     subgraph ZoneB["Zone B: Deorhi Gateway Transition (7 Actors)"]
@@ -41,23 +42,26 @@ flowchart TD
         B2["Narrow 4m Connecting Alleyway with Jute Sacks"]
     end
 
-    subgraph ZoneC["Zone C: Communal Well Square (6 Actors)"]
+    subgraph ZoneC["Zone C: Communal Well Square (8 Actors)"]
         C1["Octagonal Stone Well with Timber Pulley Frame"]
-        C2["Elders' Chopal Charpai & Municipal Curfew Gong"]
+        C2["Ancient Sacred Peepal Tree & Chabutra Shrine\n(Raised Lahori brick plinth & clay diyas)"]
+        C3["Ghasita Bhishti (Traditional Water-Carrier NPC)\n(Tanned leather goatskin mashk)"]
+        C4["Elders' Chopal Charpai & Municipal Curfew Gong"]
     end
 
-    subgraph ZoneD["Zone D: Grand Bazaar Thoroughfare (22 Actors)"]
+    subgraph ZoneD["Zone D: Grand Bazaar Thoroughfare (24 Actors)"]
         D1["Spice Merchant Stall (Turmeric & Red Chili cane baskets)"]
-        D2["Halwai Chai Shop (Clay kulhad cups & Dietz lantern)"]
-        D3["Cloth Guild Stall (Manchester cotton vs indigenous khadi)"]
+        D2["Hira Halwai (Tea Stall Owner NPC)\n(Steaming cardamom chai kulhads & samovar)"]
+        D3["Lala Karam Chand (Textile Merchant NPC)\n(Manchester cotton bolts vs Swadeshi khadi)"]
         D4["Grain Mandi Depot (Stacked ration sacks with excise stamps)"]
     end
 
-    subgraph DistrictC["District C: Vernacular Middle School (20 Actors)"]
+    subgraph DistrictC["District C: Vernacular Middle School (21 Actors)"]
         S1["School Arched Gateway & Bilingual Plaque (X = 800, Y = 1350)"]
         S2["Central Wrought Iron Bell Tower (X = 1350, Y = 1350, Z = 0)"]
-        S3["Classroom 4B Compound (3-Bay brick building, solid roof Z = 400cm)"]
-        S4["Classroom Interior (4 Dual student desk benches, slate blackboard)"]
+        S3["Pandit Kashi Ram (School Headmaster NPC)\n(Scholar of Urdu, Gurmukhi, and English)"]
+        S4["Classroom 4B Compound (3-Bay brick building, solid roof Z = 400cm)"]
+        S5["Classroom Interior (4 Dual student desk benches, slate blackboard)"]
     end
 
     ZoneA -->|Deorhi Gateway Arch| ZoneB

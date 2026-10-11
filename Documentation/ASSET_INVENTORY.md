@@ -2,7 +2,7 @@
 
 **Classification:** Technical Asset Registry  
 **Project:** REVOLUTION (Unreal Engine 5.5, MSVC 14.44 / C++20)  
-**Last Updated:** October 11, 2026  
+**Last Updated:** October 12, 2026  
 **Status:** All Listed Assets Verified on Disk and In-Engine
 
 ---
@@ -20,12 +20,21 @@
 | `SM_Door_Deorhi_Teak_01` | ~120 tris | `CTF_USE_COMPLEX_AS_SIMPLE` | `M_AgedTeak_PBR` | In-Use (Haveli gateway double doors) |
 | `SM_Shop_Shutter_Foldable` | ~88 tris | `CTF_USE_COMPLEX_AS_SIMPLE` | `M_AgedTeak_PBR`, `M_WroughtIron_PBR` | In-Use (Closed bazaar shopfronts, curfew shutters) |
 | `SM_Balcony_Jharokha_Wood_A` | ~340 tris | `CTF_USE_COMPLEX_AS_SIMPLE` | `M_AgedTeak_PBR` | In-Use (Upper-story overhang balconies) |
-| `SM_Mohalla_Well_Stone` | ~410 tris | `CTF_USE_COMPLEX_AS_SIMPLE` | `M_LahoriBrick_PBR`, `M_AgedTeak_PBR`, `M_WroughtIron_PBR` | In-Use (Communal well, social center of District A) |
+| `SM_Mohalla_Well_Stone` | ~410 tris | `CTF_USE_COMPLEX_AS_SIMPLE` | `M_LahoriBrick_PBR`, `M_AgedTeak_PBR`, `M_WroughtIron_PBR` | In-Use (Communal well, social center of Zone C) |
 | `SM_Market_Stall_Wood_Awning` | ~168 tris | `CTF_USE_COMPLEX_AS_SIMPLE` | `M_AgedTeak_PBR`, `M_Clay_PBR` | In-Use (Spice stall, Halwai tea stall, cloth stall) |
 
 ---
 
-## 2. Historical Dressing & Interactive Props (`Content/Environment/Mohalla/Meshes/`)
+## 2. Historical Foliage & Nature Assets (`Content/Environment/Mohalla/Meshes/`)
+
+| Asset Name | Polycount | Collision Mode | Assigned Materials | Status |
+| :--- | :--- | :--- | :--- | :--- |
+| `SM_Foliage_PeepalTree_Shrine` | ~680 tris | `CTF_USE_COMPLEX_AS_SIMPLE` | `M_Bark_PBR`, `M_Foliage_PBR`, `M_LahoriBrick_PBR`, `M_Clay_PBR` | In-Use (Ancient sacred Peepal tree with octagonal brick chabutra plinth and clay lamps in Zone C Well Square) |
+| `SM_Prop_Tulsi_Pedestal` | ~210 tris | `CTF_USE_COMPLEX_AS_SIMPLE` | `M_LahoriBrick_PBR`, `M_Foliage_PBR`, `M_Clay_PBR` | In-Use (Carved masonry holy basil shrine in Zone A Haveli courtyard) |
+
+---
+
+## 3. Historical Dressing & Interactive Props (`Content/Environment/Mohalla/Meshes/`)
 
 | Asset Name | C++ Actor Binding | Material | Physical Purpose | Status |
 | :--- | :--- | :--- | :--- | :--- |
@@ -40,17 +49,8 @@
 | `SM_School_Blackboard_Easel` | `AInspectableProp` | `M_AgedTeak_PBR`, `M_WroughtIron_PBR` | Large timber-framed slate easel blackboard for teacher instruction. | In-Use (Classroom 4B) |
 | `SM_School_Bell_Tower_Iron` | `AInspectableProp` | `M_WroughtIron_PBR`, `M_AgedTeak_PBR` | 4-post wrought iron school bell gantry with suspended brass bell. | In-Use (Schoolyard Center) |
 | `SM_Prop_SewingMachine_Singer` | `AInspectableProp` | `M_WroughtIron_PBR`, `M_AgedTeak_PBR` | Authentic 1919 cast-iron Singer treadle sewing machine with foot pedal. | In-Use (Father's Veranda) |
-
----
-
-## 3. PBR Master Materials (`Content/Environment/Mohalla/Materials/`)
-
-| Material Name | Base Color (sRGB) | Roughness | Metallic | Historic Application |
-| :--- | :--- | :--- | :--- | :--- |
-| `M_LahoriBrick_PBR` | `(0.55, 0.22, 0.15)` | 0.85 | 0.00 | Porous kiln-baked red alluvial clay bricks, courtyard paving. |
-| `M_AgedTeak_PBR` | `(0.25, 0.16, 0.09)` | 0.65 | 0.00 | Dark oiled Sheesham and teak timber, doors, charpais, jharokhas. |
-| `M_WroughtIron_PBR` | `(0.12, 0.12, 0.13)` | 0.40 | 0.85 | Blacksmith iron bars, well pulley, lantern frames, door studs. |
-| `M_Clay_PBR` | `(0.60, 0.35, 0.20)` | 0.90 | 0.00 | Unglazed terracotta pottery, kulhads, burlap sacks, canvas awning. |
+| `SM_Prop_Bhishti_Mashk` | `AInspectableProp` | `M_Clay_PBR`, `M_WroughtIron_PBR` | Tanned goatskin water bag with brass nozzle and shoulder sling. | In-Use (Communal Well) |
+| `SM_Prop_ClothRolls_Manchester`| `AInspectableProp` | `M_ClothIndigo_PBR`, `M_ClothSaffron_PBR` | Bolts of imported British Manchester cotton and Swadeshi khadi. | In-Use (Grand Bazaar) |
 
 ---
 
@@ -59,9 +59,10 @@
 | C++ Class | Base Class | Primary Responsibility | Level Instances |
 | :--- | :--- | :--- | :--- |
 | `ARevolutionCharacter` | `ACharacter` | Kabir player pawn (locomotion, stamina, vaulting, crouching, inspection, audio). | Spawned by GameMode at `PlayerStart` |
+| `ACivilianNPCActor` | `ACharacter` | 5 historical Punjabi archetypes (Ram Lubhaya, Ghasita Bhishti, Hira Halwai, Lala Karam Chand, Pandit Kashi Ram) with proximity barks and multi-stage conversation dialogues. | 5 placed in level + dynamic spawns |
 | `ARevolutionGameMode` | `AGameModeBase` | Game framework coordinator; manages HUD, props, and mission subsystem. | Configured in `DefaultEngine.ini` |
 | `ARevolutionHUD` | `AHUD` | Draws period HUD interface with historical typography and warm gold accents. | Spawned by GameMode |
-| `AInspectableProp` | `AActor` | Interactive object with 3D highlight, prompt, and historical lore card. | 22 dynamically spawned + 12 placed |
+| `AInspectableProp` | `AActor` | Interactive object with 3D highlight, prompt, and historical lore card. | Placed across all 5 zones |
 | `ACurfewPatrolAI` | `ACharacter` | British colonial Chaukidar with lantern and realistic waypoint patrol loop. | 1 active patrol in District A |
 | `AMatkaStandActor` | `AActor` | Chilled earthen water vessel providing 100% stamina recovery and sound distraction. | 1 in family courtyard |
 | `ACurfewGongActor` | `AActor` | Municipal 35m curfew gong providing sector-wide patrol diversion. | 1 in communal well square |
@@ -77,6 +78,6 @@
   - `Art/Blender/KIT_Punjabi_Mohalla.blend` (Master modular architecture kit)
   - `Art/Blender/Courtyard_Rooftop_Gym_Scene.blend` (Assembled courtyard prototype)
 - **FBX Export Directory:**
-  - `Art/Exports/` (23 modular FBX files ready for automated headless ingestion)
+  - `Art/Exports/` (27 modular FBX files ready for automated headless ingestion)
 - **Engine Maps:**
-  - `Project/Content/Maps/L_Validation_Gym.umap` (The playable 105-piece vertical slice across 5 zones)
+  - `Project/Content/Maps/L_Validation_Gym.umap` (The playable 114-actor vertical slice across 5 zones)

@@ -167,10 +167,22 @@ Executed headless via `UnrealEditor-Cmd.exe` with `-ExecutePythonScript`:
 
 ---
 
-## 5. What Was Completed & Next Milestone (Phase 4)
-1. **District C (Vernacular Middle School):** Fully built with gateway arch, bell tower, classroom 4B, student desks, blackboard, and solid roof slabs.
-2. **Family Workshop:** Singer sewing machine, resting charpai, and father's chai kulhad integrated into Zone A veranda.
-3. **Phase 4 Target Backlog:**
-   - **Pedestrian Crowd / Civilian NPCs:** Place ambient Punjabi townspeople (water-carrier *Bhishti*, cloth merchant, halwai tea maker) with idle cycles.
-   - **Foliage & Nature:** Sacred Peepal / Banyan tree for the well square; potted tulsi in the family courtyard.
-   - **Act I Quest Hook:** Connect the morning courier questline ("Deliver father's tailored kurtas to Moti Halwai, then reach school before the bell tolls").
+---
+
+## 5. Milestone 5: Living Civilian NPCs & Historic Foliage (Completed October 12, 2026)
+
+### 5.1 System Implementation
+1. **Dedicated C++ Character Class (`ACivilianNPCActor`):**
+   - Configured with 5 historical archetypes (`FatherTailor`, `BhishtiWaterCarrier`, `HalwaiChaiVendor`, `ClothMerchant`, `SchoolHeadmaster`).
+   - Dynamic look-at behavior: rotates smoothly toward player within $2.8\text{m}$.
+   - Proximity barks with anti-spam cooldowns.
+   - Interactive multi-stage dialogues and integration with Satchel Journal lore modal via `IInteractableInterface`.
+2. **Historical Foliage & Props (Blender 5.2 Headless -> Unreal Engine):**
+   - `SM_Foliage_PeepalTree_Shrine`: Ancient sacred Peepal tree with octagonal Lahori brick chabutra shrine and clay lamps in Zone C Well Square.
+   - `SM_Prop_Tulsi_Pedestal`: Courtyard holy basil shrine planter in Zone A.
+   - `SM_Prop_Bhishti_Mashk`: Tanned goatskin water-carrier bag with brass nozzle.
+   - `SM_Prop_ClothRolls_Manchester`: Stacks of Manchester cotton and Swadeshi khadi bolts.
+3. **In-Engine Level Verification:**
+   - Total placed actors in `L_Validation_Gym.umap` increased to **114 actors**.
+   - Verified 100% PASS on all 16 critical landmarks and civilian NPCs.
+

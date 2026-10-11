@@ -80,7 +80,14 @@ landmarks = [
     "Modular_Bazaar_Stall_Halwai",
     "Modular_Bazaar_Stall_ClothKhadi",
     "Modular_Chopal_Charpai_Elders",
-    "Modular_Haveli_1F_JharokhaBalcony"
+    "Modular_Haveli_1F_JharokhaBalcony",
+    "Foliage_PeepalTree_Shrine",
+    "Prop_Tulsi_Pedestal",
+    "NPC_RamLubhaya_Father",
+    "NPC_GhasitaBhishti_Water",
+    "NPC_HiraHalwai_Chai",
+    "NPC_LalaKaramChand_Cloth",
+    "NPC_PanditKashiRam_Headmaster"
 ]
 all_landmarks_found = True
 for lm in landmarks:

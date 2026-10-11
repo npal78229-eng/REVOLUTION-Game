@@ -66,3 +66,23 @@ flowchart TD
 
     T1 --> T2 --> T3
 ```
+
+---
+
+## 4. Implemented Historical Archetypes (`ACivilianNPCActor`)
+
+In Phase 4, five foundational Punjabi characters were implemented in C++ (`ACivilianNPCActor`) and placed into `L_Validation_Gym.umap`:
+
+| Archetype Name | Historical Profession & Role | Map Location | In-Engine Accessory | Primary Lore & Perspective |
+| :--- | :--- | :--- | :--- | :--- |
+| **Ram Lubhaya** | Master Tailor / Kabir's Father | Zone A Veranda $(200, 480, 88)$ | `SM_Prop_SewingMachine_Singer` | Traumatized by the loss of his brother in the Great War; urges caution while resisting imperial taxation. |
+| **Ghasita Bhishti** | Traditional Water-Carrier | Zone C Well Square $(-80, 1320, 88)$ | `SM_Prop_Bhishti_Mashk` | Generational Muslim water-carrier; embodies the shared community solidarity of pre-partition Punjab. |
+| **Hira Halwai** | Chai & Jalebi Stall Owner | Zone D Grand Bazaar $(-200, 1680, 88)$ | `SM_Prop_ClayChaiCup_Kulhad` | Outspoken bazaar merchant whose samovar is the center of local political debate and police warnings. |
+| **Lala Karam Chand** | Textile Merchant | Zone D Mandi Street $(200, 1980, 88)$ | `SM_Prop_ClothRolls_Manchester` | Torn between unsold British Manchester cotton inventory and the rising moral tide of Swadeshi boycott. |
+| **Pandit Kashi Ram** | Vernacular Middle School Headmaster | District C Schoolyard $(1350, 1420, 88)$ | `SM_School_Blackboard_Easel` | Scholar who teaches that critical inquiry and universal literacy are the ultimate weapons of independence. |
+
+Each character features:
+- **Proximity Awareness:** Smoothly rotates toward Kabir when he walks within $2.8\text{ meters}$.
+- **Ambient Historical Barks:** Spoken/subtitled lines in authentic Punjab English with local cultural terms (*Hartal*, *Mashk*, *Puttar*, *Chai*, *Manchester*, *Rowlatt Act*).
+- **Direct Interaction:** Interacting with 'E' brings up multi-line dialogues and records historical discoveries in Kabir's Satchel Journal.
+
