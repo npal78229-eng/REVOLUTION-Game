@@ -23,6 +23,8 @@
 #include "ManjaTrapActor.h"
 #include "ChaffDustDecoyActor.h"
 #include "TelegraphWireActor.h"
+#include "MatkaStandActor.h"
+#include "CurfewGongActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -814,6 +816,54 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		if (WirePost)
 		{
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned British Telegraph Wire Sabotage Post on rooftop parapet at (60, 240, 435)."));
+		}
+	}
+
+	// 21. Spawn Historical Courtyard Earthen Matka Water Stand (Ghara)
+	int32 ExistingMatkas = 0;
+	for (TActorIterator<AMatkaStandActor> MatkaIt(World); MatkaIt; ++MatkaIt)
+	{
+		ExistingMatkas++;
+	}
+
+	if (ExistingMatkas == 0)
+	{
+		FActorSpawnParameters MatkaSpawnParams;
+		MatkaSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AMatkaStandActor* Matka = World->SpawnActor<AMatkaStandActor>(
+			AMatkaStandActor::StaticClass(),
+			FVector(140.0f, -40.0f, 10.0f),
+			FRotator(0.0f, 45.0f, 0.0f),
+			MatkaSpawnParams
+		);
+		if (Matka)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Courtyard Earthen Matka Stand at (140, -40, 10)."));
+		}
+	}
+
+	// 22. Spawn Historical Municipal Curfew Bell / Gong (Chaukidar Ghanta)
+	int32 ExistingGongs = 0;
+	for (TActorIterator<ACurfewGongActor> GongIt(World); GongIt; ++GongIt)
+	{
+		ExistingGongs++;
+	}
+
+	if (ExistingGongs == 0)
+	{
+		FActorSpawnParameters GongSpawnParams;
+		GongSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ACurfewGongActor* Gong = World->SpawnActor<ACurfewGongActor>(
+			ACurfewGongActor::StaticClass(),
+			FVector(-60.0f, -200.0f, 180.0f),
+			FRotator(0.0f, 90.0f, 0.0f),
+			GongSpawnParams
+		);
+		if (Gong)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Municipal Curfew Gong on gateway tower at (-60, -200, 180)."));
 		}
 	}
 }
