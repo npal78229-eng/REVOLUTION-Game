@@ -16,6 +16,7 @@
 #include "ClotheslineActor.h"
 #include "RoshandanActor.h"
 #include "SupplyStashActor.h"
+#include "ProclamationBoardActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -639,6 +640,30 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 				TEXT("Sun-baked earthen marbles stashed by neighborhood boys behind the terrace parapet. Ideal for dropping through the rooftop Roshandan lightwell into the courtyard below.")
 			);
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Supply Stash 3 (Rooftop Pebbles) at (-40, 220, 405)."));
+		}
+	}
+
+	// 14. Spawn Historical British Proclamation Board (Section 144 Curfew Decree)
+	int32 ExistingBoards = 0;
+	for (TActorIterator<AProclamationBoardActor> BoardIt(World); BoardIt; ++BoardIt)
+	{
+		ExistingBoards++;
+	}
+
+	if (ExistingBoards == 0)
+	{
+		FActorSpawnParameters BoardSpawnParams;
+		BoardSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AProclamationBoardActor* Board = World->SpawnActor<AProclamationBoardActor>(
+			AProclamationBoardActor::StaticClass(),
+			FVector(-65.0f, -225.0f, 65.0f),
+			FRotator(0.0f, 90.0f, 0.0f),
+			BoardSpawnParams
+		);
+		if (Board)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Section 144 Proclamation Board on haveli gateway wall at (-65, -225, 65)."));
 		}
 	}
 }

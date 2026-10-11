@@ -16,6 +16,7 @@
 #include "RevolutionGameMode.h"
 #include "DoorDeorhiActor.h"
 #include "ChalkMarkActor.h"
+#include "ProclamationBoardActor.h"
 #include "EngineUtils.h"
 #include "REVOLUTION.h"
 
@@ -439,6 +440,34 @@ void ACurfewPatrolAI::UpdatePatrol(float DeltaTime)
 						UE_LOG(LogREVOLUTION, Log, TEXT("Watchman noticed subversive tailor's chalk mark at %s! Pausing patrol to investigate."), *Mark->GetActorLocation().ToString());
 						return;
 					}
+				}
+			}
+		}
+
+		// Check if a defaced Section 144 proclamation board is nearby
+		for (TActorIterator<AProclamationBoardActor> BoardIt(GetWorld()); BoardIt; ++BoardIt)
+		{
+			AProclamationBoardActor* Board = *BoardIt;
+			if (Board && Board->bIsDefaced && !Board->bHasBeenInvestigatedByWatchman)
+			{
+				float DistToBoard = FVector::Dist(GetActorLocation(), Board->GetActorLocation());
+				if (DistToBoard <= 260.0f)
+				{
+					Board->bHasBeenInvestigatedByWatchman = true;
+					LastKnownPlayerLocation = Board->GetActorLocation();
+					DetectionMeter = FMath::Max(DetectionMeter, 35.0f);
+					SetAlertState(ECurfewAlertState::Suspicious);
+					bIsWaitingAtWaypoint = true;
+					WaypointWaitTimer = 0.0f;
+					GetCharacterMovement()->StopMovementImmediately();
+
+					if (WatchmanCalloutSound)
+					{
+						UGameplayStatics::PlaySoundAtLocation(this, WatchmanCalloutSound, GetActorLocation(), 1.0f);
+					}
+
+					UE_LOG(LogREVOLUTION, Warning, TEXT("Watchman discovered defaced imperial proclamation board at %s! Pausing patrol in outrage."), *Board->GetActorLocation().ToString());
+					return;
 				}
 			}
 		}
