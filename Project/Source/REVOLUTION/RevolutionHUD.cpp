@@ -76,6 +76,10 @@ void ARevolutionHUD::DrawHUD()
 	{
 		DrawInspectionModal(Kabir);
 	}
+	else if (Kabir->IsSatchelJournalOpen())
+	{
+		DrawSatchelJournalModal(Kabir);
+	}
 	else
 	{
 		DrawCompass(Kabir);
@@ -86,7 +90,7 @@ void ARevolutionHUD::DrawHUD()
 		DrawMissionDirectiveBanner(Kabir);
 	}
 
-	bool bForceLetterbox = (OpeningPrologueTimer < 7.5f) || Kabir->IsInspecting();
+	bool bForceLetterbox = (OpeningPrologueTimer < 7.5f) || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen();
 	DrawCinematicLetterbox(DeltaTime, bForceLetterbox);
 
 	if (OpeningPrologueTimer < 7.5f)
@@ -780,6 +784,414 @@ void ARevolutionHUD::DrawOpeningPrologueCard(float DeltaTime)
 	GetTextSize(ContextLine, CtxW, CtxH, SmallFont);
 	FLinearColor ContextColor = FLinearColor(0.72f, 0.68f, 0.60f, CardAlpha * 0.75f);
 	DrawText(ContextLine, ContextColor, CenterX - (CtxW * 0.5f), CenterY + 50.0f, SmallFont);
+}
+
+void ARevolutionHUD::DrawSatchelJournalModal(ARevolutionCharacter* Kabir)
+{
+	if (!Canvas || !Kabir) return;
+
+	UFont* LargeFont = GEngine ? GEngine->GetLargeFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	// Darkened vignette background
+	DrawRect(FLinearColor(0.015f, 0.015f, 0.012f, 0.82f), 0.0f, 0.0f, Canvas->ClipX, Canvas->ClipY);
+
+	const float BoxW = FMath::Clamp(Canvas->ClipX * 0.88f, 740.0f, 960.0f);
+	const float BoxH = FMath::Clamp(Canvas->ClipY * 0.84f, 500.0f, 620.0f);
+	const float BoxX = (Canvas->ClipX - BoxW) * 0.5f;
+	const float BoxY = (Canvas->ClipY - BoxH) * 0.5f;
+
+	// Main parchment ledger framed box
+	DrawFramedBox(BoxX, BoxY, BoxW, BoxH, ParchmentColor, AntiqueBrassColor, 2.0f);
+
+	// Inner decorative border
+	DrawLine(BoxX + 6.0f, BoxY + 6.0f, BoxX + BoxW - 6.0f, BoxY + 6.0f, MutedSepiaColor, 1.0f);
+	DrawLine(BoxX + BoxW - 6.0f, BoxY + 6.0f, BoxX + BoxW - 6.0f, BoxY + BoxH - 6.0f, MutedSepiaColor, 1.0f);
+	DrawLine(BoxX + BoxW - 6.0f, BoxY + BoxH - 6.0f, BoxX + 6.0f, BoxY + BoxH - 6.0f, MutedSepiaColor, 1.0f);
+	DrawLine(BoxX + 6.0f, BoxY + BoxH - 6.0f, BoxX + 6.0f, BoxY + 6.0f, MutedSepiaColor, 1.0f);
+
+	// Header
+	FString MainTitle = TEXT("KABIR'S SATCHEL & FIELD JOURNAL  —  KOT GURDARSHAN, 1919");
+	UFont* HeaderFont = MediumFont ? MediumFont : SmallFont;
+	DrawText(MainTitle, DarkInkColor, BoxX + 24.0f, BoxY + 14.0f, HeaderFont);
+
+	FString Subtitle = TEXT("Walled City Mohalla Scout Records  •  Clandestine Anti-Rowlatt Courier Dispatch");
+	DrawText(Subtitle, MutedSepiaColor, BoxX + 24.0f, BoxY + 36.0f, SmallFont);
+
+	// Horizontal rule line below header
+	DrawLine(BoxX + 16.0f, BoxY + 54.0f, BoxX + BoxW - 16.0f, BoxY + 54.0f, AntiqueBrassColor, 1.5f);
+
+	// Tab Bar Ribbon
+	const float TabY = BoxY + 60.0f;
+	const float TabH = 28.0f;
+	const float TabW = (BoxW - 48.0f) / 3.0f;
+	const int32 ActiveTab = Kabir->GetActiveSatchelTab();
+
+	const FString TabTitles[] = {
+		TEXT("[ 1 ]  SATCHEL EQUIPMENT"),
+		TEXT("[ 2 ]  MOHALLA ROUTE MAP"),
+		TEXT("[ 3 ]  DISPATCHES & LORE")
+	};
+
+	for (int32 i = 0; i < 3; ++i)
+	{
+		float TabX = BoxX + 24.0f + (i * TabW);
+		bool bSelected = (ActiveTab == i);
+
+		FLinearColor TabBg = bSelected ? DarkInkColor : FLinearColor(0.85f, 0.81f, 0.72f, 0.85f);
+		FLinearColor TabBorder = bSelected ? AntiqueBrassColor : MutedSepiaColor;
+		FLinearColor TabTextCol = bSelected ? AntiqueBrassColor : DarkInkColor;
+
+		DrawFramedBox(TabX, TabY, TabW - 6.0f, TabH, TabBg, TabBorder, bSelected ? 1.5f : 1.0f);
+
+		float TW = 0.0f, TH = 0.0f;
+		GetTextSize(TabTitles[i], TW, TH, SmallFont);
+		DrawText(TabTitles[i], TabTextCol, TabX + ((TabW - 6.0f - TW) * 0.5f), TabY + ((TabH - TH) * 0.5f), SmallFont);
+	}
+
+	// Content Area Dimensions
+	const float ContentY = BoxY + 96.0f;
+	const float ContentW = BoxW - 48.0f;
+	const float ContentH = BoxH - 134.0f;
+
+	switch (ActiveTab)
+	{
+	case 0:
+		DrawSatchelTabEquipment(Kabir, BoxX + 24.0f, ContentY, ContentW, ContentH);
+		break;
+	case 1:
+		DrawSatchelTabMohallaMap(Kabir, BoxX + 24.0f, ContentY, ContentW, ContentH);
+		break;
+	case 2:
+	default:
+		DrawSatchelTabDispatchesLore(Kabir, BoxX + 24.0f, ContentY, ContentW, ContentH);
+		break;
+	}
+
+	// Bottom Navigation Footer
+	DrawLine(BoxX + 16.0f, BoxY + BoxH - 32.0f, BoxX + BoxW - 16.0f, BoxY + BoxH - 32.0f, AntiqueBrassColor, 1.0f);
+
+	FString FooterNav = TEXT("[ 1 / 2 / 3 ] Switch Section     |     [ TAB / J / E / ESC ] Close Satchel");
+	DrawText(FooterNav, MutedSepiaColor, BoxX + 24.0f, BoxY + BoxH - 24.0f, SmallFont);
+}
+
+void ARevolutionHUD::DrawSatchelTabEquipment(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH)
+{
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	if (!SmallFont) return;
+
+	const float LeftW = ContentW * 0.54f;
+	const float RightW = ContentW * 0.43f;
+	const float RightX = BoxX + LeftW + (ContentW * 0.03f);
+
+	// LEFT COLUMN: Equipment Items
+	// Item 1: Anti-Rowlatt Pamphlets
+	float Item1Y = ContentY + 4.0f;
+	float ItemH = (ContentH - 20.0f) / 3.0f;
+
+	DrawFramedBox(BoxX, Item1Y, LeftW, ItemH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
+	DrawText(TEXT("Anti-Rowlatt Pamphlet Dispatch"), DarkInkColor, BoxX + 12.0f, Item1Y + 8.0f, MediumFont ? MediumFont : SmallFont);
+
+	URevolutionMissionSubsystem* Subsystem = GetWorld() ? GetWorld()->GetSubsystem<URevolutionMissionSubsystem>() : nullptr;
+	bool bHasPamphlets = Subsystem && (Subsystem->CurrentStage >= ECourierMissionStage::Stage_RooftopInfiltration);
+
+	FString PamStatus = bHasPamphlets ? TEXT("STATUS: SECURED IN VEST POUCH") : TEXT("STATUS: AWAITING PICKUP AT COURTYARD CHARPAI");
+	FLinearColor StatusCol = bHasPamphlets ? FLinearColor(0.18f, 0.65f, 0.32f, 1.0f) : FLinearColor(0.85f, 0.52f, 0.15f, 1.0f);
+	DrawText(PamStatus, StatusCol, BoxX + 12.0f, Item1Y + 28.0f, SmallFont);
+
+	FString PamDesc = TEXT("Secretly printed Urdu and Gurmukhi bulletins calling for town-wide Hartal shutdown against emergency detention laws. Kabir carries them across rooftops unseen.");
+	TArray<FString> PamLines = WrapText(PamDesc, SmallFont, LeftW - 24.0f);
+	float LineY = Item1Y + 48.0f;
+	for (const FString& L : PamLines)
+	{
+		DrawText(L, MutedSepiaColor, BoxX + 12.0f, LineY, SmallFont);
+		LineY += 14.0f;
+	}
+
+	// Item 2: Tailor's Soapstone Chalk
+	float Item2Y = Item1Y + ItemH + 6.0f;
+	DrawFramedBox(BoxX, Item2Y, LeftW, ItemH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
+
+	FString ChalkHeader = FString::Printf(TEXT("Tailor's Soapstone Chalk  [%d / %d STICKS]"), Kabir->GetChalkCount(), Kabir->MaxChalk);
+	DrawText(ChalkHeader, DarkInkColor, BoxX + 12.0f, Item2Y + 8.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("ACTION: PRESS [T] TO INSCRIBE ROOFTOP WAYPOINTS"), AntiqueBrassColor, BoxX + 12.0f, Item2Y + 28.0f, SmallFont);
+
+	FString ChalkDesc = TEXT("Smooth white soapstone chalk taken from Kabir's father's tailoring shears bench. Used to mark rooftop jump ledges and safe escape paths with visible compass waypoints.");
+	TArray<FString> ChalkLines = WrapText(ChalkDesc, SmallFont, LeftW - 24.0f);
+	LineY = Item2Y + 48.0f;
+	for (const FString& L : ChalkLines)
+	{
+		DrawText(L, MutedSepiaColor, BoxX + 12.0f, LineY, SmallFont);
+		LineY += 14.0f;
+	}
+
+	// Item 3: Sun-Baked Clay Marbles
+	float Item3Y = Item2Y + ItemH + 6.0f;
+	DrawFramedBox(BoxX, Item3Y, LeftW, ItemH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
+
+	FString MarbleHeader = FString::Printf(TEXT("Sun-Baked Clay Marbles  [%d / %d PEBBLES]"), Kabir->GetPebbleCount(), Kabir->MaxPebbles);
+	DrawText(MarbleHeader, DarkInkColor, BoxX + 12.0f, Item3Y + 8.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("ACTION: PRESS [F] TO LAUNCH ACOUSTIC DISTRACTION"), AntiqueBrassColor, BoxX + 12.0f, Item3Y + 28.0f, SmallFont);
+
+	FString MarbleDesc = TEXT("Clay marbles rolled from Ravi river mud. Launched to clatter against brickwork, diverting curfew constables or scattering rooftop pigeons to mask clandestine movements.");
+	TArray<FString> MarbleLines = WrapText(MarbleDesc, SmallFont, LeftW - 24.0f);
+	LineY = Item3Y + 48.0f;
+	for (const FString& L : MarbleLines)
+	{
+		DrawText(L, MutedSepiaColor, BoxX + 12.0f, LineY, SmallFont);
+		LineY += 14.0f;
+	}
+
+	// RIGHT COLUMN: Current Mission Directive & Historical Context
+	DrawFramedBox(RightX, ContentY + 4.0f, RightW, ContentH - 8.0f, FLinearColor(0.86f, 0.82f, 0.72f, 0.90f), AntiqueBrassColor, 1.5f);
+
+	DrawText(TEXT("MISSION DIRECTIVE"), DarkInkColor, RightX + 14.0f, ContentY + 16.0f, MediumFont ? MediumFont : SmallFont);
+	DrawLine(RightX + 14.0f, ContentY + 36.0f, RightX + RightW - 14.0f, ContentY + 36.0f, AntiqueBrassColor, 1.0f);
+
+	if (Subsystem)
+	{
+		DrawText(Subsystem->GetCurrentStageTitle().ToString(), AntiqueBrassColor, RightX + 14.0f, ContentY + 46.0f, SmallFont);
+
+		TArray<FString> DirLines = WrapText(Subsystem->GetCurrentStageDirective().ToString(), SmallFont, RightW - 28.0f);
+		float DirY = ContentY + 68.0f;
+		for (const FString& DL : DirLines)
+		{
+			DrawText(DL, DarkInkColor, RightX + 14.0f, DirY, SmallFont);
+			DirY += 16.0f;
+		}
+	}
+
+	// Historical Note in Right Column
+	float HistY = ContentY + ContentH * 0.52f;
+	DrawLine(RightX + 14.0f, HistY, RightX + RightW - 14.0f, HistY, MutedSepiaColor, 1.0f);
+	DrawText(TEXT("HISTORICAL REALISM — APRIL 1919"), AntiqueBrassColor, RightX + 14.0f, HistY + 10.0f, SmallFont);
+
+	FString HistNote = TEXT("The Anarchical and Revolutionary Crimes Act (Rowlatt Act) of March 1919 authorized British colonial authorities in Punjab to arrest individuals without warrant and detain them without jury trial.\n\nIn response, Mahatma Gandhi called for a nation-wide Satyagraha Hartal. In towns like Kot Gurdarshan, dispatch riders and child couriers moved across interconnected rooftops at night to coordinate the shutdown.");
+	TArray<FString> HistLines = WrapText(HistNote, SmallFont, RightW - 28.0f);
+	float NoteY = HistY + 30.0f;
+	for (const FString& HL : HistLines)
+	{
+		DrawText(HL, MutedSepiaColor, RightX + 14.0f, NoteY, SmallFont);
+		NoteY += 14.0f;
+	}
+}
+
+void ARevolutionHUD::DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH)
+{
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	if (!SmallFont) return;
+
+	// Map Card Container
+	const float MapX = BoxX + 12.0f;
+	const float MapY = ContentY + 4.0f;
+	const float MapW = ContentW - 24.0f;
+	const float MapH = ContentH - 8.0f;
+
+	DrawFramedBox(MapX, MapY, MapW, MapH, FLinearColor(0.89f, 0.85f, 0.76f, 0.95f), AntiqueBrassColor, 1.5f);
+
+	// Title
+	DrawText(TEXT("KOT GURDARSHAN  —  HAWALI MOHALLA ROUTE SKETCH"), DarkInkColor, MapX + 16.0f, MapY + 12.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("Hand-drawn in charcoal on fibrous khadi paper. Rooftop parapets and courtyard thoroughfares."), MutedSepiaColor, MapX + 16.0f, MapY + 32.0f, SmallFont);
+	DrawLine(MapX + 16.0f, MapY + 48.0f, MapX + MapW - 16.0f, MapY + 48.0f, MutedSepiaColor, 1.0f);
+
+	// Map Drawing Area
+	const float CanvasAreaX = MapX + 24.0f;
+	const float CanvasAreaY = MapY + 58.0f;
+	const float CanvasAreaW = MapW * 0.72f;
+	const float CanvasAreaH = MapH - 74.0f;
+
+	DrawFramedBox(CanvasAreaX, CanvasAreaY, CanvasAreaW, CanvasAreaH, FLinearColor(0.93f, 0.90f, 0.82f, 0.80f), MutedSepiaColor, 1.0f);
+
+	// Grid coordinate mapping: World X [-240, 240] -> Screen X, World Y [-280, 280] -> Screen Y
+	auto WorldToMap = [&](float WX, float WY) -> FVector2D
+	{
+		float NormX = (WX + 240.0f) / 480.0f;
+		float NormY = (WY + 280.0f) / 560.0f;
+		return FVector2D(
+			CanvasAreaX + (NormX * CanvasAreaW),
+			CanvasAreaY + (NormY * CanvasAreaH)
+		);
+	};
+
+	// 1. Draw Architectural Structures on Map
+	// Courtyard Boundary
+	FVector2D C1 = WorldToMap(-120.0f, -140.0f);
+	FVector2D C2 = WorldToMap(140.0f, 160.0f);
+	DrawFramedBox(C1.X, C1.Y, C2.X - C1.X, C2.Y - C1.Y, FLinearColor(0.85f, 0.80f, 0.70f, 0.35f), MutedSepiaColor, 1.0f);
+	DrawText(TEXT("HAVELI COURTYARD"), MutedSepiaColor, C1.X + 8.0f, C1.Y + 8.0f, SmallFont);
+
+	// Deorhi Gateway (South)
+	FVector2D DPos = WorldToMap(-20.0f, -240.0f);
+	DrawFramedBox(DPos.X - 18.0f, DPos.Y - 6.0f, 36.0f, 12.0f, DarkInkColor, AntiqueBrassColor, 1.0f);
+	DrawText(TEXT("[DEORHI GATE]"), DarkInkColor, DPos.X - 32.0f, DPos.Y + 8.0f, SmallFont);
+
+	// Rooftop Parapet (North)
+	FVector2D PPos = WorldToMap(0.0f, 240.0f);
+	DrawFramedBox(PPos.X - 45.0f, PPos.Y - 6.0f, 90.0f, 12.0f, FLinearColor(0.4f, 0.3f, 0.2f, 0.6f), AntiqueBrassColor, 1.0f);
+	DrawText(TEXT("[ROOFTOP PARAPET & PIGEONS]"), DarkInkColor, PPos.X - 60.0f, PPos.Y - 20.0f, SmallFont);
+
+	// Jharokha Balcony (West)
+	FVector2D JPos = WorldToMap(-190.0f, -60.0f);
+	DrawFramedBox(JPos.X - 14.0f, JPos.Y - 14.0f, 28.0f, 28.0f, FLinearColor(0.2f, 0.45f, 0.3f, 0.5f), AntiqueBrassColor, 1.0f);
+	DrawText(TEXT("[COURIER STASH]"), DarkInkColor, JPos.X - 35.0f, JPos.Y + 16.0f, SmallFont);
+
+	// Low Drain Conduit (West wall)
+	FVector2D DrainPos = WorldToMap(-120.0f, 90.0f);
+	DrawFramedBox(DrainPos.X - 12.0f, DrainPos.Y - 6.0f, 24.0f, 12.0f, FLinearColor(0.88f, 0.55f, 0.2f, 0.8f), DarkInkColor, 1.0f);
+	DrawText(TEXT("[MORI DRAIN]"), DarkInkColor, DrainPos.X - 28.0f, DrainPos.Y + 8.0f, SmallFont);
+
+	// Outer Alley Curfew Patrol Route (South)
+	FVector2D A1 = WorldToMap(-220.0f, -240.0f);
+	FVector2D A2 = WorldToMap(220.0f, -240.0f);
+	DrawLine(A1.X, A1.Y, A2.X, A2.Y, FLinearColor(0.85f, 0.25f, 0.20f, 0.65f), 2.0f);
+	DrawText(TEXT("!  CURFEW PATROL ROUTE  !"), FLinearColor(0.85f, 0.25f, 0.20f, 0.85f), A1.X + 20.0f, A1.Y - 16.0f, SmallFont);
+
+	// 2. Draw Real-Time Scout Chalk Marks
+	for (TActorIterator<AChalkMarkActor> It(GetWorld()); It; ++It)
+	{
+		AChalkMarkActor* Chalk = *It;
+		if (Chalk)
+		{
+			FVector Loc = Chalk->GetActorLocation();
+			FVector2D MPos = WorldToMap(Loc.X, Loc.Y);
+			FLinearColor ChalkCol = FLinearColor(0.96f, 0.95f, 0.90f, 0.95f);
+			DrawLine(MPos.X - 4.0f, MPos.Y, MPos.X, MPos.Y - 4.0f, ChalkCol, 1.5f);
+			DrawLine(MPos.X, MPos.Y - 4.0f, MPos.X + 4.0f, MPos.Y, ChalkCol, 1.5f);
+			DrawLine(MPos.X + 4.0f, MPos.Y, MPos.X, MPos.Y + 4.0f, ChalkCol, 1.5f);
+			DrawLine(MPos.X, MPos.Y + 4.0f, MPos.X - 4.0f, MPos.Y, ChalkCol, 1.5f);
+			DrawText(TEXT("M"), DarkInkColor, MPos.X - 3.0f, MPos.Y - 5.0f, SmallFont);
+		}
+	}
+
+	// 3. Draw Real-Time Player Position (Kabir)
+	FVector PlayerLoc = Kabir->GetActorLocation();
+	FVector2D PMap = WorldToMap(PlayerLoc.X, PlayerLoc.Y);
+	FLinearColor PlayerCol = FLinearColor(0.20f, 0.78f, 0.42f, 1.0f);
+
+	// Player Diamond
+	DrawLine(PMap.X - 6.0f, PMap.Y, PMap.X, PMap.Y - 6.0f, PlayerCol, 2.0f);
+	DrawLine(PMap.X, PMap.Y - 6.0f, PMap.X + 6.0f, PMap.Y, PlayerCol, 2.0f);
+	DrawLine(PMap.X + 6.0f, PMap.Y, PMap.X, PMap.Y + 6.0f, PlayerCol, 2.0f);
+	DrawLine(PMap.X, PMap.Y + 6.0f, PMap.X - 6.0f, PMap.Y, PlayerCol, 2.0f);
+
+	// Player facing direction notch
+	FRotator ControlRot = Kabir->GetControlRotation();
+	float Rad = FMath::DegreesToRadians(ControlRot.Yaw - 90.0f);
+	DrawLine(PMap.X, PMap.Y, PMap.X + (FMath::Cos(Rad) * 12.0f), PMap.Y + (FMath::Sin(Rad) * 12.0f), PlayerCol, 2.0f);
+
+	DrawText(TEXT("[KABIR]"), PlayerCol, PMap.X + 8.0f, PMap.Y - 6.0f, SmallFont);
+
+	// MAP LEGEND (Right Sidebar)
+	const float LegendX = CanvasAreaX + CanvasAreaW + 16.0f;
+	const float LegendY = CanvasAreaY;
+	const float LegendW = MapW - CanvasAreaW - 48.0f;
+
+	DrawFramedBox(LegendX, LegendY, LegendW, CanvasAreaH, FLinearColor(0.87f, 0.83f, 0.73f, 0.90f), AntiqueBrassColor, 1.0f);
+	DrawText(TEXT("MAP LEGEND"), DarkInkColor, LegendX + 12.0f, LegendY + 12.0f, MediumFont ? MediumFont : SmallFont);
+	DrawLine(LegendX + 12.0f, LegendY + 30.0f, LegendX + LegendW - 12.0f, LegendY + 30.0f, AntiqueBrassColor, 1.0f);
+
+	float LegY = LegendY + 40.0f;
+	auto DrawLegendItem = [&](const FString& Symbol, const FString& Label, const FLinearColor& Col)
+	{
+		DrawText(Symbol, Col, LegendX + 12.0f, LegY, SmallFont);
+		DrawText(Label, DarkInkColor, LegendX + 36.0f, LegY, SmallFont);
+		LegY += 22.0f;
+	};
+
+	DrawLegendItem(TEXT("<>"), TEXT("Kabir (Scout)"), PlayerCol);
+	DrawLegendItem(TEXT("[M]"), TEXT("Tailor's Chalk Mark"), FLinearColor(0.95f, 0.94f, 0.90f, 1.0f));
+	DrawLegendItem(TEXT("[#]"), TEXT("Deorhi Gate & Kundi"), AntiqueBrassColor);
+	DrawLegendItem(TEXT("[S]"), TEXT("Courier Stash Box"), FLinearColor(0.2f, 0.65f, 0.3f, 1.0f));
+	DrawLegendItem(TEXT("[D]"), TEXT("Haveli Drain Crawl"), FLinearColor(0.88f, 0.55f, 0.2f, 1.0f));
+	DrawLegendItem(TEXT("[P]"), TEXT("Rooftop Parapet"), MutedSepiaColor);
+	DrawLegendItem(TEXT("---"), TEXT("Curfew Patrol Alley"), FLinearColor(0.85f, 0.25f, 0.20f, 1.0f));
+}
+
+void ARevolutionHUD::DrawSatchelTabDispatchesLore(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH)
+{
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	if (!SmallFont) return;
+
+	// Two-column layout for discovered historical artifacts
+	const float ColW = (ContentW - 16.0f) * 0.5f;
+	const float Col1X = BoxX;
+	const float Col2X = BoxX + ColW + 16.0f;
+
+	struct FLoreEntry
+	{
+		FString Title;
+		FString Category;
+		FString Description;
+	};
+
+	static const FLoreEntry Entries[] = {
+		{
+			TEXT("Dietz No. 2 Hurricane Lantern"),
+			TEXT("Colonial Lighting  •  Cold-Blast Draft"),
+			TEXT("Tinplate kerosene lantern used by Punjab night chaukidars. Burns kerosene distributed under colonial wartime quotas.")
+		},
+		{
+			TEXT("Woven Moonj Charpai"),
+			TEXT("Traditional Artisan Furniture"),
+			TEXT("Daybed woven from twisted moonj river-grass rope over shisham hardwood rails. The social anchor of Punjabi haveli courtyards.")
+		},
+		{
+			TEXT("Terracotta Chai Kulhad"),
+			TEXT("Pottery  •  Bazaar Culture"),
+			TEXT("Disposable unglazed clay cup hand-thrown by town kumhars. Imparts an authentic earthy aroma (saundhi khushboo) to boiled tea.")
+		},
+		{
+			TEXT("Burlap Jute Ration Sack"),
+			TEXT("Imperial Wartime Procurement"),
+			TEXT("Heavy burlap sacks stamped with imperial seals. Requisitioned wheat intended for Mesopotamia, leaving Punjab bazaars inflated.")
+		},
+		{
+			TEXT("Hardwood Kite Charkhi"),
+			TEXT("Basant Festival  •  Signaling"),
+			TEXT("Hardwood kite spool with glass-coated manja line. Young rooftop scouts used colored kites to signal across railway tracks.")
+		},
+		{
+			TEXT("Aged Teak Deorhi Gateway"),
+			TEXT("Haveli Architecture  •  Iron Kundi"),
+			TEXT("Massive double doors forged from aged Burma teak with wrought-iron slide bolts, separating public alleys from private sanctuary.")
+		},
+		{
+			TEXT("Carved Teak Jharokha"),
+			TEXT("Walled City Balcony"),
+			TEXT("Overhanging timber lattice balcony allowing residents and scouts to observe British garrison movements without being seen.")
+		},
+		{
+			TEXT("Haveli Storm-Drain Arch"),
+			TEXT("Runoff Conduit  •  Mori Traversal"),
+			TEXT("Low brick conduit running through boundary walls. Allows 12-year-old Kabir to crawl on hands and knees to evade colonial watchmen.")
+		}
+	};
+
+	const float CardH = (ContentH - 24.0f) / 4.0f;
+
+	for (int32 i = 0; i < 8; ++i)
+	{
+		float CurX = (i < 4) ? Col1X : Col2X;
+		float CurY = ContentY + 4.0f + ((i % 4) * (CardH + 6.0f));
+
+		DrawFramedBox(CurX, CurY, ColW, CardH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
+
+		DrawText(Entries[i].Title, DarkInkColor, CurX + 10.0f, CurY + 6.0f, MediumFont ? MediumFont : SmallFont);
+		DrawText(Entries[i].Category, AntiqueBrassColor, CurX + 10.0f, CurY + 24.0f, SmallFont);
+
+		TArray<FString> Wrapped = WrapText(Entries[i].Description, SmallFont, ColW - 20.0f);
+		float TextY = CurY + 42.0f;
+		for (const FString& Line : Wrapped)
+		{
+			DrawText(Line, MutedSepiaColor, CurX + 10.0f, TextY, SmallFont);
+			TextY += 13.0f;
+		}
+	}
 }
 
 

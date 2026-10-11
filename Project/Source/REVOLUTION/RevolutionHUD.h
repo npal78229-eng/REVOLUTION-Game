@@ -59,6 +59,12 @@ protected:
 	/** Draw historical prologue title sequence */
 	void DrawOpeningPrologueCard(float DeltaTime);
 
+	/** Draw tactile courier satchel & field journal modal */
+	void DrawSatchelJournalModal(ARevolutionCharacter* Kabir);
+	void DrawSatchelTabEquipment(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
+	void DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
+	void DrawSatchelTabDispatchesLore(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
+
 	/** Helper to draw a framed card with outer/inner borders */
 	void DrawFramedBox(float X, float Y, float Width, float Height, const FLinearColor& FillColor, const FLinearColor& BorderColor, float BorderThickness = 2.0f);
 

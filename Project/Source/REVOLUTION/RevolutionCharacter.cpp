@@ -292,11 +292,17 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindKey(EKeys::F, IE_Pressed, this, &ARevolutionCharacter::ThrowPebble);
 	PlayerInputComponent->BindKey(EKeys::G, IE_Pressed, this, &ARevolutionCharacter::ThrowPebble);
 	PlayerInputComponent->BindKey(EKeys::T, IE_Pressed, this, &ARevolutionCharacter::DrawChalkMark);
+
+	PlayerInputComponent->BindKey(EKeys::Tab, IE_Pressed, this, &ARevolutionCharacter::ToggleSatchelJournal);
+	PlayerInputComponent->BindKey(EKeys::J, IE_Pressed, this, &ARevolutionCharacter::ToggleSatchelJournal);
+	PlayerInputComponent->BindKey(EKeys::One, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab1);
+	PlayerInputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab2);
+	PlayerInputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab3);
 }
 
 void ARevolutionCharacter::Move(const FInputActionValue& Value)
 {
-	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing) return;
+	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || bIsSatchelJournalOpen) return;
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -335,7 +341,7 @@ void ARevolutionCharacter::Look(const FInputActionValue& Value)
 
 void ARevolutionCharacter::MoveForwardAxis(float Value)
 {
-	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || FMath::IsNearlyZero(Value)) return;
+	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || bIsSatchelJournalOpen || FMath::IsNearlyZero(Value)) return;
 
 	if (bIsHidingInCover)
 	{
@@ -357,7 +363,7 @@ void ARevolutionCharacter::MoveForwardAxis(float Value)
 
 void ARevolutionCharacter::MoveRightAxis(float Value)
 {
-	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || FMath::IsNearlyZero(Value)) return;
+	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || bIsSatchelJournalOpen || FMath::IsNearlyZero(Value)) return;
 
 	if (bIsHidingInCover)
 	{
@@ -472,6 +478,12 @@ void ARevolutionCharacter::ToggleCrouch()
 
 void ARevolutionCharacter::OnInteract()
 {
+	if (bIsSatchelJournalOpen)
+	{
+		ToggleSatchelJournal();
+		return;
+	}
+
 	if (bIsInspecting)
 	{
 		EndInspection();
@@ -518,7 +530,7 @@ void ARevolutionCharacter::EndInspection()
 
 void ARevolutionCharacter::CheckForInteractables()
 {
-	if (bIsInspecting)
+	if (bIsInspecting || bIsSatchelJournalOpen)
 	{
 		return;
 	}
@@ -821,6 +833,32 @@ void ARevolutionCharacter::StartCrawlTraversal(const FVector& StartLocation, con
 	SetActorLocation(StartLocation, true);
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir started low drain crawlway traversal from %s to %s"), *StartLocation.ToString(), *TargetLocation.ToString());
+}
+
+void ARevolutionCharacter::ToggleSatchelJournal()
+{
+	bIsSatchelJournalOpen = !bIsSatchelJournalOpen;
+	if (bIsSatchelJournalOpen)
+	{
+		StopSprinting();
+		PlayInspectAudio(true); // Plays SFX_Parchment_Open
+		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir opened courier satchel and field journal."));
+	}
+	else
+	{
+		PlayInspectAudio(false); // Plays SFX_Parchment_Close
+		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir closed courier satchel."));
+	}
+}
+
+void ARevolutionCharacter::SelectSatchelTab(int32 TabIndex)
+{
+	if (bIsSatchelJournalOpen)
+	{
+		ActiveSatchelTab = FMath::Clamp(TabIndex, 0, 2);
+		PlayInspectAudio(true);
+		UE_LOG(LogREVOLUTION, Log, TEXT("Switched satchel journal tab to %d"), ActiveSatchelTab);
+	}
 }
 
 

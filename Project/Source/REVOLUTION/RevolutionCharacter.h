@@ -275,6 +275,34 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Revolution|Concealment")
 	bool IsHidingInCover() const { return bIsHidingInCover; }
 
+	// --- COURIER SATCHEL & FIELD JOURNAL SYSTEM ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Satchel")
+	bool bIsSatchelJournalOpen = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Satchel")
+	int32 ActiveSatchelTab = 0; // 0 = Satchel Equipment, 1 = Mohalla Map, 2 = Dispatches & Lore
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void ToggleSatchelJournal();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void SelectSatchelTab(int32 TabIndex);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void SelectSatchelTab1() { SelectSatchelTab(0); }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void SelectSatchelTab2() { SelectSatchelTab(1); }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void SelectSatchelTab3() { SelectSatchelTab(2); }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Satchel")
+	bool IsSatchelJournalOpen() const { return bIsSatchelJournalOpen; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Satchel")
+	int32 GetActiveSatchelTab() const { return ActiveSatchelTab; }
+
 private:
 	FVector VaultStartLocation;
 	FVector VaultTargetLocation;
