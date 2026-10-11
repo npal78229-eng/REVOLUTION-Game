@@ -14,6 +14,13 @@
 #include "RevolutionAtmosphereController.h"
 #include "HidingSpotActor.h"
 #include "TerracottaHazardActor.h"
+#include "ChaffDustDecoyActor.h"
+#include "PariahDogActor.h"
+#include "CheckpointBarrierActor.h"
+#include "ManjaTrapActor.h"
+#include "TelegraphWireActor.h"
+#include "LithoPressActor.h"
+#include "ProclamationBoardActor.h"
 #include "Sound/SoundBase.h"
 #include "RevolutionGameMode.h"
 #include "Kismet/GameplayStatics.h"
@@ -721,6 +728,78 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 
 		DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.12f, 0.08f, 0.02f, 0.82f), GustCol, 1.2f);
 		DrawText(GustText, GustCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
+		TopNotificationY += BoxH + 6.0f;
+	}
+
+	// 7. Active Wheat Chaff Screen Indicator
+	bool bInsideChaffScreen = false;
+	for (TActorIterator<AChaffDustDecoyActor> ChaffIt(GetWorld()); ChaffIt; ++ChaffIt)
+	{
+		AChaffDustDecoyActor* Chaff = *ChaffIt;
+		if (Chaff && Chaff->IsDustCloudActive())
+		{
+			float Dist = FVector::Dist(Kabir->GetActorLocation(), Chaff->GetActorLocation());
+			if (Dist <= Chaff->DustRadius)
+			{
+				bInsideChaffScreen = true;
+				break;
+			}
+		}
+	}
+
+	if (bInsideChaffScreen && SmallFont)
+	{
+		FString ChaffText = TEXT("~  CONCEALED IN WHEAT CHAFF SCREEN — WATCHMAN SIGHT BLOCKED  ~");
+		float ChaffW = 0.0f, ChaffH = 0.0f;
+		GetTextSize(ChaffText, ChaffW, ChaffH, SmallFont);
+
+		float ChaffPulse = 0.75f + 0.25f * FMath::Sin(GetWorld()->GetTimeSeconds() * 7.0f);
+		FLinearColor ChaffCol = FLinearColor(0.92f, 0.78f, 0.45f, ChaffPulse);
+
+		float BoxW = ChaffW + 28.0f;
+		float BoxH = ChaffH + 10.0f;
+		float BoxX = (Canvas->ClipX - BoxW) * 0.5f;
+
+		DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.12f, 0.09f, 0.03f, 0.85f), ChaffCol, 1.2f);
+		DrawText(ChaffText, ChaffCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
+		TopNotificationY += BoxH + 6.0f;
+	}
+
+	// 8. Sleeping Mohalla Dog Proximity Caution
+	bool bNearSleepingDog = false;
+	for (TActorIterator<APariahDogActor> DogIt(GetWorld()); DogIt; ++DogIt)
+	{
+		APariahDogActor* Dog = *DogIt;
+		if (Dog && Dog->GetDogState() == EPariahDogState::Sleeping)
+		{
+			float Dist = FVector::Dist(Kabir->GetActorLocation(), Dog->GetActorLocation());
+			if (Dist <= Dog->WalkAlertRadius * 1.35f)
+			{
+				bNearSleepingDog = true;
+				break;
+			}
+		}
+	}
+
+	if (bNearSleepingDog && SmallFont)
+	{
+		FString DogText = Kabir->bIsCrouched 
+			? TEXT("~  SLEEPING MOHALLA DOG — CROUCHING SILENTLY PAST  ~") 
+			: TEXT("!  SLEEPING MOHALLA DOG AHEAD — CROUCH [C] TO AVOID WAKING  !");
+
+		float DogW = 0.0f, DogH = 0.0f;
+		GetTextSize(DogText, DogW, DogH, SmallFont);
+
+		FLinearColor DogCol = Kabir->bIsCrouched 
+			? FLinearColor(0.48f, 0.88f, 0.55f, 0.90f) 
+			: FLinearColor(0.95f, 0.45f, 0.20f, 0.95f);
+
+		float BoxW = DogW + 28.0f;
+		float BoxH = DogH + 10.0f;
+		float BoxX = (Canvas->ClipX - BoxW) * 0.5f;
+
+		DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.10f, 0.05f, 0.02f, 0.85f), DogCol, 1.2f);
+		DrawText(DogText, DogCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
 	}
 }
 
@@ -1129,6 +1208,31 @@ void ARevolutionHUD::DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float
 	FVector2D A2 = WorldToMap(220.0f, -240.0f);
 	DrawLine(A1.X, A1.Y, A2.X, A2.Y, FLinearColor(0.85f, 0.25f, 0.20f, 0.65f), 2.0f);
 	DrawText(TEXT("!  CURFEW PATROL ROUTE  !"), FLinearColor(0.85f, 0.25f, 0.20f, 0.85f), A1.X + 20.0f, A1.Y - 16.0f, SmallFont);
+
+	// Clandestine Litho Press (North-East Alcove)
+	FVector2D LithoPos = WorldToMap(115.0f, 185.0f);
+	DrawFramedBox(LithoPos.X - 10.0f, LithoPos.Y - 6.0f, 20.0f, 12.0f, FLinearColor(0.2f, 0.35f, 0.55f, 0.8f), DarkInkColor, 1.0f);
+	DrawText(TEXT("[LITHO PRESS]"), DarkInkColor, LithoPos.X - 30.0f, LithoPos.Y + 8.0f, SmallFont);
+
+	// Colonial Checkpoint Barricade (Far South Gate)
+	FVector2D BarPos = WorldToMap(-20.0f, -270.0f);
+	DrawFramedBox(BarPos.X - 16.0f, BarPos.Y - 4.0f, 32.0f, 8.0f, FLinearColor(0.85f, 0.15f, 0.15f, 0.9f), DarkInkColor, 1.0f);
+	DrawText(TEXT("[CHECKPOINT]"), FLinearColor(0.85f, 0.15f, 0.15f, 1.0f), BarPos.X - 32.0f, BarPos.Y + 6.0f, SmallFont);
+
+	// Telegraph Wire Sabotage Post (Rooftop North-East)
+	FVector2D WirePos = WorldToMap(60.0f, 240.0f);
+	DrawFramedBox(WirePos.X - 8.0f, WirePos.Y - 8.0f, 16.0f, 16.0f, FLinearColor(0.7f, 0.6f, 0.2f, 0.85f), DarkInkColor, 1.0f);
+	DrawText(TEXT("[TELEGRAPH]"), DarkInkColor, WirePos.X - 28.0f, WirePos.Y - 14.0f, SmallFont);
+
+	// Sleeping Mohalla Dog (Alley South-West)
+	FVector2D DogPos = WorldToMap(-155.0f, -40.0f);
+	DrawFramedBox(DogPos.X - 8.0f, DogPos.Y - 6.0f, 16.0f, 12.0f, FLinearColor(0.6f, 0.45f, 0.3f, 0.8f), DarkInkColor, 1.0f);
+	DrawText(TEXT("[STRAY DOG]"), DarkInkColor, DogPos.X - 25.0f, DogPos.Y + 8.0f, SmallFont);
+
+	// Wheat Chaff Decoy Screen (Courtyard East)
+	FVector2D ChaffPos = WorldToMap(85.0f, 60.0f);
+	DrawFramedBox(ChaffPos.X - 8.0f, ChaffPos.Y - 6.0f, 16.0f, 12.0f, FLinearColor(0.88f, 0.78f, 0.4f, 0.8f), DarkInkColor, 1.0f);
+	DrawText(TEXT("[CHAFF SCREEN]"), DarkInkColor, ChaffPos.X - 32.0f, ChaffPos.Y + 8.0f, SmallFont);
 
 	// 2. Draw Real-Time Scout Chalk Marks
 	for (TActorIterator<AChalkMarkActor> It(GetWorld()); It; ++It)
