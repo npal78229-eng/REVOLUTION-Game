@@ -6,6 +6,7 @@
 #include "InspectableProp.h"
 #include "CurfewPatrolAI.h"
 #include "ObjectiveTriggerActor.h"
+#include "RevolutionAtmosphereController.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -299,6 +300,30 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			}
 
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective 4: Return Courtyard Trigger at (10, 20, 15)."));
+		}
+	}
+
+	// 4. Ensure Dynamic Atmosphere Controller exists for Curfew Night-to-Dawn Transition
+	int32 ExistingAtmosphere = 0;
+	for (TActorIterator<ARevolutionAtmosphereController> It(World); It; ++It)
+	{
+		ExistingAtmosphere++;
+	}
+
+	if (ExistingAtmosphere == 0)
+	{
+		FActorSpawnParameters AtmoSpawnParams;
+		AtmoSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ARevolutionAtmosphereController* Atmosphere = World->SpawnActor<ARevolutionAtmosphereController>(
+			ARevolutionAtmosphereController::StaticClass(),
+			FVector::ZeroVector,
+			FRotator::ZeroRotator,
+			AtmoSpawnParams
+		);
+		if (Atmosphere)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned RevolutionAtmosphereController for dynamic Curfew-to-Dawn lighting."));
 		}
 	}
 }

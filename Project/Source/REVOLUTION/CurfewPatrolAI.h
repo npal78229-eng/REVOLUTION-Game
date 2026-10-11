@@ -120,6 +120,10 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Revolution|Perception")
 	FVector GetDirectionToPlayer(ARevolutionCharacter* TargetPlayer) const;
 
+	/** Diverts watchman to investigate an acoustic disturbance (pebble impact / sprinting step) */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Perception")
+	void InvestigateSoundLocation(const FVector& DisturbanceLocation);
+
 protected:
 	void UpdatePatrol(float DeltaTime);
 	void UpdateDetection(float DeltaTime);

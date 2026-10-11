@@ -213,6 +213,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Audio")
 	void PlayInspectAudio(bool bOpen);
 
+	// --- STEALTH DISTRACTION SYSTEM (Clay Marbles / Pebbles) ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Stealth")
+	int32 PebbleCount = 5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Stealth")
+	int32 MaxPebbles = 8;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* PebbleThrowSound = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void ThrowPebble();
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	int32 GetPebbleCount() const { return PebbleCount; }
+
 private:
 	FVector VaultStartLocation;
 	FVector VaultTargetLocation;

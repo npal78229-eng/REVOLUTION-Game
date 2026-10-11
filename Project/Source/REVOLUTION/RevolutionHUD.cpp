@@ -415,13 +415,29 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 		GetTextSize(StanceText, StanceW, StanceH, SmallFont);
 
 		float BadgeX = 36.0f;
-		float BadgeY = Canvas->ClipY * 0.88f;
+		float BadgeY = Canvas->ClipY * 0.86f;
 
 		DrawFramedBox(BadgeX, BadgeY, StanceW + 16.0f, StanceH + 8.0f, FLinearColor(0.06f, 0.05f, 0.04f, 0.70f), AntiqueBrassColor, 1.0f);
 		DrawText(StanceText, AntiqueBrassColor, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
 	}
 
-	// 2. Scan for active Watchman Detection
+	// 2. Distraction Ammo Badge (Lower Left)
+	if (SmallFont)
+	{
+		int32 Pebbles = Kabir->GetPebbleCount();
+		FString PebbleText = FString::Printf(TEXT("[F] CLAY MARBLES  (%d / %d)"), Pebbles, Kabir->MaxPebbles);
+		float PebbleW = 0.0f, PebbleH = 0.0f;
+		GetTextSize(PebbleText, PebbleW, PebbleH, SmallFont);
+
+		float PebbleBadgeX = 36.0f;
+		float PebbleBadgeY = Canvas->ClipY * 0.91f;
+
+		FLinearColor TextCol = (Pebbles > 0) ? FLinearColor(0.88f, 0.85f, 0.78f, 0.92f) : FLinearColor(0.55f, 0.50f, 0.45f, 0.60f);
+		DrawFramedBox(PebbleBadgeX, PebbleBadgeY, PebbleW + 16.0f, PebbleH + 8.0f, FLinearColor(0.06f, 0.05f, 0.04f, 0.65f), MutedSepiaColor, 1.0f);
+		DrawText(PebbleText, TextCol, PebbleBadgeX + 8.0f, PebbleBadgeY + 4.0f, SmallFont);
+	}
+
+	// 3. Scan for active Watchman Detection
 	ACurfewPatrolAI* HighestThreatWatchman = nullptr;
 	float HighestDetection = 0.0f;
 

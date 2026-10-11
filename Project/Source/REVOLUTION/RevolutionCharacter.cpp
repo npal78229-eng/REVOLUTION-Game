@@ -19,6 +19,8 @@
 #include "InteractableInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "PebbleProjectile.h"
+#include "GameFramework/ProjectileMovementComponent.h"
 #include "REVOLUTION.h"
 
 ARevolutionCharacter::ARevolutionCharacter()
@@ -121,6 +123,9 @@ ARevolutionCharacter::ARevolutionCharacter()
 
 	static ConstructorHelpers::FObjectFinder<USoundBase> ParchmentCloseFinder(TEXT("/Game/Audio/SFX/SFX_Parchment_Close.SFX_Parchment_Close"));
 	if (ParchmentCloseFinder.Succeeded()) InspectCloseSound = ParchmentCloseFinder.Object;
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> PebbleThrowFinder(TEXT("/Game/Audio/SFX/SFX_Pebble_Throw.SFX_Pebble_Throw"));
+	if (PebbleThrowFinder.Succeeded()) PebbleThrowSound = PebbleThrowFinder.Object;
 }
 
 void ARevolutionCharacter::BeginPlay()
@@ -252,6 +257,8 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindKey(EKeys::C, IE_Pressed, this, &ARevolutionCharacter::ToggleCrouch);
 	PlayerInputComponent->BindKey(EKeys::E, IE_Pressed, this, &ARevolutionCharacter::OnInteract);
+	PlayerInputComponent->BindKey(EKeys::F, IE_Pressed, this, &ARevolutionCharacter::ThrowPebble);
+	PlayerInputComponent->BindKey(EKeys::G, IE_Pressed, this, &ARevolutionCharacter::ThrowPebble);
 }
 
 void ARevolutionCharacter::Move(const FInputActionValue& Value)
@@ -562,3 +569,54 @@ void ARevolutionCharacter::PlayInspectAudio(bool bOpen)
 		UGameplayStatics::PlaySound2D(this, SoundToPlay, 0.85f, FMath::RandRange(0.96f, 1.04f));
 	}
 }
+
+void ARevolutionCharacter::ThrowPebble()
+{
+	if (bIsInspecting || PebbleCount <= 0)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		return;
+	}
+
+	PebbleCount--;
+
+	FVector SpawnLoc = GetActorLocation() + FVector(0.f, 0.f, 30.f);
+	FRotator SpawnRot = GetActorRotation();
+
+	if (FollowCamera)
+	{
+		SpawnLoc = FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector() * 50.f);
+		SpawnRot = FollowCamera->GetComponentRotation();
+		SpawnRot.Pitch = FMath::Clamp(SpawnRot.Pitch + 5.0f, -60.0f, 60.0f);
+	}
+	else
+	{
+		SpawnLoc += GetActorForwardVector() * 40.f;
+		SpawnRot.Pitch += 8.0f;
+	}
+
+	FActorSpawnParameters SpawnParams;
+	SpawnParams.Owner = this;
+	SpawnParams.Instigator = this;
+	SpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+	APebbleProjectile* Pebble = World->SpawnActor<APebbleProjectile>(APebbleProjectile::StaticClass(), SpawnLoc, SpawnRot, SpawnParams);
+	if (Pebble && Pebble->ProjectileMovement)
+	{
+		FVector LaunchDir = SpawnRot.Vector();
+		Pebble->ProjectileMovement->Velocity = LaunchDir * Pebble->ProjectileMovement->InitialSpeed;
+	}
+
+	if (PebbleThrowSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, PebbleThrowSound, GetActorLocation(), 0.9f, FMath::RandRange(0.95f, 1.05f));
+	}
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir threw distraction pebble! Pebbles remaining: %d"), PebbleCount);
+}
+

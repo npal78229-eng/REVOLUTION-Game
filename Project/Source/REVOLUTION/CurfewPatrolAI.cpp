@@ -363,3 +363,19 @@ FVector ACurfewPatrolAI::GetDirectionToPlayer(ARevolutionCharacter* TargetPlayer
 	if (!TargetPlayer) return FVector::ZeroVector;
 	return (TargetPlayer->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
 }
+
+void ACurfewPatrolAI::InvestigateSoundLocation(const FVector& DisturbanceLocation)
+{
+	if (AlertState == ECurfewAlertState::Alerted)
+	{
+		return;
+	}
+
+	LastKnownPlayerLocation = DisturbanceLocation;
+	SearchTimer = 0.0f;
+	DetectionMeter = FMath::Max(DetectionMeter, 45.0f);
+
+	SetAlertState(ECurfewAlertState::Searching);
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("Watchman diverted by acoustic disturbance to %s"), *DisturbanceLocation.ToString());
+}
