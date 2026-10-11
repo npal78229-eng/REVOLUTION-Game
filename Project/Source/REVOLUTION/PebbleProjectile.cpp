@@ -3,6 +3,7 @@
 #include "PebbleProjectile.h"
 #include "CurfewPatrolAI.h"
 #include "PigeonFlockActor.h"
+#include "PariahDogActor.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -95,6 +96,19 @@ void APebbleProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 					if (DistToFlock <= 250.0f)
 					{
 						Flock->TriggerScatterFlock();
+					}
+				}
+			}
+
+			for (TActorIterator<APariahDogActor> DogIt(World); DogIt; ++DogIt)
+			{
+				APariahDogActor* Dog = *DogIt;
+				if (Dog)
+				{
+					float DistToDog = FVector::Dist(Dog->GetActorLocation(), Hit.ImpactPoint);
+					if (DistToDog <= Dog->PebbleHearingRadius)
+					{
+						Dog->DistractWithPebble(Hit.ImpactPoint);
 					}
 				}
 			}

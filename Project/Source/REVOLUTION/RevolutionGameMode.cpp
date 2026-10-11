@@ -17,6 +17,8 @@
 #include "RoshandanActor.h"
 #include "SupplyStashActor.h"
 #include "ProclamationBoardActor.h"
+#include "LithoPressActor.h"
+#include "PariahDogActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -664,6 +666,54 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		if (Board)
 		{
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Section 144 Proclamation Board on haveli gateway wall at (-65, -225, 65)."));
+		}
+	}
+
+	// 15. Spawn Historical Clandestine Lithographic Press (Pathar di Chhapakhana)
+	int32 ExistingPresses = 0;
+	for (TActorIterator<ALithoPressActor> PressIt(World); PressIt; ++PressIt)
+	{
+		ExistingPresses++;
+	}
+
+	if (ExistingPresses == 0)
+	{
+		FActorSpawnParameters PressSpawnParams;
+		PressSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ALithoPressActor* Press = World->SpawnActor<ALithoPressActor>(
+			ALithoPressActor::StaticClass(),
+			FVector(115.0f, 185.0f, 10.0f),
+			FRotator(0.0f, -90.0f, 0.0f),
+			PressSpawnParams
+		);
+		if (Press)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Clandestine Lithographic Press in haveli cellar alcove at (115, 185, 10)."));
+		}
+	}
+
+	// 16. Spawn Historical Mohalla Pariah Dog (Desi Kutta Vigilance Decoy)
+	int32 ExistingDogs = 0;
+	for (TActorIterator<APariahDogActor> DogIt(World); DogIt; ++DogIt)
+	{
+		ExistingDogs++;
+	}
+
+	if (ExistingDogs == 0)
+	{
+		FActorSpawnParameters DogSpawnParams;
+		DogSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		APariahDogActor* Dog = World->SpawnActor<APariahDogActor>(
+			APariahDogActor::StaticClass(),
+			FVector(-155.0f, -40.0f, 10.0f),
+			FRotator(0.0f, 65.0f, 0.0f),
+			DogSpawnParams
+		);
+		if (Dog)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mohalla Pariah Dog in shadowed alleyway alcove at (-155, -40, 10)."));
 		}
 	}
 }
