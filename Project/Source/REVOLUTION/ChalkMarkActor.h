@@ -34,6 +34,12 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Scout")
 	FLinearColor ChalkColor = FLinearColor(0.95f, 0.94f, 0.90f, 0.88f);
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Scout")
+	bool bHasBeenInvestigatedByWatchman = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Scout")
+	float InvestigationRadius = 240.0f;
+
 protected:
 	virtual void BeginPlay() override;
 };

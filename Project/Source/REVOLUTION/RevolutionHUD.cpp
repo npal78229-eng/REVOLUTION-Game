@@ -13,6 +13,7 @@
 #include "ChalkMarkActor.h"
 #include "RevolutionAtmosphereController.h"
 #include "HidingSpotActor.h"
+#include "TerracottaHazardActor.h"
 #include "Sound/SoundBase.h"
 #include "RevolutionGameMode.h"
 #include "Kismet/GameplayStatics.h"
@@ -656,6 +657,40 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 
 		DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.04f, 0.08f, 0.12f, 0.82f), TrainCol, 1.2f);
 		DrawText(TrainText, TrainCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
+		TopNotificationY += BoxH + 6.0f;
+	}
+
+	// 5. Brittle Terracotta Roof Shingles Hazard Caution
+	bool bNearTerracottaHazard = false;
+	for (TActorIterator<ATerracottaHazardActor> HazIt(GetWorld()); HazIt; ++HazIt)
+	{
+		ATerracottaHazardActor* Haz = *HazIt;
+		if (Haz && FVector::Dist(Kabir->GetActorLocation(), Haz->GetActorLocation()) < 185.0f)
+		{
+			bNearTerracottaHazard = true;
+			break;
+		}
+	}
+
+	if (bNearTerracottaHazard && SmallFont)
+	{
+		FString HazText = Kabir->bIsCrouched 
+			? TEXT("~  TREADING SILENTLY ON BRITTLE TILES  ~") 
+			: TEXT("!  BRITTLE TERRACOTTA SHINGLES — CROUCH [C] TO TREAD SILENTLY  !");
+
+		float HazW = 0.0f, HazH = 0.0f;
+		GetTextSize(HazText, HazW, HazH, SmallFont);
+
+		FLinearColor HazCol = Kabir->bIsCrouched 
+			? FLinearColor(0.45f, 0.85f, 0.55f, 0.90f) 
+			: FLinearColor(0.95f, 0.65f, 0.22f, 0.95f);
+
+		float BoxW = HazW + 28.0f;
+		float BoxH = HazH + 10.0f;
+		float BoxX = (Canvas->ClipX - BoxW) * 0.5f;
+
+		DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.10f, 0.06f, 0.03f, 0.85f), HazCol, 1.2f);
+		DrawText(HazText, HazCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
 	}
 }
 

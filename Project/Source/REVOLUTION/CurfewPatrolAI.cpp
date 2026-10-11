@@ -15,6 +15,7 @@
 #include "RevolutionAtmosphereController.h"
 #include "RevolutionGameMode.h"
 #include "DoorDeorhiActor.h"
+#include "ChalkMarkActor.h"
 #include "EngineUtils.h"
 #include "REVOLUTION.h"
 
@@ -362,6 +363,42 @@ void ACurfewPatrolAI::UpdatePatrol(float DeltaTime)
 	else // ECurfewAlertState::Unaware
 	{
 		GetCharacterMovement()->MaxWalkSpeed = PatrolWalkSpeed;
+
+		// Check if an uninvestigated tailor's chalk mark is nearby to investigate
+		for (TActorIterator<AChalkMarkActor> ChalkIt(GetWorld()); ChalkIt; ++ChalkIt)
+		{
+			AChalkMarkActor* Mark = *ChalkIt;
+			if (Mark && !Mark->bHasBeenInvestigatedByWatchman)
+			{
+				float DistToMark = FVector::Dist(GetActorLocation(), Mark->GetActorLocation());
+				if (DistToMark <= Mark->InvestigationRadius)
+				{
+					FHitResult HitLOS;
+					FCollisionQueryParams TraceParams;
+					TraceParams.AddIgnoredActor(this);
+					TraceParams.AddIgnoredActor(Mark);
+					bool bBlocked = GetWorld()->LineTraceSingleByChannel(HitLOS, GetActorLocation() + FVector(0.0f, 0.0f, 60.0f), Mark->GetActorLocation(), ECC_Visibility, TraceParams);
+					if (!bBlocked)
+					{
+						Mark->bHasBeenInvestigatedByWatchman = true;
+						LastKnownPlayerLocation = Mark->GetActorLocation();
+						DetectionMeter = FMath::Max(DetectionMeter, 28.0f);
+						SetAlertState(ECurfewAlertState::Suspicious);
+						bIsWaitingAtWaypoint = true;
+						WaypointWaitTimer = 0.0f;
+						GetCharacterMovement()->StopMovementImmediately();
+
+						if (WatchmanCalloutSound)
+						{
+							UGameplayStatics::PlaySoundAtLocation(this, WatchmanCalloutSound, GetActorLocation(), 0.95f);
+						}
+
+						UE_LOG(LogREVOLUTION, Log, TEXT("Watchman noticed subversive tailor's chalk mark at %s! Pausing patrol to investigate."), *Mark->GetActorLocation().ToString());
+						return;
+					}
+				}
+			}
+		}
 
 		if (PatrolWaypoints.IsEmpty()) return;
 

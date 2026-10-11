@@ -11,6 +11,7 @@
 #include "DoorDeorhiActor.h"
 #include "PigeonFlockActor.h"
 #include "CrawlSpaceActor.h"
+#include "TerracottaHazardActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -455,6 +456,45 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		if (DrainCrawlway)
 		{
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Haveli Low Drain Crawlway at (-120, 90, 10)."));
+		}
+	}
+
+	// 9. Spawn Brittle Terracotta Roof Shingles & Broken Pottery Hazards (Khaprail)
+	int32 ExistingHazards = 0;
+	for (TActorIterator<ATerracottaHazardActor> HazIt(World); HazIt; ++HazIt)
+	{
+		ExistingHazards++;
+	}
+
+	if (ExistingHazards == 0)
+	{
+		FActorSpawnParameters HazSpawnParams;
+		HazSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		// Hazard 1: Rooftop terrace shingle pile near parapet vault approach
+		ATerracottaHazardActor* RoofHazard = World->SpawnActor<ATerracottaHazardActor>(
+			ATerracottaHazardActor::StaticClass(),
+			FVector(60.0f, -40.0f, 405.0f),
+			FRotator(0.0f, 15.0f, 0.0f),
+			HazSpawnParams
+		);
+		if (RoofHazard)
+		{
+			RoofHazard->HazardName = FText::FromString(TEXT("Rooftop Brittle Terracotta Shingles (Khaprail)"));
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Terracotta Hazard 1 (Rooftop Shingles) at (60, -40, 405)."));
+		}
+
+		// Hazard 2: Courtyard narrow passage broken earthen pots debris
+		ATerracottaHazardActor* CourtyardHazard = World->SpawnActor<ATerracottaHazardActor>(
+			ATerracottaHazardActor::StaticClass(),
+			FVector(-80.0f, -110.0f, 10.0f),
+			FRotator(0.0f, -30.0f, 0.0f),
+			HazSpawnParams
+		);
+		if (CourtyardHazard)
+		{
+			CourtyardHazard->HazardName = FText::FromString(TEXT("Courtyard Broken Earthen Kulhad Shards"));
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Terracotta Hazard 2 (Courtyard Shards) at (-80, -110, 10)."));
 		}
 	}
 }
