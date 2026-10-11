@@ -46,6 +46,9 @@ protected:
 	/** Draw top compass orientation ribbon */
 	void DrawCompass(ARevolutionCharacter* Kabir);
 
+	/** Draw stealth suspicion indicator and threat direction arc */
+	void DrawStealthAndDetection(ARevolutionCharacter* Kabir);
+
 	/** Helper to draw a framed card with outer/inner borders */
 	void DrawFramedBox(float X, float Y, float Width, float Height, const FLinearColor& FillColor, const FLinearColor& BorderColor, float BorderThickness = 2.0f);
 
@@ -64,6 +67,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
 	bool bShowInteractionPrompt = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
+	bool bShowStealthIndicators = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
 	FLinearColor ParchmentColor = FLinearColor(0.93f, 0.89f, 0.80f, 0.96f);

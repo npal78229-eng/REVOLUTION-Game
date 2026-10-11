@@ -1,0 +1,343 @@
+// Copyright Epic Games, Inc. All Rights Reserved.
+
+#include "CurfewPatrolAI.h"
+#include "RevolutionCharacter.h"
+#include "Components/CapsuleComponent.h"
+#include "Components/SkeletalMeshComponent.h"
+#include "Components/StaticMeshComponent.h"
+#include "Components/PointLightComponent.h"
+#include "Components/SpotLightComponent.h"
+#include "GameFramework/CharacterMovementComponent.h"
+#include "UObject/ConstructorHelpers.h"
+#include "Engine/World.h"
+#include "Kismet/GameplayStatics.h"
+#include "REVOLUTION.h"
+
+ACurfewPatrolAI::ACurfewPatrolAI()
+{
+	PrimaryActorTick.bCanEverTick = true;
+
+	// Capsule dimensions for adult watchman (approx 1.80m tall)
+	GetCapsuleComponent()->InitCapsuleSize(34.0f, 88.0f);
+
+	bUseControllerRotationPitch = false;
+	bUseControllerRotationYaw = false;
+	bUseControllerRotationRoll = false;
+
+	GetCharacterMovement()->bOrientRotationToMovement = true;
+	GetCharacterMovement()->RotationRate = FRotator(0.0f, 360.0f, 0.0f);
+	GetCharacterMovement()->MaxWalkSpeed = PatrolWalkSpeed;
+
+	// Skeletal mesh setup (Adult Mannequin)
+	static ConstructorHelpers::FObjectFinder<USkeletalMesh> MeshFinder(TEXT("/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple.SKM_Manny_Simple"));
+	if (MeshFinder.Succeeded())
+	{
+		GetMesh()->SetSkeletalMesh(MeshFinder.Object);
+		GetMesh()->SetRelativeLocation(FVector(0.f, 0.f, -88.f));
+		GetMesh()->SetRelativeRotation(FRotator(0.f, -90.f, 0.f));
+		GetMesh()->SetRelativeScale3D(FVector(1.0f, 1.0f, 1.0f));
+	}
+
+	static ConstructorHelpers::FClassFinder<UAnimInstance> AnimFinder(TEXT("/Game/Characters/Mannequins/Animations/ABP_Manny.ABP_Manny_C"));
+	if (AnimFinder.Succeeded())
+	{
+		GetMesh()->SetAnimInstanceClass(AnimFinder.Class);
+	}
+
+	// Hurricane Lantern Static Mesh held by watchman
+	LanternMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("LanternMesh"));
+	LanternMesh->SetupAttachment(RootComponent);
+	LanternMesh->SetRelativeLocation(FVector(30.0f, 25.0f, -5.0f));
+	LanternMesh->SetCollisionProfileName(TEXT("NoCollision"));
+
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> LanternMeshFinder(TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_HurricaneLantern.SM_Prop_HurricaneLantern"));
+	if (LanternMeshFinder.Succeeded())
+	{
+		LanternMesh->SetStaticMesh(LanternMeshFinder.Object);
+		LanternMesh->SetRelativeScale3D(FVector(0.75f, 0.75f, 0.75f));
+	}
+
+	// 3200K Kerosene Ambient Glow
+	LanternLight = CreateDefaultSubobject<UPointLightComponent>(TEXT("LanternLight"));
+	LanternLight->SetupAttachment(LanternMesh);
+	LanternLight->SetRelativeLocation(FVector(0.0f, 0.0f, 18.0f));
+	LanternLight->SetLightColor(FLinearColor(1.0f, 0.78f, 0.40f, 1.0f));
+	LanternLight->SetIntensity(1400.0f);
+	LanternLight->SetAttenuationRadius(650.0f);
+	LanternLight->SetCastShadows(true);
+
+	// Focused Forward Lantern Beam
+	LanternBeam = CreateDefaultSubobject<USpotLightComponent>(TEXT("LanternBeam"));
+	LanternBeam->SetupAttachment(LanternMesh);
+	LanternBeam->SetRelativeLocation(FVector(0.0f, 0.0f, 18.0f));
+	LanternBeam->SetRelativeRotation(FRotator(-12.0f, 0.0f, 0.0f));
+	LanternBeam->SetLightColor(FLinearColor(1.0f, 0.85f, 0.50f, 1.0f));
+	LanternBeam->SetIntensity(3200.0f);
+	LanternBeam->SetAttenuationRadius(1100.0f);
+	LanternBeam->SetInnerConeAngle(22.0f);
+	LanternBeam->SetOuterConeAngle(46.0f);
+	LanternBeam->SetCastShadows(true);
+
+	WatchmanTitle = FText::FromString(TEXT("Kot Gurdarshan Chaukidar (Night Watchman)"));
+}
+
+void ACurfewPatrolAI::BeginPlay()
+{
+	Super::BeginPlay();
+
+	if (PatrolWaypoints.IsEmpty())
+	{
+		PatrolWaypoints.Add(GetActorLocation());
+	}
+	LastKnownPlayerLocation = GetActorLocation();
+}
+
+void ACurfewPatrolAI::Tick(float DeltaTime)
+{
+	Super::Tick(DeltaTime);
+
+	UpdateDetection(DeltaTime);
+	UpdatePatrol(DeltaTime);
+}
+
+bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& OutPerceptionIntensity)
+{
+	OutPerceptionIntensity = 0.0f;
+	if (!TargetPlayer || !GetWorld()) return false;
+
+	const FVector WatchmanEye = GetActorLocation() + FVector(0.0f, 0.0f, 70.0f);
+	const FVector PlayerBase = TargetPlayer->GetActorLocation();
+	const FVector PlayerHead = PlayerBase + FVector(0.0f, 0.0f, TargetPlayer->bIsCrouched ? 35.0f : 68.0f);
+	const FVector PlayerChest = PlayerBase + FVector(0.0f, 0.0f, TargetPlayer->bIsCrouched ? 20.0f : 45.0f);
+
+	const float Distance = FVector::Dist(WatchmanEye, PlayerBase);
+	if (Distance > SightRadius)
+	{
+		return false;
+	}
+
+	const FVector DirToPlayer = (PlayerBase - WatchmanEye).GetSafeNormal();
+	const FVector Forward = GetActorForwardVector();
+	const float DotProduct = FVector::DotProduct(Forward, DirToPlayer);
+	const float MinDot = FMath::Cos(FMath::DegreesToRadians(PeripheralVisionAngle));
+
+	// If outside vision cone, check if within hearing radius while player is sprinting
+	bool bAudibleHearing = false;
+	if (DotProduct < MinDot)
+	{
+		if (Distance <= HearingRadius && TargetPlayer->bIsSprinting && TargetPlayer->GetVelocity().SizeSquared() > 100.0f)
+		{
+			bAudibleHearing = true;
+		}
+		else
+		{
+			return false;
+		}
+	}
+
+	// Line-of-sight raycasts
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(this);
+	TraceParams.AddIgnoredActor(TargetPlayer);
+
+	FHitResult HitHead;
+	bool bHeadBlocked = GetWorld()->LineTraceSingleByChannel(HitHead, WatchmanEye, PlayerHead, ECC_Visibility, TraceParams);
+
+	FHitResult HitChest;
+	bool bChestBlocked = GetWorld()->LineTraceSingleByChannel(HitChest, WatchmanEye, PlayerChest, ECC_Visibility, TraceParams);
+
+	// If both head and chest are blocked by obstacles (e.g. 1.1m parapet wall or brick doorway), LOS is completely broken!
+	if (bHeadBlocked && bChestBlocked)
+	{
+		return false;
+	}
+
+	// Calculate base intensity based on distance falloff
+	float DistanceFactor = 1.0f - FMath::Clamp(Distance / SightRadius, 0.0f, 1.0f);
+
+	// Stance concealment multiplier
+	float StanceMultiplier = 1.0f;
+	if (TargetPlayer->bIsCrouched)
+	{
+		// Crouched behind cover or in alley shadows reduces visibility profile dramatically
+		StanceMultiplier = 0.28f;
+	}
+	else if (TargetPlayer->bIsSprinting)
+	{
+		// Sprinting movement draws immediate attention
+		StanceMultiplier = 1.55f;
+	}
+	else
+	{
+		StanceMultiplier = 0.75f;
+	}
+
+	if (bAudibleHearing)
+	{
+		OutPerceptionIntensity = 0.35f * StanceMultiplier;
+		return true;
+	}
+
+	// Partial concealment (e.g. head visible over parapet while standing)
+	float CoverageFactor = (bChestBlocked || bHeadBlocked) ? 0.45f : 1.0f;
+
+	OutPerceptionIntensity = DistanceFactor * StanceMultiplier * CoverageFactor;
+	return OutPerceptionIntensity > 0.05f;
+}
+
+void ACurfewPatrolAI::UpdateDetection(float DeltaTime)
+{
+	ARevolutionCharacter* Player = Cast<ARevolutionCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	if (!Player) return;
+
+	float PerceptionIntensity = 0.0f;
+	bool bCanSee = CanSeePlayer(Player, PerceptionIntensity);
+
+	if (bCanSee)
+	{
+		LastKnownPlayerLocation = Player->GetActorLocation();
+
+		// Accumulate detection
+		DetectionMeter = FMath::Clamp(DetectionMeter + (DetectionFillRate * PerceptionIntensity * DeltaTime), 0.0f, 100.0f);
+
+		if (DetectionMeter >= 100.0f)
+		{
+			SetAlertState(ECurfewAlertState::Alerted);
+		}
+		else if (DetectionMeter >= 35.0f && AlertState == ECurfewAlertState::Unaware)
+		{
+			SetAlertState(ECurfewAlertState::Suspicious);
+		}
+	}
+	else
+	{
+		// Decay detection when line of sight is broken
+		DetectionMeter = FMath::Clamp(DetectionMeter - (SuspicionDecayRate * DeltaTime), 0.0f, 100.0f);
+
+		if (AlertState == ECurfewAlertState::Alerted)
+		{
+			SearchTimer += DeltaTime;
+			if (SearchTimer >= 4.0f)
+			{
+				SetAlertState(ECurfewAlertState::Searching);
+				SearchTimer = 0.0f;
+			}
+		}
+		else if (AlertState == ECurfewAlertState::Searching)
+		{
+			SearchTimer += DeltaTime;
+			if (SearchTimer >= 6.0f)
+			{
+				SetAlertState(ECurfewAlertState::Unaware);
+				SearchTimer = 0.0f;
+			}
+		}
+		else if (AlertState == ECurfewAlertState::Suspicious && DetectionMeter <= 5.0f)
+		{
+			SetAlertState(ECurfewAlertState::Unaware);
+		}
+	}
+}
+
+void ACurfewPatrolAI::UpdatePatrol(float DeltaTime)
+{
+	FVector Destination = GetActorLocation();
+
+	if (AlertState == ECurfewAlertState::Alerted)
+	{
+		// Pursue player or last known location
+		ARevolutionCharacter* Player = Cast<ARevolutionCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+		Destination = Player ? Player->GetActorLocation() : LastKnownPlayerLocation;
+		GetCharacterMovement()->MaxWalkSpeed = AlertChaseSpeed;
+		bIsWaitingAtWaypoint = false;
+	}
+	else if (AlertState == ECurfewAlertState::Searching)
+	{
+		// Cautiously inspect last known location
+		Destination = LastKnownPlayerLocation;
+		GetCharacterMovement()->MaxWalkSpeed = PatrolWalkSpeed * 1.25f;
+		bIsWaitingAtWaypoint = false;
+	}
+	else if (AlertState == ECurfewAlertState::Suspicious)
+	{
+		// Pause movement and face sensed disturbance
+		GetCharacterMovement()->MaxWalkSpeed = 0.0f;
+		FVector SensedDir = (LastKnownPlayerLocation - GetActorLocation()).GetSafeNormal2D();
+		if (!SensedDir.IsNearlyZero())
+		{
+			SetActorRotation(FMath::RInterpTo(GetActorRotation(), SensedDir.Rotation(), DeltaTime, 4.0f));
+		}
+		return;
+	}
+	else // ECurfewAlertState::Unaware
+	{
+		GetCharacterMovement()->MaxWalkSpeed = PatrolWalkSpeed;
+
+		if (PatrolWaypoints.IsEmpty()) return;
+
+		Destination = PatrolWaypoints[CurrentWaypointIndex];
+
+		FVector ToWaypoint = Destination - GetActorLocation();
+		ToWaypoint.Z = 0.0f;
+		float DistToWaypoint = ToWaypoint.Size();
+
+		if (DistToWaypoint <= WaypointAcceptanceRadius)
+		{
+			bIsWaitingAtWaypoint = true;
+		}
+
+		if (bIsWaitingAtWaypoint)
+		{
+			WaypointWaitTimer += DeltaTime;
+			ScanLookTimer += DeltaTime;
+
+			// Smooth ambient head/lantern scan left and right while pausing at corners
+			float SweepAngle = FMath::Sin(ScanLookTimer * 1.5f) * 35.0f;
+			FRotator CurrentBaseRot = PatrolWaypoints[CurrentWaypointIndex].Rotation();
+			FRotator ScanRot = FRotator(0.0f, GetActorRotation().Yaw + (FMath::Sin(DeltaTime * 2.0f) * 10.0f), 0.0f);
+
+			if (WaypointWaitTimer >= WaypointWaitDuration)
+			{
+				bIsWaitingAtWaypoint = false;
+				WaypointWaitTimer = 0.0f;
+				CurrentWaypointIndex = (CurrentWaypointIndex + 1) % PatrolWaypoints.Num();
+			}
+			return;
+		}
+	}
+
+	// Move toward target destination
+	FVector MoveDir = (Destination - GetActorLocation()).GetSafeNormal2D();
+	if (!MoveDir.IsNearlyZero())
+	{
+		AddMovementInput(MoveDir, 1.0f);
+		FRotator TargetRot = MoveDir.Rotation();
+		SetActorRotation(FMath::RInterpTo(GetActorRotation(), TargetRot, DeltaTime, 5.0f));
+	}
+}
+
+void ACurfewPatrolAI::SetAlertState(ECurfewAlertState NewState)
+{
+	if (AlertState != NewState)
+	{
+		AlertState = NewState;
+		OnWatchmanAlertChanged.Broadcast(AlertState, DetectionMeter);
+
+		FString StateStr;
+		switch (AlertState)
+		{
+		case ECurfewAlertState::Unaware: StateStr = TEXT("Unaware"); break;
+		case ECurfewAlertState::Suspicious: StateStr = TEXT("Suspicious"); break;
+		case ECurfewAlertState::Searching: StateStr = TEXT("Searching"); break;
+		case ECurfewAlertState::Alerted: StateStr = TEXT("ALERTED - Curfew Challenge!"); break;
+		}
+
+		UE_LOG(LogREVOLUTION, Log, TEXT("Watchman Alert State -> %s (Detection: %.1f%%)"), *StateStr, DetectionMeter);
+	}
+}
+
+FVector ACurfewPatrolAI::GetDirectionToPlayer(ARevolutionCharacter* TargetPlayer) const
+{
+	if (!TargetPlayer) return FVector::ZeroVector;
+	return (TargetPlayer->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+}

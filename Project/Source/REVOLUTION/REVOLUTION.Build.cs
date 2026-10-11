@@ -16,7 +16,9 @@ public class REVOLUTION : ModuleRules
 			"EnhancedInput",
 			"UMG",
 			"Slate",
-			"SlateCore"
+			"SlateCore",
+			"AIModule",
+			"NavigationSystem"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

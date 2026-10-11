@@ -4,6 +4,7 @@
 #include "RevolutionCharacter.h"
 #include "RevolutionHUD.h"
 #include "InspectableProp.h"
+#include "CurfewPatrolAI.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -150,6 +151,32 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			}
 
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned InspectableProp: %s at %s"), P.Name, *P.Location.ToString());
+		}
+	}
+
+	// 2. Spawn Historical Curfew Watchman (Chaukidar with Kerosene Lantern)
+	int32 ExistingWatchmen = 0;
+	for (TActorIterator<ACurfewPatrolAI> It(World); It; ++It)
+	{
+		ExistingWatchmen++;
+	}
+
+	if (ExistingWatchmen == 0)
+	{
+		FActorSpawnParameters WatchmanSpawnParams;
+		WatchmanSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ACurfewPatrolAI* Watchman = World->SpawnActor<ACurfewPatrolAI>(ACurfewPatrolAI::StaticClass(), FVector(-20.0f, -220.0f, 10.0f), FRotator(0.0f, 90.0f, 0.0f), WatchmanSpawnParams);
+		if (Watchman)
+		{
+			Watchman->WatchmanTitle = FText::FromString(TEXT("Kot Gurdarshan Chaukidar (Night Watchman)"));
+			Watchman->PatrolWaypoints.Empty();
+			Watchman->PatrolWaypoints.Add(FVector(-20.0f, -200.0f, 10.0f));  // Gateway threshold
+			Watchman->PatrolWaypoints.Add(FVector(110.0f, -140.0f, 10.0f));  // Masonry steps base
+			Watchman->PatrolWaypoints.Add(FVector(110.0f, 100.0f, 10.0f));   // Courtyard east side
+			Watchman->PatrolWaypoints.Add(FVector(-140.0f, 80.0f, 10.0f));   // Jute ration sacks alley corner
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Curfew Patrol Watchman with Kerosene Lantern at (-20, -220, 10)."));
 		}
 	}
 }

@@ -4,6 +4,9 @@
 #include "RevolutionCharacter.h"
 #include "RevolutionHUDWidget.h"
 #include "InteractableInterface.h"
+#include "CurfewPatrolAI.h"
+#include "EngineUtils.h"
+#include "Camera/CameraComponent.h"
 #include "Engine/Canvas.h"
 #include "Engine/Engine.h"
 
@@ -56,6 +59,7 @@ void ARevolutionHUD::DrawHUD()
 		DrawReticle(Kabir);
 		DrawInteractionPrompt(Kabir);
 		DrawStaminaGauge(Kabir);
+		DrawStealthAndDetection(Kabir);
 	}
 }
 
@@ -391,6 +395,103 @@ void ARevolutionHUD::DrawCompass(ARevolutionCharacter* Kabir)
 			GetTextSize(Mark.Label, TextW, TextH, SmallFont);
 			FLinearColor MarkColor = Mark.bMajor ? AntiqueBrassColor : FLinearColor(0.85f, 0.85f, 0.82f, 0.75f);
 			DrawText(Mark.Label, MarkColor, ScreenX - (TextW * 0.5f), TapeY + 4.0f, SmallFont);
+		}
+	}
+}
+
+void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
+{
+	if (!bShowStealthIndicators || !Canvas || !Kabir) return;
+
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+
+	// 1. Stance Concealment Badge (Lower Left)
+	if (Kabir->bIsCrouched && SmallFont)
+	{
+		FString StanceText = TEXT("[ CROUCHED — CONCEALED ]");
+		float StanceW = 0.0f, StanceH = 0.0f;
+		GetTextSize(StanceText, StanceW, StanceH, SmallFont);
+
+		float BadgeX = 36.0f;
+		float BadgeY = Canvas->ClipY * 0.88f;
+
+		DrawFramedBox(BadgeX, BadgeY, StanceW + 16.0f, StanceH + 8.0f, FLinearColor(0.06f, 0.05f, 0.04f, 0.70f), AntiqueBrassColor, 1.0f);
+		DrawText(StanceText, AntiqueBrassColor, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
+	}
+
+	// 2. Scan for active Watchman Detection
+	ACurfewPatrolAI* HighestThreatWatchman = nullptr;
+	float HighestDetection = 0.0f;
+
+	for (TActorIterator<ACurfewPatrolAI> It(GetWorld()); It; ++It)
+	{
+		float Det = It->GetDetectionPercentage();
+		if (Det > HighestDetection)
+		{
+			HighestDetection = Det;
+			HighestThreatWatchman = *It;
+		}
+	}
+
+	if (HighestThreatWatchman && HighestDetection > 1.0f)
+	{
+		const float CenterX = Canvas->ClipX * 0.5f;
+		const float CenterY = Canvas->ClipY * 0.5f;
+
+		// Relative Threat Direction
+		FVector CamForward = Kabir->GetFollowCamera() ? Kabir->GetFollowCamera()->GetForwardVector().GetSafeNormal2D() : Kabir->GetActorForwardVector().GetSafeNormal2D();
+		FVector DirToWatchman = (HighestThreatWatchman->GetActorLocation() - Kabir->GetActorLocation()).GetSafeNormal2D();
+
+		// Calculate 2D angle relative to camera view
+		float ForwardAngle = FMath::Atan2(CamForward.Y, CamForward.X);
+		float WatchmanAngle = FMath::Atan2(DirToWatchman.Y, DirToWatchman.X);
+		float RelAngle = WatchmanAngle - ForwardAngle;
+
+		// Threat indicator position on ring around center reticle
+		const float RingRadius = 78.0f;
+		float ScreenThreatX = CenterX + (FMath::Sin(RelAngle) * RingRadius);
+		float ScreenThreatY = CenterY - (FMath::Cos(RelAngle) * RingRadius);
+
+		// Threat color based on detection percentage
+		FLinearColor ThreatColor;
+		if (HighestDetection >= 90.0f)
+		{
+			// Pulsing crimson alert
+			float Pulse = 0.6f + 0.4f * FMath::Sin(GetWorld()->GetTimeSeconds() * 8.0f);
+			ThreatColor = FLinearColor(0.92f, 0.12f, 0.10f, Pulse);
+		}
+		else if (HighestDetection >= 45.0f)
+		{
+			// Burning orange suspicion
+			ThreatColor = FLinearColor(0.96f, 0.48f, 0.15f, 0.95f);
+		}
+		else
+		{
+			// Amber caution
+			ThreatColor = FLinearColor(0.88f, 0.72f, 0.22f, 0.80f);
+		}
+
+		// Draw directional threat chevron / diamond
+		const float MarkerSize = 6.0f + (HighestDetection * 0.06f);
+		DrawLine(ScreenThreatX - MarkerSize, ScreenThreatY, ScreenThreatX, ScreenThreatY - MarkerSize, ThreatColor, 2.0f);
+		DrawLine(ScreenThreatX, ScreenThreatY - MarkerSize, ScreenThreatX + MarkerSize, ScreenThreatY, ThreatColor, 2.0f);
+		DrawLine(ScreenThreatX + MarkerSize, ScreenThreatY, ScreenThreatX, ScreenThreatY + MarkerSize, ThreatColor, 2.0f);
+		DrawLine(ScreenThreatX, ScreenThreatY + MarkerSize, ScreenThreatX - MarkerSize, ScreenThreatY, ThreatColor, 2.0f);
+
+		// If alerted, draw top alert banner
+		if (HighestDetection >= 90.0f && SmallFont)
+		{
+			FString AlertText = TEXT("!  CURFEW PATROL ALERT — BREAK LINE OF SIGHT  !");
+			float AlertW = 0.0f, AlertH = 0.0f;
+			GetTextSize(AlertText, AlertW, AlertH, SmallFont);
+
+			float BannerW = AlertW + 32.0f;
+			float BannerH = AlertH + 12.0f;
+			float BannerX = (Canvas->ClipX - BannerW) * 0.5f;
+			float BannerY = 58.0f;
+
+			DrawFramedBox(BannerX, BannerY, BannerW, BannerH, FLinearColor(0.12f, 0.02f, 0.02f, 0.85f), ThreatColor, 1.5f);
+			DrawText(AlertText, FLinearColor(1.0f, 0.9f, 0.85f, 1.0f), BannerX + 16.0f, BannerY + 6.0f, SmallFont);
 		}
 	}
 }

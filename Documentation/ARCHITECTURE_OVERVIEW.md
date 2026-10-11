@@ -100,3 +100,30 @@ The user interface follows a **Tactile Grounded Historical Realism** design phil
    - Decoupled interface contract enabling any world actor to respond to Kabir's camera-trace interaction queries.
    - Period props store historical provenance (`ItemName`, `LoreDescription`, `InteractionVerb`) and seamlessly trigger character lore modal state on interaction.
 
+---
+
+## 5. Curfew Watchman AI & Stealth Concealment Architecture
+
+### 5.1 Historical Context (Punjab 1919 Martial Curfew)
+During the April 1919 martial regulations and curfew enforcement under the Rowlatt Act in Kot Gurdarshan, colonial constabulary and night watchmen (**Chaukidars**) patrolled public gates and alleys with swung kerosene hurricane lamps. Agility and rooftop stealth are 12-year-old Kabir's primary survival tools.
+
+### 5.2 Core AI & Stealth Mechanics
+1. **`ACurfewPatrolAI` (C++):**
+   - Autonomous character class configured with kinematic multi-waypoint patrol routes, search inspection pauses, and dynamic alert escalation.
+   - **Lantern Illumination:** Dual-component lighting featuring a 3200K point light ($1400\text{ Lux}$, $650\text{ cm}$ attenuation) and forward spot beam ($3200\text{ Lux}$, $1100\text{ cm}$ attenuation, $46^\circ$ outer cone) casting real-time dynamic shadows.
+   - **Perception System:** $160^\circ$ FOV vision cone ($14\text{m}$ sight radius) combined with sprint-footstep acoustic hearing radius ($8.5\text{m}$).
+   - **Physical Concealment Raycasting:** Performs dual raycasts from watchman eye height to Kabir's head and torso. Obstructions (such as the 1.1m rooftop parapet `SM_Roof_Parapet_4m_A`) break line of sight completely when Kabir is crouched.
+   - **Stance Multipliers:**
+     - Crouched / Shadowed: $0.28\times$ detection rate.
+     - Standing / Walking: $0.75\times$ detection rate.
+     - Sprinting: $1.55\times$ detection rate + acoustic trigger.
+2. **Alert State Machine (`ECurfewAlertState`):**
+   - **`Unaware`:** Steady pace between courtyard and gate waypoints, scanning corners with lantern sweeps.
+   - **`Suspicious`:** Halts patrol and turns to face sensed disturbances; detection meter accumulates.
+   - **`Searching`:** Cautiously advances towards Kabir's last known location.
+   - **`Alerted`:** Fast chase speed ($360\text{ cm/s}$), sounding alert challenge.
+3. **HUD Threat Direction Arc:**
+   - Projects a dynamic directional threat marker around the screen center reticle indicating the relative angle to the suspicious watchman.
+   - Transitions smoothly across antique amber caution ($0\text{--}45\%$), burning orange suspicion ($45\text{--}90\%$), and pulsing crimson curfew alert ($90\text{--}100\%$).
+
+
