@@ -19,6 +19,8 @@
 #include "ProclamationBoardActor.h"
 #include "LithoPressActor.h"
 #include "PariahDogActor.h"
+#include "CheckpointBarrierActor.h"
+#include "ManjaTrapActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -714,6 +716,54 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		if (Dog)
 		{
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mohalla Pariah Dog in shadowed alleyway alcove at (-155, -40, 10)."));
+		}
+	}
+
+	// 17. Spawn Historical Colonial Police Checkpoint Barricade (Naka Bandi)
+	int32 ExistingBarriers = 0;
+	for (TActorIterator<ACheckpointBarrierActor> BarrierIt(World); BarrierIt; ++BarrierIt)
+	{
+		ExistingBarriers++;
+	}
+
+	if (ExistingBarriers == 0)
+	{
+		FActorSpawnParameters BarrierSpawnParams;
+		BarrierSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		ACheckpointBarrierActor* Barrier = World->SpawnActor<ACheckpointBarrierActor>(
+			ACheckpointBarrierActor::StaticClass(),
+			FVector(-20.0f, -270.0f, 10.0f),
+			FRotator(0.0f, 90.0f, 0.0f),
+			BarrierSpawnParams
+		);
+		if (Barrier)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Colonial Police Checkpoint Barricade with Red Lantern at (-20, -270, 10)."));
+		}
+	}
+
+	// 18. Spawn Historical Basant Glass-Coated Kite Thread Snag Hazard (Manja Trap)
+	int32 ExistingTraps = 0;
+	for (TActorIterator<AManjaTrapActor> TrapIt(World); TrapIt; ++TrapIt)
+	{
+		ExistingTraps++;
+	}
+
+	if (ExistingTraps == 0)
+	{
+		FActorSpawnParameters TrapSpawnParams;
+		TrapSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		AManjaTrapActor* ManjaTrap = World->SpawnActor<AManjaTrapActor>(
+			AManjaTrapActor::StaticClass(),
+			FVector(25.0f, 120.0f, 405.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TrapSpawnParams
+		);
+		if (ManjaTrap)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Basant Glass Kite String Trap on rooftop terrace at (25, 120, 405)."));
 		}
 	}
 }
