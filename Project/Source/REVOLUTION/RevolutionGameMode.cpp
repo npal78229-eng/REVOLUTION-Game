@@ -15,6 +15,7 @@
 #include "HandpumpActor.h"
 #include "ClotheslineActor.h"
 #include "RoshandanActor.h"
+#include "SupplyStashActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -571,6 +572,73 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		{
 			Roshandan->DropTargetLocation = FVector(30.0f, 60.0f, 15.0f);
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Haveli Rooftop Roshandan at (30, 60, 405) with courtyard drop target (30, 60, 15)."));
+		}
+	}
+
+	// 13. Spawn Historical Equipment Supply Stashes (Pebble Bowls & Tailor's Chalk Slabs)
+	int32 ExistingStashes = 0;
+	for (TActorIterator<ASupplyStashActor> StashIt(World); StashIt; ++StashIt)
+	{
+		ExistingStashes++;
+	}
+
+	if (ExistingStashes == 0)
+	{
+		FActorSpawnParameters StashSpawnParams;
+		StashSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		// Stash 1: Tailor's Chalk Slabs in Father's Sewing Box near Courtyard Charpai
+		ASupplyStashActor* ChalkStash = World->SpawnActor<ASupplyStashActor>(
+			ASupplyStashActor::StaticClass(),
+			FVector(145.0f, 150.0f, 12.0f),
+			FRotator(0.0f, 25.0f, 0.0f),
+			StashSpawnParams
+		);
+		if (ChalkStash)
+		{
+			ChalkStash->StashType = ESupplyStashType::Chalk;
+			ChalkStash->ReplenishAmount = 3;
+			ChalkStash->StashTitle = FText::FromString(TEXT("Father's Tailor Chalk Tin (Kharri Mitti)"));
+			ChalkStash->LoreDescription = FText::FromString(
+				TEXT("Triangular calcium-carbonate tailor's chalk biscuits imported through Karachi and Amritsar cloth mandis. Kabir's father drafts suit outlines with them, while Kabir uses them to leave clandestine scout runes on haveli doorposts.")
+			);
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Supply Stash 1 (Tailor Chalk) at (145, 150, 12)."));
+		}
+
+		// Stash 2: Courtyard Clay Marbles Bowl near Handpump Stone Plinth
+		ASupplyStashActor* PebbleStash1 = World->SpawnActor<ASupplyStashActor>(
+			ASupplyStashActor::StaticClass(),
+			FVector(45.0f, 130.0f, 12.0f),
+			FRotator(0.0f, -15.0f, 0.0f),
+			StashSpawnParams
+		);
+		if (PebbleStash1)
+		{
+			PebbleStash1->StashType = ESupplyStashType::Pebbles;
+			PebbleStash1->ReplenishAmount = 2;
+			PebbleStash1->StashTitle = FText::FromString(TEXT("Courtyard River Pebble Cache"));
+			PebbleStash1->LoreDescription = FText::FromString(
+				TEXT("Smooth, water-worn gravel gathered along canal banks. Used to create sharp acoustic clatter against brick alleyways to divert night watchmen away from haveli deorhi gates.")
+			);
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Supply Stash 2 (Courtyard Pebbles) at (45, 130, 12)."));
+		}
+
+		// Stash 3: Rooftop Terrace Basant Clay Marble Cache near Parapet
+		ASupplyStashActor* PebbleStash2 = World->SpawnActor<ASupplyStashActor>(
+			ASupplyStashActor::StaticClass(),
+			FVector(-40.0f, 220.0f, 405.0f),
+			FRotator(0.0f, 45.0f, 0.0f),
+			StashSpawnParams
+		);
+		if (PebbleStash2)
+		{
+			PebbleStash2->StashType = ESupplyStashType::Pebbles;
+			PebbleStash2->ReplenishAmount = 2;
+			PebbleStash2->StashTitle = FText::FromString(TEXT("Rooftop Clay Marble Cache"));
+			PebbleStash2->LoreDescription = FText::FromString(
+				TEXT("Sun-baked earthen marbles stashed by neighborhood boys behind the terrace parapet. Ideal for dropping through the rooftop Roshandan lightwell into the courtyard below.")
+			);
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Supply Stash 3 (Rooftop Pebbles) at (-40, 220, 405)."));
 		}
 	}
 }
