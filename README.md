@@ -23,7 +23,7 @@ The player steps into the shoes of **Kabir**, a 12-year-old son of a traditional
 
 ---
 
-## 2. Playable Vertical Slice (114 Actors across 5 Contiguous Zones)
+## 2. Playable Vertical Slice (122 Actors across 5 Contiguous Zones)
 
 The project currently features a contiguous, high-fidelity historical environment assembled in `Project/Content/Maps/L_Validation_Gym.umap`:
 
@@ -182,6 +182,7 @@ REVOLUTION/
   - Authored 5 period-authentic 3D storytelling assets in Blender 5.2 LTS (`SM_Prop_Courtyard_Chulha_Stove`, `SM_Prop_School_Takhti_Slate`, `SM_Prop_Pigeon_Coop_KabootarKhana`, `SM_Prop_Bazaar_Cart_Thela`, `SM_Prop_Pamphlet_Stack_Rowlatt`).
   - Arranged assets across the 5 districts according to the story narrative progression (family courtyard routine -> rooftop survey -> well square -> bazaar trading -> colonial checkpost -> school desk).
   - Level actors expanded to 122 across the 5 historical districts (100% PASS on automated verification suite `Scripts/verify_act1_questline.py`).
+  - Expanded Satchel Journal (<kbd>Tab</kbd>) C++ HUD with North-up real-time 5-district route cartography, district boundaries, NPC tracking, and 8 period archival lore entries.
 - [ ] **Phase 6 (Next):**
   - Underground pamphlet dead-drops & secret printing press collection network.
   - Crowd protest dynamics leading to the historic Jallianwala Bagh gathering.

@@ -1169,76 +1169,75 @@ void ARevolutionHUD::DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float
 
 	DrawFramedBox(CanvasAreaX, CanvasAreaY, CanvasAreaW, CanvasAreaH, FLinearColor(0.93f, 0.90f, 0.82f, 0.80f), MutedSepiaColor, 1.0f);
 
-	// Grid coordinate mapping: World X [-240, 240] -> Screen X, World Y [-280, 280] -> Screen Y
+	// Grid coordinate mapping covering full 5 historical zones
+	// World X [-350, 1550] (Width 1900), World Y [-350, 2250] (Height 2600)
+	// Orient North (+Y) upward on the map for authentic cartography
 	auto WorldToMap = [&](float WX, float WY) -> FVector2D
 	{
-		float NormX = (WX + 240.0f) / 480.0f;
-		float NormY = (WY + 280.0f) / 560.0f;
+		float NormX = FMath::Clamp((WX + 350.0f) / 1900.0f, 0.0f, 1.0f);
+		float NormY = FMath::Clamp(1.0f - ((WY + 350.0f) / 2600.0f), 0.0f, 1.0f);
 		return FVector2D(
 			CanvasAreaX + (NormX * CanvasAreaW),
 			CanvasAreaY + (NormY * CanvasAreaH)
 		);
 	};
 
-	// 1. Draw Architectural Structures on Map
-	// Courtyard Boundary
-	FVector2D C1 = WorldToMap(-120.0f, -140.0f);
-	FVector2D C2 = WorldToMap(140.0f, 160.0f);
-	DrawFramedBox(C1.X, C1.Y, C2.X - C1.X, C2.Y - C1.Y, FLinearColor(0.85f, 0.80f, 0.70f, 0.35f), MutedSepiaColor, 1.0f);
-	DrawText(TEXT("HAVELI COURTYARD"), MutedSepiaColor, C1.X + 8.0f, C1.Y + 8.0f, SmallFont);
+	// 1. Draw 5 Historical District Boundaries
+	// Zone A: Haveli Courtyard & Veranda
+	FVector2D ZA1 = WorldToMap(-180.0f, -220.0f);
+	FVector2D ZA2 = WorldToMap(220.0f, 520.0f);
+	DrawFramedBox(FMath::Min(ZA1.X, ZA2.X), FMath::Min(ZA1.Y, ZA2.Y), FMath::Abs(ZA2.X - ZA1.X), FMath::Abs(ZA2.Y - ZA1.Y), FLinearColor(0.85f, 0.80f, 0.70f, 0.35f), MutedSepiaColor, 1.0f);
+	DrawText(TEXT("HAVELI COURTYARD"), MutedSepiaColor, FMath::Min(ZA1.X, ZA2.X) + 6.0f, FMath::Max(ZA1.Y, ZA2.Y) - 16.0f, SmallFont);
 
-	// Deorhi Gateway (South)
-	FVector2D DPos = WorldToMap(-20.0f, -240.0f);
-	DrawFramedBox(DPos.X - 18.0f, DPos.Y - 6.0f, 36.0f, 12.0f, DarkInkColor, AntiqueBrassColor, 1.0f);
-	DrawText(TEXT("[DEORHI GATE]"), DarkInkColor, DPos.X - 32.0f, DPos.Y + 8.0f, SmallFont);
+	// Zone B: Deorhi Gateway Transition
+	FVector2D ZB1 = WorldToMap(-120.0f, 600.0f);
+	FVector2D ZB2 = WorldToMap(120.0f, 1000.0f);
+	DrawFramedBox(FMath::Min(ZB1.X, ZB2.X), FMath::Min(ZB1.Y, ZB2.Y), FMath::Abs(ZB2.X - ZB1.X), FMath::Abs(ZB2.Y - ZB1.Y), FLinearColor(0.82f, 0.78f, 0.68f, 0.35f), MutedSepiaColor, 1.0f);
+	DrawText(TEXT("DEORHI ARCH"), MutedSepiaColor, FMath::Min(ZB1.X, ZB2.X) + 6.0f, FMath::Max(ZB1.Y, ZB2.Y) - 16.0f, SmallFont);
 
-	// Rooftop Parapet (North)
-	FVector2D PPos = WorldToMap(0.0f, 240.0f);
-	DrawFramedBox(PPos.X - 45.0f, PPos.Y - 6.0f, 90.0f, 12.0f, FLinearColor(0.4f, 0.3f, 0.2f, 0.6f), AntiqueBrassColor, 1.0f);
-	DrawText(TEXT("[ROOFTOP PARAPET & PIGEONS]"), DarkInkColor, PPos.X - 60.0f, PPos.Y - 20.0f, SmallFont);
+	// Zone C: Communal Well Square & Shrines
+	FVector2D ZC1 = WorldToMap(-180.0f, 1100.0f);
+	FVector2D ZC2 = WorldToMap(550.0f, 1550.0f);
+	DrawFramedBox(FMath::Min(ZC1.X, ZC2.X), FMath::Min(ZC1.Y, ZC2.Y), FMath::Abs(ZC2.X - ZC1.X), FMath::Abs(ZC2.Y - ZC1.Y), FLinearColor(0.80f, 0.82f, 0.72f, 0.35f), MutedSepiaColor, 1.0f);
+	DrawText(TEXT("WELL SQUARE & PEEPAL SHRINE"), MutedSepiaColor, FMath::Min(ZC1.X, ZC2.X) + 6.0f, FMath::Max(ZC1.Y, ZC2.Y) - 16.0f, SmallFont);
 
-	// Jharokha Balcony (West)
-	FVector2D JPos = WorldToMap(-190.0f, -60.0f);
-	DrawFramedBox(JPos.X - 14.0f, JPos.Y - 14.0f, 28.0f, 28.0f, FLinearColor(0.2f, 0.45f, 0.3f, 0.5f), AntiqueBrassColor, 1.0f);
-	DrawText(TEXT("[COURIER STASH]"), DarkInkColor, JPos.X - 35.0f, JPos.Y + 16.0f, SmallFont);
+	// Zone D: Grand Bazaar Mandi
+	FVector2D ZD1 = WorldToMap(-280.0f, 1600.0f);
+	FVector2D ZD2 = WorldToMap(320.0f, 2150.0f);
+	DrawFramedBox(FMath::Min(ZD1.X, ZD2.X), FMath::Min(ZD1.Y, ZD2.Y), FMath::Abs(ZD2.X - ZD1.X), FMath::Abs(ZD2.Y - ZD1.Y), FLinearColor(0.85f, 0.75f, 0.65f, 0.35f), MutedSepiaColor, 1.0f);
+	DrawText(TEXT("GRAND BAZAAR MANDI"), MutedSepiaColor, FMath::Min(ZD1.X, ZD2.X) + 6.0f, FMath::Max(ZD1.Y, ZD2.Y) - 16.0f, SmallFont);
 
-	// Low Drain Conduit (West wall)
-	FVector2D DrainPos = WorldToMap(-120.0f, 90.0f);
-	DrawFramedBox(DrainPos.X - 12.0f, DrainPos.Y - 6.0f, 24.0f, 12.0f, FLinearColor(0.88f, 0.55f, 0.2f, 0.8f), DarkInkColor, 1.0f);
-	DrawText(TEXT("[MORI DRAIN]"), DarkInkColor, DrainPos.X - 28.0f, DrainPos.Y + 8.0f, SmallFont);
+	// District C: Vernacular Middle School
+	FVector2D ZE1 = WorldToMap(750.0f, 1150.0f);
+	FVector2D ZE2 = WorldToMap(1500.0f, 2000.0f);
+	DrawFramedBox(FMath::Min(ZE1.X, ZE2.X), FMath::Min(ZE1.Y, ZE2.Y), FMath::Abs(ZE2.X - ZE1.X), FMath::Abs(ZE2.Y - ZE1.Y), FLinearColor(0.75f, 0.80f, 0.85f, 0.35f), MutedSepiaColor, 1.0f);
+	DrawText(TEXT("VERNACULAR MIDDLE SCHOOL"), MutedSepiaColor, FMath::Min(ZE1.X, ZE2.X) + 6.0f, FMath::Max(ZE1.Y, ZE2.Y) - 16.0f, SmallFont);
 
-	// Outer Alley Curfew Patrol Route (South)
-	FVector2D A1 = WorldToMap(-220.0f, -240.0f);
-	FVector2D A2 = WorldToMap(220.0f, -240.0f);
-	DrawLine(A1.X, A1.Y, A2.X, A2.Y, FLinearColor(0.85f, 0.25f, 0.20f, 0.65f), 2.0f);
-	DrawText(TEXT("!  CURFEW PATROL ROUTE  !"), FLinearColor(0.85f, 0.25f, 0.20f, 0.85f), A1.X + 20.0f, A1.Y - 16.0f, SmallFont);
+	// 2. Draw Key Historical Landmarks
+	auto DrawMarker = [&](float WX, float WY, const FString& Label, const FLinearColor& Col)
+	{
+		FVector2D P = WorldToMap(WX, WY);
+		DrawFramedBox(P.X - 5.0f, P.Y - 5.0f, 10.0f, 10.0f, Col, DarkInkColor, 1.0f);
+		DrawText(Label, DarkInkColor, P.X + 8.0f, P.Y - 6.0f, SmallFont);
+	};
 
-	// Clandestine Litho Press (North-East Alcove)
-	FVector2D LithoPos = WorldToMap(115.0f, 185.0f);
-	DrawFramedBox(LithoPos.X - 10.0f, LithoPos.Y - 6.0f, 20.0f, 12.0f, FLinearColor(0.2f, 0.35f, 0.55f, 0.8f), DarkInkColor, 1.0f);
-	DrawText(TEXT("[LITHO PRESS]"), DarkInkColor, LithoPos.X - 30.0f, LithoPos.Y + 8.0f, SmallFont);
+	DrawMarker(200.0f, 480.0f, TEXT("[HOME/TAILOR]"), AntiqueBrassColor);
+	DrawMarker(-80.0f, 1320.0f, TEXT("[WELL]"), FLinearColor(0.2f, 0.55f, 0.8f, 1.0f));
+	DrawMarker(380.0f, 1350.0f, TEXT("[PEEPAL SHRINE]"), FLinearColor(0.2f, 0.65f, 0.25f, 1.0f));
+	DrawMarker(450.0f, 1380.0f, TEXT("[KARTAR]"), FLinearColor(0.85f, 0.65f, 0.15f, 1.0f));
+	DrawMarker(-200.0f, 1680.0f, TEXT("[CHAI STALL]"), FLinearColor(0.75f, 0.45f, 0.2f, 1.0f));
+	DrawMarker(200.0f, 1980.0f, TEXT("[CLOTH GUILD]"), FLinearColor(0.4f, 0.25f, 0.6f, 1.0f));
+	DrawMarker(-40.0f, 1850.0f, TEXT("[THELA CART]"), MutedSepiaColor);
+	DrawMarker(1350.0f, 1350.0f, TEXT("[BELL TOWER]"), FLinearColor(0.85f, 0.70f, 0.20f, 1.0f));
+	DrawMarker(1150.0f, 1850.0f, TEXT("[CLASSROOM 4B]"), FLinearColor(0.3f, 0.5f, 0.7f, 1.0f));
 
-	// Colonial Checkpoint Barricade (Far South Gate)
-	FVector2D BarPos = WorldToMap(-20.0f, -270.0f);
-	DrawFramedBox(BarPos.X - 16.0f, BarPos.Y - 4.0f, 32.0f, 8.0f, FLinearColor(0.85f, 0.15f, 0.15f, 0.9f), DarkInkColor, 1.0f);
-	DrawText(TEXT("[CHECKPOINT]"), FLinearColor(0.85f, 0.15f, 0.15f, 1.0f), BarPos.X - 32.0f, BarPos.Y + 6.0f, SmallFont);
+	// Bazaar Constable Patrol Route
+	FVector2D Pat1 = WorldToMap(0.0f, 1600.0f);
+	FVector2D Pat2 = WorldToMap(0.0f, 2040.0f);
+	DrawLine(Pat1.X, Pat1.Y, Pat2.X, Pat2.Y, FLinearColor(0.85f, 0.25f, 0.20f, 0.80f), 2.0f);
+	DrawText(TEXT("! BAZAAR PATROL !"), FLinearColor(0.85f, 0.25f, 0.20f, 0.90f), Pat1.X + 8.0f, ((Pat1.Y + Pat2.Y) * 0.5f) - 6.0f, SmallFont);
 
-	// Telegraph Wire Sabotage Post (Rooftop North-East)
-	FVector2D WirePos = WorldToMap(60.0f, 240.0f);
-	DrawFramedBox(WirePos.X - 8.0f, WirePos.Y - 8.0f, 16.0f, 16.0f, FLinearColor(0.7f, 0.6f, 0.2f, 0.85f), DarkInkColor, 1.0f);
-	DrawText(TEXT("[TELEGRAPH]"), DarkInkColor, WirePos.X - 28.0f, WirePos.Y - 14.0f, SmallFont);
-
-	// Sleeping Mohalla Dog (Alley South-West)
-	FVector2D DogPos = WorldToMap(-155.0f, -40.0f);
-	DrawFramedBox(DogPos.X - 8.0f, DogPos.Y - 6.0f, 16.0f, 12.0f, FLinearColor(0.6f, 0.45f, 0.3f, 0.8f), DarkInkColor, 1.0f);
-	DrawText(TEXT("[STRAY DOG]"), DarkInkColor, DogPos.X - 25.0f, DogPos.Y + 8.0f, SmallFont);
-
-	// Wheat Chaff Decoy Screen (Courtyard East)
-	FVector2D ChaffPos = WorldToMap(85.0f, 60.0f);
-	DrawFramedBox(ChaffPos.X - 8.0f, ChaffPos.Y - 6.0f, 16.0f, 12.0f, FLinearColor(0.88f, 0.78f, 0.4f, 0.8f), DarkInkColor, 1.0f);
-	DrawText(TEXT("[CHAFF SCREEN]"), DarkInkColor, ChaffPos.X - 32.0f, ChaffPos.Y + 8.0f, SmallFont);
-
-	// 2. Draw Real-Time Scout Chalk Marks
+	// 3. Draw Real-Time Scout Chalk Marks
 	for (TActorIterator<AChalkMarkActor> It(GetWorld()); It; ++It)
 	{
 		AChalkMarkActor* Chalk = *It;
@@ -1255,7 +1254,7 @@ void ARevolutionHUD::DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float
 		}
 	}
 
-	// 3. Draw Real-Time Player Position (Kabir)
+	// 4. Draw Real-Time Player Position (Kabir)
 	FVector PlayerLoc = Kabir->GetActorLocation();
 	FVector2D PMap = WorldToMap(PlayerLoc.X, PlayerLoc.Y);
 	FLinearColor PlayerCol = FLinearColor(0.20f, 0.78f, 0.42f, 1.0f);
@@ -1266,10 +1265,10 @@ void ARevolutionHUD::DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float
 	DrawLine(PMap.X + 6.0f, PMap.Y, PMap.X, PMap.Y + 6.0f, PlayerCol, 2.0f);
 	DrawLine(PMap.X, PMap.Y + 6.0f, PMap.X - 6.0f, PMap.Y, PlayerCol, 2.0f);
 
-	// Player facing direction notch
+	// Player facing direction notch (Inverted Y for North-up orientation)
 	FRotator ControlRot = Kabir->GetControlRotation();
 	float Rad = FMath::DegreesToRadians(ControlRot.Yaw - 90.0f);
-	DrawLine(PMap.X, PMap.Y, PMap.X + (FMath::Cos(Rad) * 12.0f), PMap.Y + (FMath::Sin(Rad) * 12.0f), PlayerCol, 2.0f);
+	DrawLine(PMap.X, PMap.Y, PMap.X + (FMath::Cos(Rad) * 12.0f), PMap.Y - (FMath::Sin(Rad) * 12.0f), PlayerCol, 2.0f);
 
 	DrawText(TEXT("[KABIR]"), PlayerCol, PMap.X + 8.0f, PMap.Y - 6.0f, SmallFont);
 
@@ -1287,16 +1286,14 @@ void ARevolutionHUD::DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float
 	{
 		DrawText(Symbol, Col, LegendX + 12.0f, LegY, SmallFont);
 		DrawText(Label, DarkInkColor, LegendX + 36.0f, LegY, SmallFont);
-		LegY += 22.0f;
+		LegY += 20.0f;
 	};
 
 	DrawLegendItem(TEXT("<>"), TEXT("Kabir (Scout)"), PlayerCol);
 	DrawLegendItem(TEXT("[M]"), TEXT("Tailor's Chalk Mark"), FLinearColor(0.95f, 0.94f, 0.90f, 1.0f));
-	DrawLegendItem(TEXT("[#]"), TEXT("Deorhi Gate & Kundi"), AntiqueBrassColor);
-	DrawLegendItem(TEXT("[S]"), TEXT("Courier Stash Box"), FLinearColor(0.2f, 0.65f, 0.3f, 1.0f));
-	DrawLegendItem(TEXT("[D]"), TEXT("Haveli Drain Crawl"), FLinearColor(0.88f, 0.55f, 0.2f, 1.0f));
-	DrawLegendItem(TEXT("[P]"), TEXT("Rooftop Parapet"), MutedSepiaColor);
-	DrawLegendItem(TEXT("---"), TEXT("Curfew Patrol Alley"), FLinearColor(0.85f, 0.25f, 0.20f, 1.0f));
+	DrawLegendItem(TEXT("[#]"), TEXT("Landmark / NPC"), AntiqueBrassColor);
+	DrawLegendItem(TEXT("---"), TEXT("Bazaar Curfew Patrol"), FLinearColor(0.85f, 0.25f, 0.20f, 1.0f));
+	DrawLegendItem(TEXT("[N]"), TEXT("North (Upward)"), DarkInkColor);
 }
 
 void ARevolutionHUD::DrawSatchelTabDispatchesLore(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH)
@@ -1319,44 +1316,44 @@ void ARevolutionHUD::DrawSatchelTabDispatchesLore(ARevolutionCharacter* Kabir, f
 
 	static const FLoreEntry Entries[] = {
 		{
-			TEXT("Dietz No. 2 Hurricane Lantern"),
-			TEXT("Colonial Lighting  •  Cold-Blast Draft"),
-			TEXT("Tinplate kerosene lantern used by Punjab night chaukidars. Burns kerosene distributed under colonial wartime quotas.")
+			TEXT("Student Wooden Takhti & Qalam"),
+			TEXT("Vernacular Education  •  Literacy"),
+			TEXT("Carved wooden writing board washed with pale chalk slip (gachi). 12-year-old pupils practice calligraphy using bamboo reed pens (qalam) and lampblack ink.")
 		},
 		{
-			TEXT("Woven Moonj Charpai"),
-			TEXT("Traditional Artisan Furniture"),
-			TEXT("Daybed woven from twisted moonj river-grass rope over shisham hardwood rails. The social anchor of Punjabi haveli courtyards.")
+			TEXT("Earthen Mud Chulha Stove"),
+			TEXT("Domestic Life  •  Foodways"),
+			TEXT("Double-burner clay cooking hearth with terracotta handi pot and hammered brass lota. The morning scent of woodsmoke and ginger tea anchors the family courtyard.")
 		},
 		{
-			TEXT("Terracotta Chai Kulhad"),
-			TEXT("Pottery  •  Bazaar Culture"),
-			TEXT("Disposable unglazed clay cup hand-thrown by town kumhars. Imparts an authentic earthy aroma (saundhi khushboo) to boiled tea.")
+			TEXT("Bazaar Vendor Thela (Handcart)"),
+			TEXT("Mandi Commerce  •  Octroi Taxes"),
+			TEXT("Heavy timber cart with 76cm iron-spoked wheels, laden with grain sacks and clay matkas. Provides essential crouch cover against patrolling British police sepoys.")
 		},
 		{
-			TEXT("Burlap Jute Ration Sack"),
-			TEXT("Imperial Wartime Procurement"),
-			TEXT("Heavy burlap sacks stamped with imperial seals. Requisitioned wheat intended for Mesopotamia, leaving Punjab bazaars inflated.")
+			TEXT("Rooftop Pigeon Loft (Kabootar-khana)"),
+			TEXT("Mohalla Culture  •  Signaling"),
+			TEXT("Slatted timber loft for racing tumbler pigeons. Neighborhood boys and dispatch runners used cooing flocks to mask rooftop footsteps during curfews.")
 		},
 		{
-			TEXT("Hardwood Kite Charkhi"),
-			TEXT("Basant Festival  •  Signaling"),
-			TEXT("Hardwood kite spool with glass-coated manja line. Young rooftop scouts used colored kites to signal across railway tracks.")
+			TEXT("Anti-Rowlatt Satyagraha Handbill"),
+			TEXT("Underground Press  •  Hartal 1919"),
+			TEXT("Freshly lithographed strike notice on rag paper: 'Na Dalil, Na Vakil, Na Appeal.' Calling for a total province-wide shutdown of all bazaars, schools, and railways.")
 		},
 		{
-			TEXT("Aged Teak Deorhi Gateway"),
-			TEXT("Haveli Architecture  •  Iron Kundi"),
-			TEXT("Massive double doors forged from aged Burma teak with wrought-iron slide bolts, separating public alleys from private sanctuary.")
+			TEXT("Sacred Peepal Chabutra & Shrine"),
+			TEXT("Spiritual Sanctuary  •  Unity"),
+			TEXT("Ancient Ficus religiosa tree with octagonal brick plinth and earthen diyas. Hindu, Muslim, and Sikh residents gather here in shared grief against martial edicts.")
 		},
 		{
-			TEXT("Carved Teak Jharokha"),
-			TEXT("Walled City Balcony"),
-			TEXT("Overhanging timber lattice balcony allowing residents and scouts to observe British garrison movements without being seen.")
+			TEXT("Singer 1910s Veranda Sewing Machine"),
+			TEXT("Artisan Heritage  •  Swadeshi"),
+			TEXT("Cast-iron hand-cranked sewing machine where Kabir's father repairs local khadi garments, quietly resisting the economic stranglehold of imported Manchester textiles.")
 		},
 		{
-			TEXT("Haveli Storm-Drain Arch"),
-			TEXT("Runoff Conduit  •  Mori Traversal"),
-			TEXT("Low brick conduit running through boundary walls. Allows 12-year-old Kabir to crawl on hands and knees to evade colonial watchmen.")
+			TEXT("Wrought-Iron School Bell Tower"),
+			TEXT("Middle School  •  Freedom of Mind"),
+			TEXT("Historic schoolyard bell rung each morning at eight o'clock. As Headmaster Pandit Kashi Ram teaches, true education is the one weapon no colonial edict can take away.")
 		}
 	};
 
