@@ -6,6 +6,8 @@
 #include "RevolutionGameMode.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SceneComponent.h"
+#include "Kismet/GameplayStatics.h"
+#include "Sound/SoundBase.h"
 #include "Engine/World.h"
 #include "REVOLUTION.h"
 
@@ -52,6 +54,11 @@ void AObjectiveTriggerActor::OnInteract_Implementation(ARevolutionCharacter* Int
 	}
 
 	bHasBeenTriggered = true;
+
+	if (TriggerSound && GetWorld())
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, TriggerSound, GetActorLocation(), 1.0f);
+	}
 
 	if (UWorld* World = GetWorld())
 	{

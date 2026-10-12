@@ -15,7 +15,7 @@ flowchart LR
     
     Task1["Task 1: Living Civilian NPC & Foliage System\n• 5 Punjabi historical archetypes\n• Sacred Peepal & Tulsi shrines\n• Proximity barks & Satchel lore\n[STATUS: COMPLETED & VALIDATED]"]
     
-    Task2["Task 2: Act I Story Narrative Questline\n• 'The Morning Courier'\n• Deliver tailored coat to merchant\n• Buy chai & ring school bell\n[STATUS: IMMEDIATE NEXT]"]
+    Task2["Task 2: Act I Story Narrative Questline\n• 'The Morning Courier'\n• Deliver tailored coat to merchant\n• Buy chai & ring school bell\n[STATUS: COMPLETED & VALIDATED]"]
 
     Task0 --> Task1
     Task1 --> Task2
@@ -52,14 +52,42 @@ flowchart LR
 
 ---
 
-### Task 2: Implement Act I Exploratory Quest — "The Morning Courier"
-- **Objective:** Create the first playable story mission validating the entire journey from home to market to school.
-- **Mission Flow:**
-  1. Kabir wakes in the family courtyard; father Ram Lubhaya asks him to deliver the repaired khadi coat to Lala Karam Chand in the Grand Bazaar.
-  2. Kabir climbs the stairs to the rooftop to check on his Basant fighter kite.
-  3. Kabir vaults the roof parapet or descends through the Deorhi gateway, greets Ghasita Bhishti at the communal well, and enters the bazaar.
-  4. Delivers the coat to Lala Karam Chand, receives payment, and stops at Hira Halwai's stall for hot chai.
-  5. Inspects the new colonial proclamation posted on the municipal board and hears the curfew warning.
-  6. Arrives at the Vernacular Middle School and rings the central iron bell tower to call morning classes.
-- **Dependencies:**
-  - `ObjectiveTriggerActor.cpp` and `RevolutionMissionSubsystem.cpp`.
+### Task 2: Implement Act I Exploratory Quest — "The Morning Courier" [COMPLETED]
+- **Status:** **100% COMPLETE & VALIDATED IN-ENGINE**
+- **Implemented Components:**
+  - Expanded `RevolutionMissionSubsystem` with full 8-stage Act I narrative loop:
+    1. `Stage_Morning_FatherTailor`: Converse with master tailor Ram Lubhaya on the veranda.
+    2. `Stage_Morning_RooftopKite`: Climb courtyard stairs, inspect Basant fighter kite, and survey mohalla rooftops.
+    3. `Stage_Morning_WellBhishti`: Descend through Deorhi gateway, meet Ghasita Bhishti at communal well square.
+    4. `Stage_Morning_DeliverCloth`: Enter Grand Bazaar, hand over tailored khadi coat to Lala Karam Chand.
+    5. `Stage_Morning_ChaiHalwai`: Drink hot cardamom chai kulhad at Hira Halwai's stall; hear Rowlatt Act unrest rumors.
+    6. `Stage_Morning_ProclamationBoard`: Inspect/deface Section 144 martial law curfew order on proclamation board.
+    7. `Stage_Morning_SchoolBell`: Enter Vernacular Middle School courtyard and toll central wrought-iron bell (`SFX_Dawn_Temple_Bell`).
+    8. `Stage_Morning_ClassroomDesk`: Take assigned pupil desk in Classroom 4B; complete Act I prologue (`SFX_Dawn_Gong_Complete`).
+  - Integrated audio feedback triggers (`UGameplayStatics::PlaySoundAtLocation`) for bell tolling and objective fanfare.
+  - In-game HUD objective tracker with Satchel Journal inventory tab tracking the Tailored Khadi Coat Parcel.
+  - Validated with automated headless test suite `Scripts/verify_act1_questline.py` across all 114 level actors with 100% PASS rate.
+
+---
+
+## 2. Phase 5 Roadmap: Colonial Authority & Gathering Storm
+
+```mermaid
+flowchart LR
+    Task3["Task 3: Colonial Constable Patrol AI\n• British Imperial Police & Indian Constables\n• Lantern line-of-sight & suspicion meter\n• Mohalla curfew enforcement"]
+    
+    Task4["Task 4: Underground Pamphlet Drop\n• Anti-Rowlatt Act leaflets\n• Rooftop dead-drops & pigeon coops\n• Dr. Saifuddin Kitchlew rallying network"]
+    
+    Task5["Task 5: The Road to Jallianwala Bagh\n• Baisakhi festival crowd simulation\n• Historic town square boundary expansion\n• April 13, 1919 historical culmination"]
+
+    Task3 --> Task4
+    Task4 --> Task5
+```
+
+### Task 3: Colonial Constable Patrol System (Immediate Next)
+- **Objective:** Introduce tension and stakes into the mohalla by placing British colonial constables and Punjab police sepoys enforcing Section 144 curfew orders.
+- **Key Deliverables:**
+  - `AColonialConstableActor` class with waypoint patrol routes along Bazaar Main Street and School Lane.
+  - Suspicion / awareness detection cone (hearing footsteps, sprint visual alert, lantern light).
+  - Non-lethal evasion mechanics: crouching behind bazaar crates, rooftop hiding, slip-through mohalla deorhi doors.
+

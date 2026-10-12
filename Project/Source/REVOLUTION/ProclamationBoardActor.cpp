@@ -7,6 +7,7 @@
 #include "UObject/ConstructorHelpers.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "RevolutionMissionSubsystem.h"
 #include "REVOLUTION.h"
 
 AProclamationBoardActor::AProclamationBoardActor()
@@ -129,5 +130,17 @@ void AProclamationBoardActor::OnInteract_Implementation(ARevolutionCharacter* In
 	else
 	{
 		Interactor->StartInspection(ProclamationTitle, ProclamationBody);
+	}
+
+	// Advance story mission if inspecting the proclamation board
+	if (UWorld* World = GetWorld())
+	{
+		if (URevolutionMissionSubsystem* Subsystem = World->GetSubsystem<URevolutionMissionSubsystem>())
+		{
+			if (Subsystem->GetCurrentStage() == ECourierMissionStage::Stage_Morning_ProclamationBoard)
+			{
+				Subsystem->AdvanceMissionStage();
+			}
+		}
 	}
 }

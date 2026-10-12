@@ -164,7 +164,12 @@ REVOLUTION/
 - [x] **Phase 2:** Fix falling character bug; enforce `CTF_USE_COMPLEX_AS_SIMPLE`; install 120m foundation slab; configure Punjab PBR materials.
 - [x] **Phase 3:** Build 5-zone historical vertical slice (Kabir's Haveli, Tailor Workshop, Deorhi Arch, Communal Well, Grand Bazaar, Vernacular Middle School).
 - [x] **Input Pipeline Hardening:** Implement `PossessedBy()` mapping registration, legacy axis bindings, and tick keyboard fallback for 100% reliable player movement.
-- [ ] **Phase 4 (Immediate Next):**
-  - Implement living civilian NPCs (Water-carrier *Bhishti*, Halwai tea maker, Father *Ram Lubhaya*, Cloth merchant).
-  - Act I opening questline: "The Morning Courier" (deliver father's tailored kurtas, inspect curfew notices, reach school before bell tolls).
-  - Environmental foliage (Sacred Peepal tree in well square; potted courtyard Tulsi).
+- [x] **Phase 4:**
+  - Implement living Punjabi civilian NPCs (Master Tailor *Ram Lubhaya*, Water-carrier *Ghasita Bhishti*, Tea Stall Owner *Hira Halwai*, Cloth Merchant *Lala Karam Chand*, Headmaster *Pandit Kashi Ram*).
+  - Environmental foliage & shrines (Sacred Peepal tree shrine with octagonal brick chabutra; courtyard sacred Tulsi Chaura planter).
+  - Act I narrative questline: **"The Morning Courier"** (8-stage playable sequence: father's tailor dispatch -> rooftop kite survey -> communal well meeting -> Manchester cloth delivery -> morning chai stall rumors -> Section 144 notice defacement -> tolling school bell -> classroom 4B desk).
+- [ ] **Phase 5 (Next):**
+  - Stealth & patrol mechanics: British colonial constables and police patrolling bazaar alleyways.
+  - Crowd protest dynamics & underground pamphlet distribution leading to Jallianwala Bagh gathering.
+  - Dynamic time-of-day audio ambience (morning prayer call, temple bells, crows, ambient Punjab bazaar buzz).
+

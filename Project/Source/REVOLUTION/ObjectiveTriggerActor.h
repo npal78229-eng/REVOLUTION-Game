@@ -47,6 +47,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Mission")
 	bool bHideMeshOnTrigger = false;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	class USoundBase* TriggerSound = nullptr;
+
 	// IInteractableInterface Implementation
 	virtual void OnInteract_Implementation(ARevolutionCharacter* Interactor) override;
 	virtual FText GetInteractionPrompt_Implementation() const override;

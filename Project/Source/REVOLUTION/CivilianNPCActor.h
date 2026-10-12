@@ -85,6 +85,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Dialogue")
 	float ProximityBarkCooldown = 15.0f;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Mission")
+	bool bCanAdvanceMission = true;
+
 	// IInteractableInterface Implementation
 	virtual void OnInteract_Implementation(ARevolutionCharacter* Interactor) override;
 	virtual FText GetInteractionPrompt_Implementation() const override;

@@ -841,11 +841,15 @@ void ARevolutionHUD::DrawMissionDirectiveBanner(ARevolutionCharacter* Kabir)
 	FString StageTag;
 	switch (CurrentStage)
 	{
-	case ECourierMissionStage::Stage_RetrievePamphlets: StageTag = TEXT("1919 COURIER  —  OBJECTIVE 1 OF 4"); break;
-	case ECourierMissionStage::Stage_RooftopInfiltration: StageTag = TEXT("1919 COURIER  —  OBJECTIVE 2 OF 4"); break;
-	case ECourierMissionStage::Stage_DeliverToStash: StageTag = TEXT("1919 COURIER  —  OBJECTIVE 3 OF 4"); break;
-	case ECourierMissionStage::Stage_EvadeAndSurvive: StageTag = TEXT("1919 COURIER  —  OBJECTIVE 4 OF 4"); break;
-	case ECourierMissionStage::Stage_Completed: StageTag = TEXT("1919 CLANDESTINE DISPATCH  —  ACCOMPLISHED"); break;
+	case ECourierMissionStage::Stage_Morning_FatherTailor: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 1 OF 8"); break;
+	case ECourierMissionStage::Stage_Morning_RooftopKite: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 2 OF 8"); break;
+	case ECourierMissionStage::Stage_Morning_WellBhishti: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 3 OF 8"); break;
+	case ECourierMissionStage::Stage_Morning_DeliverCloth: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 4 OF 8"); break;
+	case ECourierMissionStage::Stage_Morning_ChaiHalwai: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 5 OF 8"); break;
+	case ECourierMissionStage::Stage_Morning_ProclamationBoard: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 6 OF 8"); break;
+	case ECourierMissionStage::Stage_Morning_SchoolBell: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 7 OF 8"); break;
+	case ECourierMissionStage::Stage_Morning_ClassroomDesk: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 8 OF 8"); break;
+	case ECourierMissionStage::Stage_Completed: StageTag = TEXT("1919 ACT I PROLOGUE  —  ACCOMPLISHED"); break;
 	}
 
 	// Draw Tag
@@ -1047,24 +1051,24 @@ void ARevolutionHUD::DrawSatchelTabEquipment(ARevolutionCharacter* Kabir, float 
 	const float RightX = BoxX + LeftW + (ContentW * 0.03f);
 
 	// LEFT COLUMN: Equipment Items
-	// Item 1: Anti-Rowlatt Pamphlets
+	// Item 1: Tailored Khadi Coat Delivery
 	float Item1Y = ContentY + 4.0f;
 	float ItemH = (ContentH - 20.0f) / 3.0f;
 
 	DrawFramedBox(BoxX, Item1Y, LeftW, ItemH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
-	DrawText(TEXT("Anti-Rowlatt Pamphlet Dispatch"), DarkInkColor, BoxX + 12.0f, Item1Y + 8.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("Tailored Khadi Coat Parcel"), DarkInkColor, BoxX + 12.0f, Item1Y + 8.0f, MediumFont ? MediumFont : SmallFont);
 
 	URevolutionMissionSubsystem* Subsystem = GetWorld() ? GetWorld()->GetSubsystem<URevolutionMissionSubsystem>() : nullptr;
-	bool bHasPamphlets = Subsystem && (Subsystem->CurrentStage >= ECourierMissionStage::Stage_RooftopInfiltration);
+	bool bHasCoat = Subsystem && (Subsystem->CurrentStage < ECourierMissionStage::Stage_Morning_DeliverCloth);
 
-	FString PamStatus = bHasPamphlets ? TEXT("STATUS: SECURED IN VEST POUCH") : TEXT("STATUS: AWAITING PICKUP AT COURTYARD CHARPAI");
-	FLinearColor StatusCol = bHasPamphlets ? FLinearColor(0.18f, 0.65f, 0.32f, 1.0f) : FLinearColor(0.85f, 0.52f, 0.15f, 1.0f);
-	DrawText(PamStatus, StatusCol, BoxX + 12.0f, Item1Y + 28.0f, SmallFont);
+	FString CoatStatus = bHasCoat ? TEXT("STATUS: IN SATCHEL (DELIVER TO LALA KARAM CHAND)") : TEXT("STATUS: DELIVERED TO CLOTH GUILD");
+	FLinearColor StatusCol = bHasCoat ? FLinearColor(0.85f, 0.52f, 0.15f, 1.0f) : FLinearColor(0.18f, 0.65f, 0.32f, 1.0f);
+	DrawText(CoatStatus, StatusCol, BoxX + 12.0f, Item1Y + 28.0f, SmallFont);
 
-	FString PamDesc = TEXT("Secretly printed Urdu and Gurmukhi bulletins calling for town-wide Hartal shutdown against emergency detention laws. Kabir carries them across rooftops unseen.");
-	TArray<FString> PamLines = WrapText(PamDesc, SmallFont, LeftW - 24.0f);
+	FString CoatDesc = TEXT("A finely stitched homespun khadi coat repaired by father Ram Lubhaya on the veranda Singer sewing machine. Intended for Lala Karam Chand in the Grand Bazaar.");
+	TArray<FString> CoatLines = WrapText(CoatDesc, SmallFont, LeftW - 24.0f);
 	float LineY = Item1Y + 48.0f;
-	for (const FString& L : PamLines)
+	for (const FString& L : CoatLines)
 	{
 		DrawText(L, MutedSepiaColor, BoxX + 12.0f, LineY, SmallFont);
 		LineY += 14.0f;

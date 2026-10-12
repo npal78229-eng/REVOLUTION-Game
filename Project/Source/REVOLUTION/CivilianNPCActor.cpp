@@ -11,6 +11,7 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "RevolutionMissionSubsystem.h"
 #include "REVOLUTION.h"
 
 ACivilianNPCActor::ACivilianNPCActor()
@@ -289,6 +290,41 @@ void ACivilianNPCActor::OnInteract_Implementation(ARevolutionCharacter* Interact
 
 	// Broadcast dialogue event
 	OnDialogueSpoken.Broadcast(this, CivilianName, CurrentText);
+
+	// Advance Mission Stage if interacting with the expected NPC for current Act I objective
+	if (bCanAdvanceMission)
+	{
+		if (UWorld* World = GetWorld())
+		{
+			if (URevolutionMissionSubsystem* Subsystem = World->GetSubsystem<URevolutionMissionSubsystem>())
+			{
+				const ECourierMissionStage Stage = Subsystem->GetCurrentStage();
+				bool bShouldAdvance = false;
+
+				if (Occupation == ECivilianOccupation::FatherTailor && Stage == ECourierMissionStage::Stage_Morning_FatherTailor)
+				{
+					bShouldAdvance = true;
+				}
+				else if (Occupation == ECivilianOccupation::BhishtiWaterCarrier && Stage == ECourierMissionStage::Stage_Morning_WellBhishti)
+				{
+					bShouldAdvance = true;
+				}
+				else if (Occupation == ECivilianOccupation::ClothMerchant && Stage == ECourierMissionStage::Stage_Morning_DeliverCloth)
+				{
+					bShouldAdvance = true;
+				}
+				else if (Occupation == ECivilianOccupation::HalwaiChaiVendor && Stage == ECourierMissionStage::Stage_Morning_ChaiHalwai)
+				{
+					bShouldAdvance = true;
+				}
+
+				if (bShouldAdvance)
+				{
+					Subsystem->AdvanceMissionStage();
+				}
+			}
+		}
+	}
 }
 
 FText ACivilianNPCActor::GetInteractionPrompt_Implementation() const

@@ -203,7 +203,7 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		}
 	}
 
-	// 3. Spawn Clandestine Mission Triggers (Leaflet Pickup, Rooftop Route, Courier Stash, Courtyard Return)
+	// 3. Spawn Act I Story Triggers (Rooftop Kite Survey, School Bell Toll, Classroom 4B Desk)
 	int32 ExistingTriggers = 0;
 	for (TActorIterator<AObjectiveTriggerActor> It(World); It; ++It)
 	{
@@ -215,112 +215,97 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 		FActorSpawnParameters TriggerSpawnParams;
 		TriggerSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
 
-		// Objective 1 Trigger: Clandestine Leaflet Dispatch near courtyard charpai
-		AObjectiveTriggerActor* LeafletTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+		// Objective Trigger: Rooftop Terrace Kite Spool Survey
+		AObjectiveTriggerActor* RooftopKiteTrigger = World->SpawnActor<AObjectiveTriggerActor>(
 			AObjectiveTriggerActor::StaticClass(),
-			FVector(115.0f, 135.0f, 25.0f),
-			FRotator(0.0f, 15.0f, 0.0f),
+			FVector(240.0f, 320.0f, 410.0f),
+			FRotator(0.0f, -45.0f, 0.0f),
 			TriggerSpawnParams
 		);
-		if (LeafletTrigger)
+		if (RooftopKiteTrigger)
 		{
-			LeafletTrigger->RequiredMissionStage = ECourierMissionStage::Stage_RetrievePamphlets;
-			LeafletTrigger->InteractionPrompt = FText::FromString(TEXT("Retrieve Leaflets"));
-			LeafletTrigger->ItemTitle = FText::FromString(TEXT("Anti-Rowlatt Pamphlet Dispatch"));
-			LeafletTrigger->HistoricalLoreUponInteraction = FText::FromString(
-				TEXT("Urdu and Gurmukhi leaflets printed in secret calling for an immediate town-wide Hartal (general shutdown). Kabir tucks them under his vest to cross the rooftops unseen.")
+			RooftopKiteTrigger->RequiredMissionStage = ECourierMissionStage::Stage_Morning_RooftopKite;
+			RooftopKiteTrigger->InteractionPrompt = FText::FromString(TEXT("Survey from Rooftop"));
+			RooftopKiteTrigger->ItemTitle = FText::FromString(TEXT("Basant Charkhi & Rooftop Vantage"));
+			RooftopKiteTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("From this high brick terrace ledge, Kabir spots the morning activity below. Beyond the haveli deorhi archway, water-carrier Ghasita Bhishti is drawing water at the communal stone well. The bazaar and school bell tower rise in the distance.")
 			);
-			LeafletTrigger->bHideMeshOnTrigger = true;
-
-			UStaticMesh* LeafletMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_GrainSack_Jute_01.SM_Prop_GrainSack_Jute_01"));
-			if (LeafletMesh && LeafletTrigger->MeshComponent)
-			{
-				LeafletTrigger->MeshComponent->SetStaticMesh(LeafletMesh);
-				LeafletTrigger->MeshComponent->SetRelativeScale3D(FVector(0.28f, 0.28f, 0.28f));
-			}
-
-			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective 1: Pamphlet Pickup at (115, 135, 25)."));
-		}
-
-		// Objective 2 Trigger: Rooftop Terrace Parapet Waypoint
-		AObjectiveTriggerActor* RooftopTrigger = World->SpawnActor<AObjectiveTriggerActor>(
-			AObjectiveTriggerActor::StaticClass(),
-			FVector(0.0f, 240.0f, 410.0f),
-			FRotator(0.0f, 0.0f, 0.0f),
-			TriggerSpawnParams
-		);
-		if (RooftopTrigger)
-		{
-			RooftopTrigger->RequiredMissionStage = ECourierMissionStage::Stage_RooftopInfiltration;
-			RooftopTrigger->InteractionPrompt = FText::FromString(TEXT("Survey Rooftop Route"));
-			RooftopTrigger->ItemTitle = FText::FromString(TEXT("Mohalla Rooftop Vantage"));
-			RooftopTrigger->HistoricalLoreUponInteraction = FText::FromString(
-				TEXT("From this high brick terrace ledge, Kabir spots the colonial patrol lantern below in the alley. The drop box near the Jharokha balcony is now reachable across the rooftops.")
-			);
-			RooftopTrigger->bHideMeshOnTrigger = false;
+			RooftopKiteTrigger->bHideMeshOnTrigger = false;
 
 			UStaticMesh* SpoolMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_Kite_Spool_Charkhi.SM_Prop_Kite_Spool_Charkhi"));
-			if (SpoolMesh && RooftopTrigger->MeshComponent)
+			if (SpoolMesh && RooftopKiteTrigger->MeshComponent)
 			{
-				RooftopTrigger->MeshComponent->SetStaticMesh(SpoolMesh);
-				RooftopTrigger->MeshComponent->SetRelativeScale3D(FVector(0.6f, 0.6f, 0.6f));
+				RooftopKiteTrigger->MeshComponent->SetStaticMesh(SpoolMesh);
+				RooftopKiteTrigger->MeshComponent->SetRelativeScale3D(FVector(0.6f, 0.6f, 0.6f));
 			}
 
-			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective 2: Rooftop Waypoint at (0, 240, 410)."));
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Rooftop Kite Survey at (240, 320, 410)."));
 		}
 
-		// Objective 3 Trigger: Secret Courier Stash Box near upper Jharokha Balcony
-		AObjectiveTriggerActor* StashTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+		// Objective Trigger: Vernacular Middle School Central Iron Bell Tower
+		AObjectiveTriggerActor* SchoolBellTrigger = World->SpawnActor<AObjectiveTriggerActor>(
 			AObjectiveTriggerActor::StaticClass(),
-			FVector(-190.0f, -60.0f, 325.0f),
-			FRotator(0.0f, 90.0f, 0.0f),
-			TriggerSpawnParams
-		);
-		if (StashTrigger)
-		{
-			StashTrigger->RequiredMissionStage = ECourierMissionStage::Stage_DeliverToStash;
-			StashTrigger->InteractionPrompt = FText::FromString(TEXT("Deposit in Courier Stash"));
-			StashTrigger->ItemTitle = FText::FromString(TEXT("Underground Mohalla Courier Stash"));
-			StashTrigger->HistoricalLoreUponInteraction = FText::FromString(
-				TEXT("A carved sandalwood lockbox hidden behind the cedar jharokha lattice. Fellow anti-Rowlatt dispatch riders will retrieve the bulletins here before dawn to distribute along the railway lines.")
-			);
-			StashTrigger->bHideMeshOnTrigger = false;
-
-			UStaticMesh* StashMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_Charpai_RopeBed.SM_Prop_Charpai_RopeBed"));
-			if (StashMesh && StashTrigger->MeshComponent)
-			{
-				StashTrigger->MeshComponent->SetStaticMesh(StashMesh);
-				StashTrigger->MeshComponent->SetRelativeScale3D(FVector(0.20f, 0.20f, 0.25f));
-			}
-
-			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective 3: Courier Stash at (-190, -60, 325)."));
-		}
-
-		// Objective 4 Trigger: Safe Return Spot in Courtyard
-		AObjectiveTriggerActor* ReturnTrigger = World->SpawnActor<AObjectiveTriggerActor>(
-			AObjectiveTriggerActor::StaticClass(),
-			FVector(10.0f, 20.0f, 15.0f),
+			FVector(1350.0f, 1350.0f, 60.0f),
 			FRotator(0.0f, 0.0f, 0.0f),
 			TriggerSpawnParams
 		);
-		if (ReturnTrigger)
+		if (SchoolBellTrigger)
 		{
-			ReturnTrigger->RequiredMissionStage = ECourierMissionStage::Stage_EvadeAndSurvive;
-			ReturnTrigger->InteractionPrompt = FText::FromString(TEXT("Conclude Courier Mission"));
-			ReturnTrigger->ItemTitle = FText::FromString(TEXT("Haveli Family Courtyard"));
-			ReturnTrigger->HistoricalLoreUponInteraction = FText::FromString(
-				TEXT("The courtyard deorhi gate clicks shut. As dawn breaks over the haveli terracotta roofs, temple and gurdwara bells herald the town-wide Hartal. All bazaar shops will remain shut in protest against wartime emergency laws.")
+			SchoolBellTrigger->RequiredMissionStage = ECourierMissionStage::Stage_Morning_SchoolBell;
+			SchoolBellTrigger->InteractionPrompt = FText::FromString(TEXT("Ring Morning School Bell"));
+			SchoolBellTrigger->ItemTitle = FText::FromString(TEXT("Wrought Iron Bell Tower"));
+			SchoolBellTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Kabir pulls the hemp rope. The bronze bell clatters across the brick courtyards of Kot Gurdarshan, heralding morning classes for Headmaster Pandit Kashi Ram. Knowledge is the one weapon no colonial edict can take away.")
 			);
-			ReturnTrigger->bHideMeshOnTrigger = true;
+			SchoolBellTrigger->bHideMeshOnTrigger = false;
 
-			UStaticMesh* LanternMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_HurricaneLantern.SM_Prop_HurricaneLantern"));
-			if (LanternMesh && ReturnTrigger->MeshComponent)
+			USoundBase* BellSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Dawn_Temple_Bell.SFX_Dawn_Temple_Bell"));
+			if (BellSFX)
 			{
-				ReturnTrigger->MeshComponent->SetStaticMesh(LanternMesh);
-				ReturnTrigger->MeshComponent->SetRelativeScale3D(FVector(0.4f, 0.4f, 0.4f));
+				SchoolBellTrigger->TriggerSound = BellSFX;
 			}
 
-			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective 4: Return Courtyard Trigger at (10, 20, 15)."));
+			UStaticMesh* BellMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_School_Bell_Tower_Iron.SM_School_Bell_Tower_Iron"));
+			if (BellMesh && SchoolBellTrigger->MeshComponent)
+			{
+				SchoolBellTrigger->MeshComponent->SetStaticMesh(BellMesh);
+				SchoolBellTrigger->MeshComponent->SetRelativeScale3D(FVector(0.4f, 0.4f, 0.4f));
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: School Bell Tower at (1350, 1350, 60)."));
+		}
+
+		// Objective Trigger: Classroom 4B Student Desk & Slate
+		AObjectiveTriggerActor* DeskTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(1150.0f, 1850.0f, 35.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (DeskTrigger)
+		{
+			DeskTrigger->RequiredMissionStage = ECourierMissionStage::Stage_Morning_ClassroomDesk;
+			DeskTrigger->InteractionPrompt = FText::FromString(TEXT("Take Student Desk"));
+			DeskTrigger->ItemTitle = FText::FromString(TEXT("Classroom 4B Student Bench"));
+			DeskTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Kabir sits at the wooden desk and sets down his slate. Through the open archway, elders whisper of the town-wide Hartal. The morning errands are done; the seeds of freedom are planted. Act I prologue complete.")
+			);
+			DeskTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* GongSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Dawn_Gong_Complete.SFX_Dawn_Gong_Complete"));
+			if (GongSFX)
+			{
+				DeskTrigger->TriggerSound = GongSFX;
+			}
+
+			UStaticMesh* DeskMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_School_Desk_Bench_Wood.SM_School_Desk_Bench_Wood"));
+			if (DeskMesh && DeskTrigger->MeshComponent)
+			{
+				DeskTrigger->MeshComponent->SetStaticMesh(DeskMesh);
+				DeskTrigger->MeshComponent->SetRelativeScale3D(FVector(0.5f, 0.5f, 0.5f));
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Classroom 4B Student Desk at (1150, 1850, 35)."));
 		}
 	}
 
