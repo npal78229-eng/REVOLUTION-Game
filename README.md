@@ -23,7 +23,7 @@ The player steps into the shoes of **Kabir**, a 12-year-old son of a traditional
 
 ---
 
-## 2. Playable Vertical Slice (122 Actors across 5 Contiguous Zones)
+## 2. Playable Vertical Slice (127 Actors across 5 Contiguous Zones)
 
 The project currently features a contiguous, high-fidelity historical environment assembled in `Project/Content/Maps/L_Validation_Gym.umap`:
 
@@ -80,6 +80,11 @@ flowchart TD
   - *Rooftop Pigeon Loft (`SM_Prop_Pigeon_Coop_KabootarKhana`):* Slatted timber coop with pitched roof, roost perches, and terracotta grain saucer.
   - *Bazaar Vendor Handcart (`SM_Prop_Bazaar_Cart_Thela`):* Heavy wooden market cart with iron-rimmed spoke wheels, burlap jute sacks, and water matkas.
   - *Underground Strike Leaflets (`SM_Prop_Pamphlet_Stack_Rowlatt`):* Stacks of freshly lithographed anti-Rowlatt Satyagraha bulletins on rag paper.
+  - *Cast-Iron Imperial Pillar Postbox (`SM_Prop_Imperial_Postbox_GR`):* Colonial red letterbox bearing King George V royal cypher with pasted boycott handbill at curfew checkpoint.
+  - *Mandi Merchant Balance Scale (`SM_Prop_Bazaar_Tarazu_Scale`):* Traditional wooden tripod balance scale with dual brass pans and cast-iron counterweights.
+  - *Basant Fighter Kites & Manja Spool (`SM_Prop_Rooftop_Patang_Charkhi`):* Saffron tissue-paper diamond kites and hand-turned hardwood charkhi line spool.
+  - *Punjabi Carved Timber Sandook (`SM_Prop_Haveli_Grain_Sandook`):* Shisham dowry and grain chest elevated on turned stilt legs with floral fretwork and iron hasp lock.
+  - *Punjab 1919 Province Map Easel (`SM_Prop_School_Wall_Map_Easel`):* Classroom timber easel displaying 1919 historical map of Punjab with pointer rod.
 - **Authentic PBR Materials:** Kiln-baked Lahori brick (`M_LahoriBrick_PBR`), aged Punjabi teak and sheesham (`M_AgedTeak_PBR`), blacksmith wrought iron (`M_WroughtIron_PBR`), and unglazed terracotta pottery (`M_Clay_PBR`).
 - **Punjab Golden Hour Lighting (3200K):** Warm 75,000 lux sunlight casting deep amber light shafts and soft volumetric height fog through narrow alleys.
 
@@ -179,10 +184,10 @@ REVOLUTION/
 - [x] **Phase 5:**
   - Implemented Schoolmate & Childhood Friend (*Kartar Singh*, Age 12) with custom kite spool prop, youthful scaling, playful look-at behavior, and authentic Punjab dialogue.
   - Implemented Colonial Constable Patrol AI (*Constable Gurdial Singh*, Punjab Imperial Police) patrolling Grand Bazaar along 3 waypoints with active line-of-sight suspicion cones.
-  - Authored 5 period-authentic 3D storytelling assets in Blender 5.2 LTS (`SM_Prop_Courtyard_Chulha_Stove`, `SM_Prop_School_Takhti_Slate`, `SM_Prop_Pigeon_Coop_KabootarKhana`, `SM_Prop_Bazaar_Cart_Thela`, `SM_Prop_Pamphlet_Stack_Rowlatt`).
+  - Authored 10 period-authentic 3D storytelling assets in Blender 5.2 LTS across two production batches (Courtyard Chulha hearth, School Takhti slate, Rooftop Kabootarkhana loft, Bazaar Thela cart, Rowlatt strike pamphlets, Imperial GR Pillar Postbox, Mandi Tarazu balance scale, Basant Patang & Charkhi kites, Haveli Shisham Sandook chest, and Classroom 1919 Punjab map easel).
   - Arranged assets across the 5 districts according to the story narrative progression (family courtyard routine -> rooftop survey -> well square -> bazaar trading -> colonial checkpost -> school desk).
-  - Level actors expanded to 122 across the 5 historical districts (100% PASS on automated verification suite `Scripts/verify_act1_questline.py`).
-  - Expanded Satchel Journal (<kbd>Tab</kbd>) C++ HUD with North-up real-time 5-district route cartography, district boundaries, NPC tracking, and 8 period archival lore entries.
+  - Level actors expanded to 127 across the 5 historical districts (100% PASS on automated verification suite `Scripts/verify_act1_questline.py`).
+  - Expanded Satchel Journal (<kbd>Tab</kbd>) C++ HUD with North-up real-time 5-district route cartography, district boundaries, NPC tracking, and 10 period archival lore entries.
 - [ ] **Phase 6 (Next):**
   - Underground pamphlet dead-drops & secret printing press collection network.
   - Crowd protest dynamics leading to the historic Jallianwala Bagh gathering.

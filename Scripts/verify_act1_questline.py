@@ -55,7 +55,12 @@ required_landmarks = [
     "Story_Rooftop_Pigeon_Coop",
     "Story_Bazaar_Cart_Thela",
     "Story_Peepal_Pamphlet_Stack",
-    "Story_Litho_Pamphlet_Stack"
+    "Story_Litho_Pamphlet_Stack",
+    "Story_Haveli_Grain_Sandook",
+    "Story_Rooftop_Patang_Charkhi",
+    "Story_Bazaar_Tarazu_Scale",
+    "Story_Imperial_Postbox_GR",
+    "Story_School_Wall_Map_Easel"
 ]
 
 all_landmarks_found = True

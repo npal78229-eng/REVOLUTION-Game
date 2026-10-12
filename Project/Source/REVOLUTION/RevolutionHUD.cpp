@@ -1228,8 +1228,13 @@ void ARevolutionHUD::DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float
 	DrawMarker(-200.0f, 1680.0f, TEXT("[CHAI STALL]"), FLinearColor(0.75f, 0.45f, 0.2f, 1.0f));
 	DrawMarker(200.0f, 1980.0f, TEXT("[CLOTH GUILD]"), FLinearColor(0.4f, 0.25f, 0.6f, 1.0f));
 	DrawMarker(-40.0f, 1850.0f, TEXT("[THELA CART]"), MutedSepiaColor);
+	DrawMarker(180.0f, 1720.0f, TEXT("[TARAZU SCALE]"), MutedSepiaColor);
+	DrawMarker(60.0f, 2150.0f, TEXT("[GR POSTBOX]"), FLinearColor(0.85f, 0.15f, 0.15f, 1.0f));
+	DrawMarker(120.0f, -120.0f, TEXT("[SANDOOK CHEST]"), AntiqueBrassColor);
+	DrawMarker(20.0f, 260.0f, TEXT("[KITES/CHARKHI]"), FLinearColor(0.85f, 0.45f, 0.15f, 1.0f));
 	DrawMarker(1350.0f, 1350.0f, TEXT("[BELL TOWER]"), FLinearColor(0.85f, 0.70f, 0.20f, 1.0f));
 	DrawMarker(1150.0f, 1850.0f, TEXT("[CLASSROOM 4B]"), FLinearColor(0.3f, 0.5f, 0.7f, 1.0f));
+	DrawMarker(1100.0f, 1920.0f, TEXT("[PUNJAB MAP]"), FLinearColor(0.2f, 0.6f, 0.8f, 1.0f));
 
 	// Bazaar Constable Patrol Route
 	FVector2D Pat1 = WorldToMap(0.0f, 1600.0f);
@@ -1336,45 +1341,57 @@ void ARevolutionHUD::DrawSatchelTabDispatchesLore(ARevolutionCharacter* Kabir, f
 			TEXT("Slatted timber loft for racing tumbler pigeons. Neighborhood boys and dispatch runners used cooing flocks to mask rooftop footsteps during curfews.")
 		},
 		{
+			TEXT("Basant Fighter Kites & Manja"),
+			TEXT("Childhood Heritage  •  Basant 1919"),
+			TEXT("Thin tissue paper diamond kite with arched bamboo spars and a lathe-turned hardwood reel wound with glass-coated saffron manja thread.")
+		},
+		{
 			TEXT("Anti-Rowlatt Satyagraha Handbill"),
 			TEXT("Underground Press  •  Hartal 1919"),
 			TEXT("Freshly lithographed strike notice on rag paper: 'Na Dalil, Na Vakil, Na Appeal.' Calling for a total province-wide shutdown of all bazaars, schools, and railways.")
 		},
 		{
-			TEXT("Sacred Peepal Chabutra & Shrine"),
-			TEXT("Spiritual Sanctuary  •  Unity"),
-			TEXT("Ancient Ficus religiosa tree with octagonal brick plinth and earthen diyas. Hindu, Muslim, and Sikh residents gather here in shared grief against martial edicts.")
+			TEXT("Imperial Red Pillar Postbox (GR)"),
+			TEXT("Colonial Rule  •  Boycott Target"),
+			TEXT("Cast-iron red postbox bearing the George V royal cypher and collection plate. Anti-colonial scouts pasted boycott notices across its imperial crest.")
 		},
 		{
-			TEXT("Singer 1910s Veranda Sewing Machine"),
-			TEXT("Artisan Heritage  •  Swadeshi"),
-			TEXT("Cast-iron hand-cranked sewing machine where Kabir's father repairs local khadi garments, quietly resisting the economic stranglehold of imported Manchester textiles.")
+			TEXT("Mandi Iron Tarazu Scale & Weights"),
+			TEXT("Fair Trade  •  Requisition Scarcity"),
+			TEXT("Traditional merchant balance scale with dual brass pans and cast-iron weights. Reminds shoppers of colonial wartime grain requisitioning and market rationing.")
 		},
 		{
-			TEXT("Wrought-Iron School Bell Tower"),
-			TEXT("Middle School  •  Freedom of Mind"),
-			TEXT("Historic schoolyard bell rung each morning at eight o'clock. As Headmaster Pandit Kashi Ram teaches, true education is the one weapon no colonial edict can take away.")
+			TEXT("Shisham Carved Grain Sandook"),
+			TEXT("Haveli Heritage  •  Heirloom Storage"),
+			TEXT("Heavy Punjabi hardwood chest with iron corner brackets, floral repoussé carvings, and brass hasp lock, elevated on stilts to keep seed and khadi safe.")
+		},
+		{
+			TEXT("Classroom 1919 Punjab Map Easel"),
+			TEXT("Vernacular School  •  Geography"),
+			TEXT("Classroom easel displaying the 1919 map of Punjab Province and Frontier. Headmaster Pandit Kashi Ram uses it to instill proud historical roots.")
 		}
 	};
 
-	const float CardH = (ContentH - 24.0f) / 4.0f;
+	const int32 TotalEntries = 10;
+	const int32 RowsPerCol = 5;
+	const float CardH = (ContentH - 28.0f) / (float)RowsPerCol;
 
-	for (int32 i = 0; i < 8; ++i)
+	for (int32 i = 0; i < TotalEntries; ++i)
 	{
-		float CurX = (i < 4) ? Col1X : Col2X;
-		float CurY = ContentY + 4.0f + ((i % 4) * (CardH + 6.0f));
+		float CurX = (i < RowsPerCol) ? Col1X : Col2X;
+		float CurY = ContentY + 4.0f + ((i % RowsPerCol) * (CardH + 5.0f));
 
 		DrawFramedBox(CurX, CurY, ColW, CardH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
 
-		DrawText(Entries[i].Title, DarkInkColor, CurX + 10.0f, CurY + 6.0f, MediumFont ? MediumFont : SmallFont);
-		DrawText(Entries[i].Category, AntiqueBrassColor, CurX + 10.0f, CurY + 24.0f, SmallFont);
+		DrawText(Entries[i].Title, DarkInkColor, CurX + 8.0f, CurY + 4.0f, MediumFont ? MediumFont : SmallFont);
+		DrawText(Entries[i].Category, AntiqueBrassColor, CurX + 8.0f, CurY + 18.0f, SmallFont);
 
-		TArray<FString> Wrapped = WrapText(Entries[i].Description, SmallFont, ColW - 20.0f);
-		float TextY = CurY + 42.0f;
+		TArray<FString> Wrapped = WrapText(Entries[i].Description, SmallFont, ColW - 16.0f);
+		float TextY = CurY + 32.0f;
 		for (const FString& Line : Wrapped)
 		{
-			DrawText(Line, MutedSepiaColor, CurX + 10.0f, TextY, SmallFont);
-			TextY += 13.0f;
+			DrawText(Line, MutedSepiaColor, CurX + 8.0f, TextY, SmallFont);
+			TextY += 12.0f;
 		}
 	}
 }
