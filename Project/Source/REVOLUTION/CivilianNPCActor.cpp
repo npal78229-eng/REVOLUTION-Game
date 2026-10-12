@@ -218,6 +218,27 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 			TEXT("Pandit Kashi Ram: 'Examine the new decree posted on the municipal board carefully, Kabir. A scholar must always learn to read between the lines that the authorities write.'")
 		));
 		break;
+
+	case ECivilianOccupation::SchoolFriendKartar:
+		CivilianName = FText::FromString(TEXT("Kartar Singh"));
+		ProfessionTitle = FText::FromString(TEXT("Schoolmate & Childhood Friend (Age 12)"));
+		HistoricalLore = FText::FromString(
+			TEXT("Kabir's closest schoolmate and friend in Kot Gurdarshan. Full of energetic mischief and infectious curiosity, Kartar loves flying fighter kites from the mohalla rooftops and snacking on jalebis from Hira Halwai's stall. He eagerly looks forward to the upcoming Baisakhi fair at Amritsar, yet senses the growing martial tension as British troop lorries rumble along the Grand Trunk Road.")
+		);
+		AmbientBarks.Add(FText::FromString(TEXT("Kabir! Look up at the sky! That yellow fighter kite belongs to the boys from Katra Jaimal Singh!")));
+		AmbientBarks.Add(FText::FromString(TEXT("Hurry up before Pandit Ji rings the last bell, or we will have to stand outside the verandah!")));
+		AmbientBarks.Add(FText::FromString(TEXT("My chacha says tomorrow is Baisakhi! Are we going to see the wrestling matches at the fair?")));
+
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Kartar: 'Kabir! There you are! Did your father finish tailoring the coat for Lala Karam Chand? I've been waiting for you by the Peepal tree.'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Kartar: 'Look what I found tucked near the Peepal tree roots—a secret printed leaflet about the Hartal! People are saying everyone should close their shops and march peacefully.'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Kartar: 'Pandit Ji has already entered the classroom. If we don't ring the bell soon, he'll make us write our Gurmukhi alphabet ten times on our slates! Let's race to the school tower!'")
+		));
+		break;
 	}
 
 	// Attach authentic prop accessory based on occupation
@@ -267,6 +288,20 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		{
 			PropAccessoryMesh->SetRelativeLocation(FVector(30.0f, -30.0f, -60.0f));
 			PropAccessoryMesh->SetRelativeScale3D(FVector(0.35f, 0.35f, 0.35f));
+		}
+		break;
+
+	case ECivilianOccupation::SchoolFriendKartar:
+		PropMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_Kite_Spool_Charkhi.SM_Prop_Kite_Spool_Charkhi"));
+		if (PropAccessoryMesh)
+		{
+			PropAccessoryMesh->SetRelativeLocation(FVector(20.0f, 15.0f, -10.0f));
+			PropAccessoryMesh->SetRelativeScale3D(FVector(0.40f, 0.40f, 0.40f));
+		}
+		if (GetMesh())
+		{
+			GetMesh()->SetRelativeScale3D(FVector(0.72f, 0.72f, 0.72f));
+			GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -64.0f));
 		}
 		break;
 	}

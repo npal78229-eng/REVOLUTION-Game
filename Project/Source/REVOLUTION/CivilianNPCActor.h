@@ -18,7 +18,8 @@ enum class ECivilianOccupation : uint8
 	HalwaiChaiVendor UMETA(DisplayName = "Hira Halwai (Tea & Jalebi Vendor)"),
 	BhishtiWaterCarrier UMETA(DisplayName = "Ghasita Bhishti (Traditional Water-Carrier)"),
 	SchoolHeadmaster UMETA(DisplayName = "Pandit Kashi Ram (Vernacular School Headmaster)"),
-	ClothMerchant UMETA(DisplayName = "Lala Karam Chand (Textile Merchant)")
+	ClothMerchant UMETA(DisplayName = "Lala Karam Chand (Textile Merchant)"),
+	SchoolFriendKartar UMETA(DisplayName = "Kartar Singh (Schoolmate & Friend)")
 };
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCivilianDialogueSpoken, ACivilianNPCActor*, NPC, const FText&, SpeakerName, const FText&, DialogueText);

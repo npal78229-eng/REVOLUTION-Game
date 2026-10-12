@@ -84,10 +84,19 @@ flowchart LR
     Task4 --> Task5
 ```
 
-### Task 3: Colonial Constable Patrol System (Immediate Next)
-- **Objective:** Introduce tension and stakes into the mohalla by placing British colonial constables and Punjab police sepoys enforcing Section 144 curfew orders.
+### Task 3: Colonial Constable Patrol & Schoolmate Friend System [COMPLETED]
+- **Status:** **100% COMPLETE & VALIDATED IN-ENGINE**
+- **Implemented Components:**
+  - `NPC_KartarSingh_Friend`: 12-year-old childhood schoolmate with custom kite spool prop, youthful scaling (0.72x), friendly banter, and dialogue at $(450, 1380, 88)$.
+  - `NPC_Constable_Gurdial`: Punjab Imperial Police Constable actively patrolling Grand Bazaar between $(0, 1600, 88)$ and $(0, 2040, 88)$ with 3 waypoints and line-of-sight perception.
+  - Total level actors expanded to 116 in `L_Validation_Gym.umap` (100% PASS on automated verification suite `Scripts/verify_act1_questline.py`).
+
+---
+
+### Task 4: Underground Pamphlet Drop & Secret Printing Network (Immediate Next)
+- **Objective:** Allow Kabir to collect clandestine anti-Rowlatt leaflets from the haveli litho press and dead-drops, distributing them to trusted shopkeepers while avoiding patrolling constables.
 - **Key Deliverables:**
-  - `AColonialConstableActor` class with waypoint patrol routes along Bazaar Main Street and School Lane.
-  - Suspicion / awareness detection cone (hearing footsteps, sprint visual alert, lantern light).
-  - Non-lethal evasion mechanics: crouching behind bazaar crates, rooftop hiding, slip-through mohalla deorhi doors.
+  - Interactive leaflet pickups with Satchel archival documents.
+  - Stealth delivery objectives to Lala Karam Chand and Hira Halwai.
+
 

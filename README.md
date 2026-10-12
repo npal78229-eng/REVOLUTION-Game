@@ -42,18 +42,20 @@ flowchart TD
         B2["Narrow 4m Connecting Alleyway with Jute Sacks"]
     end
 
-    subgraph ZoneC["Zone C: Communal Well Square (8 Actors)"]
+    subgraph ZoneC["Zone C: Communal Well Square (9 Actors)"]
         C1["Octagonal Stone Well with Timber Pulley Frame"]
         C2["Ancient Sacred Peepal Tree & Chabutra Shrine\n(Raised Lahori brick plinth & clay diyas)"]
         C3["Ghasita Bhishti (Traditional Water-Carrier NPC)\n(Tanned leather goatskin mashk)"]
-        C4["Elders' Chopal Charpai & Municipal Curfew Gong"]
+        C4["Kartar Singh (Schoolmate & Childhood Friend NPC, Age 12)\n(Basant kite spool, friendly banter, school race)"]
+        C5["Elders' Chopal Charpai & Municipal Curfew Gong"]
     end
 
-    subgraph ZoneD["Zone D: Grand Bazaar Thoroughfare (24 Actors)"]
+    subgraph ZoneD["Zone D: Grand Bazaar Thoroughfare (25 Actors)"]
         D1["Spice Merchant Stall (Turmeric & Red Chili cane baskets)"]
         D2["Hira Halwai (Tea Stall Owner NPC)\n(Steaming cardamom chai kulhads & samovar)"]
         D3["Lala Karam Chand (Textile Merchant NPC)\n(Manchester cotton bolts vs Swadeshi khadi)"]
-        D4["Grain Mandi Depot (Stacked ration sacks with excise stamps)"]
+        D4["Constable Gurdial Singh (Punjab Imperial Police NPC)\n(Active 3-waypoint patrol enforcing Section 144)"]
+        D5["Grain Mandi Depot (Stacked ration sacks with excise stamps)"]
     end
 
     subgraph DistrictC["District C: Vernacular Middle School (21 Actors)"]
@@ -168,8 +170,13 @@ REVOLUTION/
   - Implement living Punjabi civilian NPCs (Master Tailor *Ram Lubhaya*, Water-carrier *Ghasita Bhishti*, Tea Stall Owner *Hira Halwai*, Cloth Merchant *Lala Karam Chand*, Headmaster *Pandit Kashi Ram*).
   - Environmental foliage & shrines (Sacred Peepal tree shrine with octagonal brick chabutra; courtyard sacred Tulsi Chaura planter).
   - Act I narrative questline: **"The Morning Courier"** (8-stage playable sequence: father's tailor dispatch -> rooftop kite survey -> communal well meeting -> Manchester cloth delivery -> morning chai stall rumors -> Section 144 notice defacement -> tolling school bell -> classroom 4B desk).
-- [ ] **Phase 5 (Next):**
-  - Stealth & patrol mechanics: British colonial constables and police patrolling bazaar alleyways.
-  - Crowd protest dynamics & underground pamphlet distribution leading to Jallianwala Bagh gathering.
+- [x] **Phase 5 (In Progress):**
+  - Implemented Schoolmate & Childhood Friend (*Kartar Singh*, Age 12) with custom kite spool prop, youthful scaling, playful look-at behavior, and authentic Punjab dialogue.
+  - Implemented Colonial Constable Patrol AI (*Constable Gurdial Singh*, Punjab Imperial Police) patrolling Grand Bazaar along 3 waypoints with active line-of-sight suspicion cones.
+  - Total level actors expanded to 116 across the 5 historical districts (100% PASS on all landmarks and NPCs).
+- [ ] **Phase 6 (Next):**
+  - Underground pamphlet dead-drops & secret printing press collection network.
+  - Crowd protest dynamics leading to the historic Jallianwala Bagh gathering.
   - Dynamic time-of-day audio ambience (morning prayer call, temple bells, crows, ambient Punjab bazaar buzz).
+
 

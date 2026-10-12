@@ -28,7 +28,9 @@ required_npcs = [
     "NPC_GhasitaBhishti_Water",
     "NPC_HiraHalwai_Chai",
     "NPC_LalaKaramChand_Cloth",
-    "NPC_PanditKashiRam_Headmaster"
+    "NPC_PanditKashiRam_Headmaster",
+    "NPC_KartarSingh_Friend",
+    "NPC_Constable_Gurdial"
 ]
 
 all_npcs_found = True
