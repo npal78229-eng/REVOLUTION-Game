@@ -1235,6 +1235,8 @@ void ARevolutionHUD::DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float
 	DrawMarker(1350.0f, 1350.0f, TEXT("[BELL TOWER]"), FLinearColor(0.85f, 0.70f, 0.20f, 1.0f));
 	DrawMarker(1150.0f, 1850.0f, TEXT("[CLASSROOM 4B]"), FLinearColor(0.3f, 0.5f, 0.7f, 1.0f));
 	DrawMarker(1100.0f, 1920.0f, TEXT("[PUNJAB MAP]"), FLinearColor(0.2f, 0.6f, 0.8f, 1.0f));
+	DrawMarker(0.0f, 1550.0f, TEXT("[CHOWK GATE]"), FLinearColor(0.9f, 0.4f, 0.2f, 1.0f));
+	DrawMarker(0.0f, 900.0f, TEXT("[KUCHA ARCH]"), AntiqueBrassColor);
 
 	// Bazaar Constable Patrol Route
 	FVector2D Pat1 = WorldToMap(0.0f, 1600.0f);

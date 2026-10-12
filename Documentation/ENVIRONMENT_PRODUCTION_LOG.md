@@ -186,3 +186,27 @@ Executed headless via `UnrealEditor-Cmd.exe` with `-ExecutePythonScript`:
    - Total placed actors in `L_Validation_Gym.umap` increased to **114 actors**.
    - Verified 100% PASS on all 16 critical landmarks and civilian NPCs.
 
+---
+
+## 6. Milestone 6: Narrative Storytelling Realism Assets (Completed October 12, 2026)
+- **Blender 5.2 3D Model Generation:** Created 10 period-authentic models across two packs (`SM_Prop_Courtyard_Chulha_Stove`, `SM_Prop_School_Takhti_Slate`, `SM_Prop_Pigeon_Coop_KabootarKhana`, `SM_Prop_Bazaar_Cart_Thela`, `SM_Prop_Pamphlet_Stack_Rowlatt`, `SM_Prop_Imperial_Postbox_GR`, `SM_Prop_Bazaar_Tarazu_Scale`, `SM_Prop_Rooftop_Patang_Charkhi`, `SM_Prop_Haveli_Grain_Sandook`, `SM_Prop_School_Wall_Map_Easel`).
+- **Narrative Level Arrangement:** Positioned all props along the story flow of Kabir's morning (Haveli veranda -> 1F terrace -> Well square -> Grand Bazaar -> Curfew checkpoint -> Middle school).
+- **Actor Count Expanded:** Level expanded to 127 actors with 100% verification pass.
+
+---
+
+## 7. Milestone 7: Master Architectural Streetscape Enhancement (Completed October 12, 2026)
+- **Blender 5.2 Architectural Generation:**
+  - `SM_Arch_Overhead_Kucha`: Flying multi-foil brick arches with heavy shisham tie-beams (*Teh-Bandi*) bridging the narrow Deorhi alleyway.
+  - `SM_Arch_Monumental_Chowk_Gate`: 7.0m wide x 6.5m tall double-height monumental town gate with octagonal bastions and upper guard balcony.
+  - `SM_Street_Lamp_Post_Victorian`: 3.4m tall fluted cast-iron lampposts with lamplighter crossbars and hexagonal glass lanterns.
+  - `SM_Bazaar_Canopy_Khadi_Awning`: Timber-frame draped indigo and saffron khadi cloth awnings creating covered market tunnels.
+  - `SM_Street_Drain_Stone_Gutter`: Carved stone street curbs with longitudinal drainage channels and crossing bridge flagstones.
+- **Unreal Engine 5.5 Ingestion & Collision:**
+  - Ingested into `/Game/Environment/Mohalla/Meshes/` with PBR materials and `CTF_USE_COMPLEX_AS_SIMPLE` collision.
+- **Level Assembly & Verification:**
+  - Placed 19 master structures across all 5 districts, raising total level actors in `L_Validation_Gym.umap` to **146 actors**.
+  - Verified 100% PASS across all 7 story NPCs and 22 landmarks in headless verification suite `verify_act1_questline.py`.
+- **Cartographic HUD Update:**
+  - Updated `RevolutionHUD.cpp` with `[CHOWK GATE]` and `[KUCHA ARCH]` markers, compiling cleanly with Exit Code 0.
+

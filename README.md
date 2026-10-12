@@ -23,7 +23,7 @@ The player steps into the shoes of **Kabir**, a 12-year-old son of a traditional
 
 ---
 
-## 2. Playable Vertical Slice (127 Actors across 5 Contiguous Zones)
+## 2. Playable Vertical Slice (146 Actors across 5 Contiguous Zones)
 
 The project currently features a contiguous, high-fidelity historical environment assembled in `Project/Content/Maps/L_Validation_Gym.umap`:
 
@@ -85,6 +85,12 @@ flowchart TD
   - *Basant Fighter Kites & Manja Spool (`SM_Prop_Rooftop_Patang_Charkhi`):* Saffron tissue-paper diamond kites and hand-turned hardwood charkhi line spool.
   - *Punjabi Carved Timber Sandook (`SM_Prop_Haveli_Grain_Sandook`):* Shisham dowry and grain chest elevated on turned stilt legs with floral fretwork and iron hasp lock.
   - *Punjab 1919 Province Map Easel (`SM_Prop_School_Wall_Map_Easel`):* Classroom timber easel displaying 1919 historical map of Punjab with pointer rod.
+- **Master Architectural Streetscape Structures (Blender 5.2 LTS):**
+  - *Flying Overhead Kucha Archways (`SM_Arch_Overhead_Kucha`):* Multi-foil cusped Lahori brick flying arches with heavy shisham tie-beams (*Teh-Bandi*) vaulting the narrow Deorhi alleyway.
+  - *Monumental Town Chowk Gate (`SM_Arch_Monumental_Chowk_Gate`):* 7m wide x 6.5m tall double-height arched gateway with octagonal bastion towers anchoring the entrance to Grand Bazaar.
+  - *Colonial Victorian Street Lamp Posts (`SM_Street_Lamp_Post_Victorian`):* 3.4m tall fluted cast-iron lampposts with municipal lamplighter ladder crossbars and hexagonal glass lanterns.
+  - *Bazaar Khadi Awning Canopies (`SM_Bazaar_Canopy_Khadi_Awning`):* Timber post frames with draped indigo and saffron khadi canopies creating shaded market corridors.
+  - *Carved Stone Street Gutters (`SM_Street_Drain_Stone_Gutter`):* Stone curb modules with longitudinal runoff channels and crossing bridge flagstones.
 - **Authentic PBR Materials:** Kiln-baked Lahori brick (`M_LahoriBrick_PBR`), aged Punjabi teak and sheesham (`M_AgedTeak_PBR`), blacksmith wrought iron (`M_WroughtIron_PBR`), and unglazed terracotta pottery (`M_Clay_PBR`).
 - **Punjab Golden Hour Lighting (3200K):** Warm 75,000 lux sunlight casting deep amber light shafts and soft volumetric height fog through narrow alleys.
 
@@ -185,9 +191,10 @@ REVOLUTION/
   - Implemented Schoolmate & Childhood Friend (*Kartar Singh*, Age 12) with custom kite spool prop, youthful scaling, playful look-at behavior, and authentic Punjab dialogue.
   - Implemented Colonial Constable Patrol AI (*Constable Gurdial Singh*, Punjab Imperial Police) patrolling Grand Bazaar along 3 waypoints with active line-of-sight suspicion cones.
   - Authored 10 period-authentic 3D storytelling assets in Blender 5.2 LTS across two production batches (Courtyard Chulha hearth, School Takhti slate, Rooftop Kabootarkhana loft, Bazaar Thela cart, Rowlatt strike pamphlets, Imperial GR Pillar Postbox, Mandi Tarazu balance scale, Basant Patang & Charkhi kites, Haveli Shisham Sandook chest, and Classroom 1919 Punjab map easel).
+  - Authored and assembled 19 master architectural streetscape structures (Flying Overhead Kucha arches, Monumental Town Chowk Gate, Victorian cast-iron streetlamps, Bazaar Khadi awning canopies, stone drainage gutters).
   - Arranged assets across the 5 districts according to the story narrative progression (family courtyard routine -> rooftop survey -> well square -> bazaar trading -> colonial checkpost -> school desk).
-  - Level actors expanded to 127 across the 5 historical districts (100% PASS on automated verification suite `Scripts/verify_act1_questline.py`).
-  - Expanded Satchel Journal (<kbd>Tab</kbd>) C++ HUD with North-up real-time 5-district route cartography, district boundaries, NPC tracking, and 10 period archival lore entries.
+  - Level actors expanded to 146 across the 5 historical districts (100% PASS on automated verification suite `Scripts/verify_act1_questline.py`).
+  - Expanded Satchel Journal (<kbd>Tab</kbd>) C++ HUD with North-up real-time 5-district route cartography, district boundaries, Chowk Gate / Kucha Arch landmarks, NPC tracking, and 10 period archival lore entries.
 - [ ] **Phase 6 (Next):**
   - Underground pamphlet dead-drops & secret printing press collection network.
   - Crowd protest dynamics leading to the historic Jallianwala Bagh gathering.

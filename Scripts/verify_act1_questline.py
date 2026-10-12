@@ -60,7 +60,12 @@ required_landmarks = [
     "Story_Rooftop_Patang_Charkhi",
     "Story_Bazaar_Tarazu_Scale",
     "Story_Imperial_Postbox_GR",
-    "Story_School_Wall_Map_Easel"
+    "Story_School_Wall_Map_Easel",
+    "Arch_Monumental_Chowk_Gate",
+    "Arch_Overhead_Kucha_HaveliExit",
+    "Street_Lamp_Post_BazaarChowk",
+    "Bazaar_Canopy_Khadi_NorthWest",
+    "Street_Drain_Gutter_DeorhiWest"
 ]
 
 all_landmarks_found = True
