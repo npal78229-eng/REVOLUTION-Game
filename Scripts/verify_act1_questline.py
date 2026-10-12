@@ -49,7 +49,13 @@ required_landmarks = [
     "Prop_Tulsi_Pedestal",
     "Prop_ClothRolls_Manchester",
     "School_Bell_Tower",
-    "School_Blackboard"
+    "School_Blackboard",
+    "Story_Courtyard_Chulha_Stove",
+    "Story_School_Takhti_Slate",
+    "Story_Rooftop_Pigeon_Coop",
+    "Story_Bazaar_Cart_Thela",
+    "Story_Peepal_Pamphlet_Stack",
+    "Story_Litho_Pamphlet_Stack"
 ]
 
 all_landmarks_found = True

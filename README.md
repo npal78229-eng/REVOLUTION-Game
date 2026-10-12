@@ -73,7 +73,13 @@ flowchart TD
 ```
 
 ### Environmental Highlights
-- **100% Solid Blocking Surfaces:** All 23 modular architectural meshes enforce `CTF_USE_COMPLEX_AS_SIMPLE` collision with solid 25cm floor slabs at $Z = 400\text{ cm}$ and a $120\text{m} \times 120\text{m}$ foundation slab at $Z = -25\text{ cm}$, guaranteeing zero voids or falling.
+- **100% Solid Blocking Surfaces:** All modular architectural meshes enforce `CTF_USE_COMPLEX_AS_SIMPLE` collision with solid 25cm floor slabs at $Z = 400\text{ cm}$ and a $120\text{m} \times 120\text{m}$ foundation slab at $Z = -25\text{ cm}$, guaranteeing zero voids or falling.
+- **Narrative Story Realism Assets (Blender 5.2 LTS):**
+  - *Earthen Mud Hearth Stove (`SM_Prop_Courtyard_Chulha_Stove`):* Double-burner clay stove with terracotta handi cooking pot and hammered brass lota in family courtyard.
+  - *Student Wooden Writing Slate (`SM_Prop_School_Takhti_Slate`):* Carved wooden Takhti with tied bamboo reed pen (*Qalam*) and earthen inkpot (*Dawaat*).
+  - *Rooftop Pigeon Loft (`SM_Prop_Pigeon_Coop_KabootarKhana`):* Slatted timber coop with pitched roof, roost perches, and terracotta grain saucer.
+  - *Bazaar Vendor Handcart (`SM_Prop_Bazaar_Cart_Thela`):* Heavy wooden market cart with iron-rimmed spoke wheels, burlap jute sacks, and water matkas.
+  - *Underground Strike Leaflets (`SM_Prop_Pamphlet_Stack_Rowlatt`):* Stacks of freshly lithographed anti-Rowlatt Satyagraha bulletins on rag paper.
 - **Authentic PBR Materials:** Kiln-baked Lahori brick (`M_LahoriBrick_PBR`), aged Punjabi teak and sheesham (`M_AgedTeak_PBR`), blacksmith wrought iron (`M_WroughtIron_PBR`), and unglazed terracotta pottery (`M_Clay_PBR`).
 - **Punjab Golden Hour Lighting (3200K):** Warm 75,000 lux sunlight casting deep amber light shafts and soft volumetric height fog through narrow alleys.
 
@@ -170,10 +176,12 @@ REVOLUTION/
   - Implement living Punjabi civilian NPCs (Master Tailor *Ram Lubhaya*, Water-carrier *Ghasita Bhishti*, Tea Stall Owner *Hira Halwai*, Cloth Merchant *Lala Karam Chand*, Headmaster *Pandit Kashi Ram*).
   - Environmental foliage & shrines (Sacred Peepal tree shrine with octagonal brick chabutra; courtyard sacred Tulsi Chaura planter).
   - Act I narrative questline: **"The Morning Courier"** (8-stage playable sequence: father's tailor dispatch -> rooftop kite survey -> communal well meeting -> Manchester cloth delivery -> morning chai stall rumors -> Section 144 notice defacement -> tolling school bell -> classroom 4B desk).
-- [x] **Phase 5 (In Progress):**
+- [x] **Phase 5:**
   - Implemented Schoolmate & Childhood Friend (*Kartar Singh*, Age 12) with custom kite spool prop, youthful scaling, playful look-at behavior, and authentic Punjab dialogue.
   - Implemented Colonial Constable Patrol AI (*Constable Gurdial Singh*, Punjab Imperial Police) patrolling Grand Bazaar along 3 waypoints with active line-of-sight suspicion cones.
-  - Total level actors expanded to 116 across the 5 historical districts (100% PASS on all landmarks and NPCs).
+  - Authored 5 period-authentic 3D storytelling assets in Blender 5.2 LTS (`SM_Prop_Courtyard_Chulha_Stove`, `SM_Prop_School_Takhti_Slate`, `SM_Prop_Pigeon_Coop_KabootarKhana`, `SM_Prop_Bazaar_Cart_Thela`, `SM_Prop_Pamphlet_Stack_Rowlatt`).
+  - Arranged assets across the 5 districts according to the story narrative progression (family courtyard routine -> rooftop survey -> well square -> bazaar trading -> colonial checkpost -> school desk).
+  - Level actors expanded to 122 across the 5 historical districts (100% PASS on automated verification suite `Scripts/verify_act1_questline.py`).
 - [ ] **Phase 6 (Next):**
   - Underground pamphlet dead-drops & secret printing press collection network.
   - Crowd protest dynamics leading to the historic Jallianwala Bagh gathering.
