@@ -1050,62 +1050,84 @@ void ARevolutionHUD::DrawSatchelTabEquipment(ARevolutionCharacter* Kabir, float 
 	const float RightW = ContentW * 0.43f;
 	const float RightX = BoxX + LeftW + (ContentW * 0.03f);
 
-	// LEFT COLUMN: Equipment Items
+	// LEFT COLUMN: Equipment Items (4 Items)
+	float ItemH = (ContentH - 24.0f) / 4.0f;
+
 	// Item 1: Tailored Khadi Coat Delivery
 	float Item1Y = ContentY + 4.0f;
-	float ItemH = (ContentH - 20.0f) / 3.0f;
-
 	DrawFramedBox(BoxX, Item1Y, LeftW, ItemH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
-	DrawText(TEXT("Tailored Khadi Coat Parcel"), DarkInkColor, BoxX + 12.0f, Item1Y + 8.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("Tailored Khadi Coat Parcel"), DarkInkColor, BoxX + 12.0f, Item1Y + 6.0f, MediumFont ? MediumFont : SmallFont);
 
 	URevolutionMissionSubsystem* Subsystem = GetWorld() ? GetWorld()->GetSubsystem<URevolutionMissionSubsystem>() : nullptr;
 	bool bHasCoat = Subsystem && (Subsystem->CurrentStage < ECourierMissionStage::Stage_Morning_DeliverCloth);
 
 	FString CoatStatus = bHasCoat ? TEXT("STATUS: IN SATCHEL (DELIVER TO LALA KARAM CHAND)") : TEXT("STATUS: DELIVERED TO CLOTH GUILD");
 	FLinearColor StatusCol = bHasCoat ? FLinearColor(0.85f, 0.52f, 0.15f, 1.0f) : FLinearColor(0.18f, 0.65f, 0.32f, 1.0f);
-	DrawText(CoatStatus, StatusCol, BoxX + 12.0f, Item1Y + 28.0f, SmallFont);
+	DrawText(CoatStatus, StatusCol, BoxX + 12.0f, Item1Y + 22.0f, SmallFont);
 
-	FString CoatDesc = TEXT("A finely stitched homespun khadi coat repaired by father Ram Lubhaya on the veranda Singer sewing machine. Intended for Lala Karam Chand in the Grand Bazaar.");
+	FString CoatDesc = TEXT("Stitched homespun khadi coat repaired by father Ram Lubhaya. Intended for Lala Karam Chand.");
 	TArray<FString> CoatLines = WrapText(CoatDesc, SmallFont, LeftW - 24.0f);
-	float LineY = Item1Y + 48.0f;
+	float LineY = Item1Y + 36.0f;
 	for (const FString& L : CoatLines)
 	{
 		DrawText(L, MutedSepiaColor, BoxX + 12.0f, LineY, SmallFont);
-		LineY += 14.0f;
+		LineY += 13.0f;
 	}
 
-	// Item 2: Tailor's Soapstone Chalk
+	// Item 2: Anti-Rowlatt Satyagraha Handbills
 	float Item2Y = Item1Y + ItemH + 6.0f;
 	DrawFramedBox(BoxX, Item2Y, LeftW, ItemH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
 
-	FString ChalkHeader = FString::Printf(TEXT("Tailor's Soapstone Chalk  [%d / %d STICKS]"), Kabir->GetChalkCount(), Kabir->MaxChalk);
-	DrawText(ChalkHeader, DarkInkColor, BoxX + 12.0f, Item2Y + 8.0f, MediumFont ? MediumFont : SmallFont);
-	DrawText(TEXT("ACTION: PRESS [T] TO INSCRIBE ROOFTOP WAYPOINTS"), AntiqueBrassColor, BoxX + 12.0f, Item2Y + 28.0f, SmallFont);
+	FString PamphletHeader = FString::Printf(TEXT("Satyagraha Strike Handbills  [%d / %d COPIES]"), Kabir->GetPamphletCount(), Kabir->MaxPamphlets);
+	DrawText(PamphletHeader, DarkInkColor, BoxX + 12.0f, Item2Y + 6.0f, MediumFont ? MediumFont : SmallFont);
 
-	FString ChalkDesc = TEXT("Smooth white soapstone chalk taken from Kabir's father's tailoring shears bench. Used to mark rooftop jump ledges and safe escape paths with visible compass waypoints.");
-	TArray<FString> ChalkLines = WrapText(ChalkDesc, SmallFont, LeftW - 24.0f);
-	LineY = Item2Y + 48.0f;
-	for (const FString& L : ChalkLines)
+	FString PamphletStatus = (Kabir->GetPamphletCount() > 0)
+		? TEXT("ACTION: SLIP SECRETLY TO TRUSTED MERCHANTS (WATCH FOR CONSTABLES!)")
+		: TEXT("STATUS: EMPTY — COLLECT FRESH LEAFLETS FROM HAVELI LITHO PRESS");
+	FLinearColor PamphletCol = (Kabir->GetPamphletCount() > 0) ? FLinearColor(0.85f, 0.25f, 0.20f, 1.0f) : MutedSepiaColor;
+	DrawText(PamphletStatus, PamphletCol, BoxX + 12.0f, Item2Y + 22.0f, SmallFont);
+
+	FString PamphletDesc = TEXT("Clandestine rag-paper handbills from haveli litho press: 'Na Dalil, Na Vakil, Na Appeal.' Carry carefully!");
+	TArray<FString> PamphletLines = WrapText(PamphletDesc, SmallFont, LeftW - 24.0f);
+	LineY = Item2Y + 36.0f;
+	for (const FString& L : PamphletLines)
 	{
 		DrawText(L, MutedSepiaColor, BoxX + 12.0f, LineY, SmallFont);
-		LineY += 14.0f;
+		LineY += 13.0f;
 	}
 
-	// Item 3: Sun-Baked Clay Marbles
+	// Item 3: Tailor's Soapstone Chalk
 	float Item3Y = Item2Y + ItemH + 6.0f;
 	DrawFramedBox(BoxX, Item3Y, LeftW, ItemH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
 
-	FString MarbleHeader = FString::Printf(TEXT("Sun-Baked Clay Marbles  [%d / %d PEBBLES]"), Kabir->GetPebbleCount(), Kabir->MaxPebbles);
-	DrawText(MarbleHeader, DarkInkColor, BoxX + 12.0f, Item3Y + 8.0f, MediumFont ? MediumFont : SmallFont);
-	DrawText(TEXT("ACTION: PRESS [F] TO LAUNCH ACOUSTIC DISTRACTION"), AntiqueBrassColor, BoxX + 12.0f, Item3Y + 28.0f, SmallFont);
+	FString ChalkHeader = FString::Printf(TEXT("Tailor's Soapstone Chalk  [%d / %d STICKS]"), Kabir->GetChalkCount(), Kabir->MaxChalk);
+	DrawText(ChalkHeader, DarkInkColor, BoxX + 12.0f, Item3Y + 6.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("ACTION: PRESS [T] TO INSCRIBE ROOFTOP WAYPOINTS"), AntiqueBrassColor, BoxX + 12.0f, Item3Y + 22.0f, SmallFont);
 
-	FString MarbleDesc = TEXT("Clay marbles rolled from Ravi river mud. Launched to clatter against brickwork, diverting curfew constables or scattering rooftop pigeons to mask clandestine movements.");
+	FString ChalkDesc = TEXT("Soapstone chalk taken from father's shears bench to mark rooftop jump ledges and safe paths.");
+	TArray<FString> ChalkLines = WrapText(ChalkDesc, SmallFont, LeftW - 24.0f);
+	LineY = Item3Y + 36.0f;
+	for (const FString& L : ChalkLines)
+	{
+		DrawText(L, MutedSepiaColor, BoxX + 12.0f, LineY, SmallFont);
+		LineY += 13.0f;
+	}
+
+	// Item 4: Sun-Baked Clay Marbles
+	float Item4Y = Item3Y + ItemH + 6.0f;
+	DrawFramedBox(BoxX, Item4Y, LeftW, ItemH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
+
+	FString MarbleHeader = FString::Printf(TEXT("Sun-Baked Clay Marbles  [%d / %d PEBBLES]"), Kabir->GetPebbleCount(), Kabir->MaxPebbles);
+	DrawText(MarbleHeader, DarkInkColor, BoxX + 12.0f, Item4Y + 6.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("ACTION: PRESS [F] TO LAUNCH ACOUSTIC DISTRACTION"), AntiqueBrassColor, BoxX + 12.0f, Item4Y + 22.0f, SmallFont);
+
+	FString MarbleDesc = TEXT("Clay marbles rolled from river mud. Launched to clatter against brickwork, diverting curfew constables.");
 	TArray<FString> MarbleLines = WrapText(MarbleDesc, SmallFont, LeftW - 24.0f);
-	LineY = Item3Y + 48.0f;
+	LineY = Item4Y + 36.0f;
 	for (const FString& L : MarbleLines)
 	{
 		DrawText(L, MutedSepiaColor, BoxX + 12.0f, LineY, SmallFont);
-		LineY += 14.0f;
+		LineY += 13.0f;
 	}
 
 	// RIGHT COLUMN: Current Mission Directive & Historical Context

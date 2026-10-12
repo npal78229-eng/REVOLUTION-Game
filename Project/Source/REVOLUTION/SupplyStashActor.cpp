@@ -38,13 +38,21 @@ void ASupplyStashActor::BeginPlay()
 {
 	Super::BeginPlay();
 
-	// Load appropriate pickup sound if Chalk type
+	// Load appropriate pickup sound if Chalk or Pamphlet type
 	if (StashType == ESupplyStashType::Chalk)
 	{
 		USoundBase* ChalkSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Chalk_Draw.SFX_Chalk_Draw"));
 		if (ChalkSound)
 		{
 			PickupSound = ChalkSound;
+		}
+	}
+	else if (StashType == ESupplyStashType::Pamphlets)
+	{
+		USoundBase* PaperSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Pamphlet_Retrieve.SFX_Pamphlet_Retrieve"));
+		if (PaperSound)
+		{
+			PickupSound = PaperSound;
 		}
 	}
 
@@ -62,9 +70,13 @@ bool ASupplyStashActor::CanInteract_Implementation(const ARevolutionCharacter* I
 	{
 		return Interactor->GetPebbleCount() < Interactor->MaxPebbles;
 	}
-	else // ESupplyStashType::Chalk
+	else if (StashType == ESupplyStashType::Chalk)
 	{
 		return Interactor->GetChalkCount() < Interactor->MaxChalk;
+	}
+	else // ESupplyStashType::Pamphlets
+	{
+		return Interactor->GetPamphletCount() < Interactor->MaxPamphlets;
 	}
 }
 
@@ -79,9 +91,13 @@ FText ASupplyStashActor::GetInteractionPrompt_Implementation() const
 	{
 		return FText::FromString(FString::Printf(TEXT("Gather Clay Marbles (+%d)"), ReplenishAmount));
 	}
-	else
+	else if (StashType == ESupplyStashType::Chalk)
 	{
 		return FText::FromString(FString::Printf(TEXT("Take Tailor's Chalk (+%d)"), ReplenishAmount));
+	}
+	else
+	{
+		return FText::FromString(FString::Printf(TEXT("Take Satyagraha Handbills (+%d)"), ReplenishAmount));
 	}
 }
 
@@ -99,10 +115,14 @@ void ASupplyStashActor::OnInteract_Implementation(ARevolutionCharacter* Interact
 		Interactor->PebbleCount = FMath::Min(Interactor->MaxPebbles, Interactor->PebbleCount + ReplenishAmount);
 		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir gathered %d pebbles. Total: %d/%d"), ReplenishAmount, Interactor->GetPebbleCount(), Interactor->MaxPebbles);
 	}
-	else
+	else if (StashType == ESupplyStashType::Chalk)
 	{
 		Interactor->ChalkCount = FMath::Min(Interactor->MaxChalk, Interactor->ChalkCount + ReplenishAmount);
 		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir retrieved %d chalk pieces. Total: %d/%d"), ReplenishAmount, Interactor->GetChalkCount(), Interactor->MaxChalk);
+	}
+	else // ESupplyStashType::Pamphlets
+	{
+		Interactor->AddPamphlets(ReplenishAmount);
 	}
 
 	// Play tactile gather audio

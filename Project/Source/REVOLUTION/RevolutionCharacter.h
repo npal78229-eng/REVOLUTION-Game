@@ -260,6 +260,22 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
 	int32 GetChalkCount() const { return ChalkCount; }
 
+	// --- UNDERGROUND SATYAGRAHA PAMPHLETS SYSTEM ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Stealth")
+	int32 PamphletCount = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Stealth")
+	int32 MaxPamphlets = 5;
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	int32 GetPamphletCount() const { return PamphletCount; }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void AddPamphlets(int32 Amount);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	bool DeliverPamphlets(int32 Amount);
+
 	// --- CONCEALMENT & HIDING SPOT SYSTEM ---
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Concealment")
 	bool bIsHidingInCover = false;

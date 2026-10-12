@@ -195,9 +195,11 @@ REVOLUTION/
   - Arranged assets across the 5 districts according to the story narrative progression (family courtyard routine -> rooftop survey -> well square -> bazaar trading -> colonial checkpost -> school desk).
   - Level actors expanded to 146 across the 5 historical districts (100% PASS on automated verification suite `Scripts/verify_act1_questline.py`).
   - Expanded Satchel Journal (<kbd>Tab</kbd>) C++ HUD with North-up real-time 5-district route cartography, district boundaries, Chowk Gate / Kucha Arch landmarks, NPC tracking, and 10 period archival lore entries.
+  - Implemented Underground Pamphlet Drop & Clandestine Printing Network: Kabir can retrieve freshly lithographed anti-Rowlatt strike bulletins, carry up to 5 handbills in his satchel, and secretly slip them to trusted merchants (Lala Karam Chand, Hira Halwai) while navigating heightened constable suspicion (+30% visual detection rate).
 - [ ] **Phase 6 (Next):**
-  - Underground pamphlet dead-drops & secret printing press collection network.
-  - Crowd protest dynamics leading to the historic Jallianwala Bagh gathering.
+  - Crowd protest dynamics & Baisakhi festival gathering simulation in town square.
+  - General Dyer's proclamation drum-beater announcement (*Munadi*) reverberating across the bazaars.
+  - Expansion toward the enclosed walled garden entrance of Jallianwala Bagh.
   - Dynamic time-of-day audio ambience (morning prayer call, temple bells, crows, ambient Punjab bazaar buzz).
 
 

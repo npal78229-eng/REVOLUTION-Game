@@ -844,6 +844,23 @@ void ARevolutionCharacter::DrawChalkMark()
 	}
 }
 
+void ARevolutionCharacter::AddPamphlets(int32 Amount)
+{
+	PamphletCount = FMath::Clamp(PamphletCount + Amount, 0, MaxPamphlets);
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir collected %d Satyagraha handbills. Total: %d/%d"), Amount, PamphletCount, MaxPamphlets);
+}
+
+bool ARevolutionCharacter::DeliverPamphlets(int32 Amount)
+{
+	if (PamphletCount >= Amount)
+	{
+		PamphletCount -= Amount;
+		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir delivered %d handbills. Remaining: %d/%d"), Amount, PamphletCount, MaxPamphlets);
+		return true;
+	}
+	return false;
+}
+
 void ARevolutionCharacter::EnterHidingSpot(AHidingSpotActor* Spot)
 {
 	if (!Spot) return;

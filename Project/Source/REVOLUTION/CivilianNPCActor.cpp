@@ -357,6 +357,12 @@ void ACivilianNPCActor::OnInteract_Implementation(ARevolutionCharacter* Interact
 				{
 					Subsystem->AdvanceMissionStage();
 				}
+
+				if (Interactor->GetPamphletCount() > 0 && (Occupation == ECivilianOccupation::ClothMerchant || Occupation == ECivilianOccupation::HalwaiChaiVendor))
+				{
+					Interactor->DeliverPamphlets(1);
+					UE_LOG(LogREVOLUTION, Log, TEXT("Kabir stealthily passed underground strike handbills to %s!"), *CivilianName.ToString());
+				}
 			}
 		}
 	}

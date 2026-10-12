@@ -273,6 +273,12 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 		StanceMultiplier = 0.75f;
 	}
 
+	// Carrying contraband anti-Rowlatt strike handbills makes the courier profile more conspicuous to British colonial constables
+	if (TargetPlayer->GetPamphletCount() > 0)
+	{
+		StanceMultiplier *= 1.30f;
+	}
+
 	if (bAudibleHearing)
 	{
 		OutPerceptionIntensity = 0.35f * StanceMultiplier;

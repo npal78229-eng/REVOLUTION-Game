@@ -15,7 +15,8 @@ UENUM(BlueprintType)
 enum class ESupplyStashType : uint8
 {
 	Pebbles UMETA(DisplayName = "Clay Marbles & River Pebbles"),
-	Chalk UMETA(DisplayName = "Tailor's Chalk Slabs (Kharri Mitti)")
+	Chalk UMETA(DisplayName = "Tailor's Chalk Slabs (Kharri Mitti)"),
+	Pamphlets UMETA(DisplayName = "Anti-Rowlatt Strike Handbills (Satyagraha)")
 };
 
 /**

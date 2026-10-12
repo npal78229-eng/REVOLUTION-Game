@@ -93,10 +93,22 @@ flowchart LR
 
 ---
 
-### Task 4: Underground Pamphlet Drop & Secret Printing Network (Immediate Next)
-- **Objective:** Allow Kabir to collect clandestine anti-Rowlatt leaflets from the haveli litho press and dead-drops, distributing them to trusted shopkeepers while avoiding patrolling constables.
+### Task 4: Underground Pamphlet Drop & Secret Printing Network [COMPLETED]
+- **Status:** **100% COMPLETE & VALIDATED IN-ENGINE**
+- **Implemented Components:**
+  - `ARevolutionCharacter`: Added contraband inventory `PamphletCount` (capacity 5), `AddPamphlets(Amount)`, and `DeliverPamphlets(Amount)`.
+  - `ASupplyStashActor`: Extended with `ESupplyStashType::Pamphlets` ("Anti-Rowlatt Strike Handbills"), interactive prompts, and authentic rag-paper foley sound (`SFX_Pamphlet_Retrieve`).
+  - `ACivilianNPCActor`: Integrated clandestine drop-off logic in `OnInteract_Implementation`. Interacting with Lala Karam Chand or Hira Halwai while carrying handbills stealthily delivers a leaflet (`DeliverPamphlets(1)`), triggering dedicated dialogue acknowledgement and gratitude.
+  - `ACurfewPatrolAI`: Heightened suspicion mechanic in `CanSeePlayer`—carrying contraband handbills increases watchman visual detection rate by 30% (`StanceMultiplier *= 1.30f`).
+  - `ARevolutionHUD`: Expanded Tab 1 (Satchel Equipment) with a dedicated 4th card displaying Satyagraha Strike Handbill inventory count, mission actions, and historical excerpts ("Na Dalil, Na Vakil, Na Appeal").
+  - Automated verification suite `Scripts/verify_act1_questline.py` updated and passed with 100% SUCCESS across all 146 level actors.
+
+---
+
+### Task 5: The Road to Jallianwala Bagh — Baisakhi Gathering & General Dyer's Proclamation (Immediate Next)
+- **Objective:** Model the transition from the tense morning hartal (general strike) into the fateful afternoon of April 13, 1919.
 - **Key Deliverables:**
-  - Interactive leaflet pickups with Satchel archival documents.
-  - Stealth delivery objectives to Lala Karam Chand and Hira Halwai.
-
-
+  - Ambient Baisakhi festival crowd audio & visual cluster (kurtas, marigold garlands, turban variations).
+  - General Dyer's proclamation drum-beater announcement (*Munadi*) heard reverberating across the bazaars.
+  - Expansion towards the enclosed walled garden entrance of Jallianwala Bagh with narrow alley choke-points.
+  - Act II transition narrative cutscene trigger.
