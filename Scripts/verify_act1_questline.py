@@ -65,7 +65,13 @@ required_landmarks = [
     "Arch_Overhead_Kucha_HaveliExit",
     "Street_Lamp_Post_BazaarChowk",
     "Bazaar_Canopy_Khadi_NorthWest",
-    "Street_Drain_Gutter_DeorhiWest"
+    "Street_Drain_Gutter_DeorhiWest",
+    "Town_Faseel_NorthWall_West",
+    "Checkpoint_Picket_Barrier_NorthGate",
+    "Haveli_Facade_3Story_BazaarWest",
+    "Story_Litho_Press_Flatbed_Vault",
+    "SupplyStash_Litho_Press",
+    "Mohalla_Pyaoo_Water_Shelter_Chowk"
 ]
 
 all_landmarks_found = True

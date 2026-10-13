@@ -23,7 +23,7 @@ The player steps into the shoes of **Kabir**, a 12-year-old son of a traditional
 
 ---
 
-## 2. Playable Vertical Slice (146 Actors across 5 Contiguous Zones)
+## 2. Playable Vertical Slice (160 Actors across 5 Contiguous Zones)
 
 The project currently features a contiguous, high-fidelity historical environment assembled in `Project/Content/Maps/L_Validation_Gym.umap`:
 
@@ -85,7 +85,12 @@ flowchart TD
   - *Basant Fighter Kites & Manja Spool (`SM_Prop_Rooftop_Patang_Charkhi`):* Saffron tissue-paper diamond kites and hand-turned hardwood charkhi line spool.
   - *Punjabi Carved Timber Sandook (`SM_Prop_Haveli_Grain_Sandook`):* Shisham dowry and grain chest elevated on turned stilt legs with floral fretwork and iron hasp lock.
   - *Punjab 1919 Province Map Easel (`SM_Prop_School_Wall_Map_Easel`):* Classroom timber easel displaying 1919 historical map of Punjab with pointer rod.
-- **Master Architectural Streetscape Structures (Blender 5.2 LTS):**
+- **Master Architectural Streetscape & Town Enclosure Structures (Blender 5.2 LTS):**
+  - *Defensive Town Perimeter Ramparts (`SM_Wall_Town_Faseel_Rampart`):* Heavy 6m tall weathered Lahori brick defensive perimeter walls with stepped buttresses, patrol sentry walkways, and pointed *Kangura* battlements enclosing the town boundaries.
+  - *British Military Checkpoint Barrier (`SM_Checkpoint_Picket_Sandbag_Barrier`):* Semicircular sandbag revetment with spiked wooden road barricades (*cheval de frise*) and cast-iron Section 144 martial curfew order signpost at the northern exit of Grand Bazaar.
+  - *Monumental 3-Story Haveli Facades (`SM_Haveli_Facade_3Story_Jharokha`):* 12m tall towering urban facades with arched takhta entrances, ornate carved teak *Jharokha* balconies on curved brackets (*Todis*), and domed canopies turning streets into deep urban canyons.
+  - *Underground Flatbed Lithographic Printing Press (`SM_Prop_Litho_Press_Flatbed`):* Cast-iron printing bed table, Bavarian limestone slab, geared flywheel with turned hardwood crank, inking roller (*naward*), and freshly lithographed anti-Rowlatt leaflets in the secret haveli workshop vault.
+  - *Roadside Drinking Water Shelter Chhabeel / Pyaoo (`SM_Mohalla_Pyaoo_Water_Shelter`):* Elevated stone chabutra plinth with 4 turned timber pillars, terracotta tile roof, earthen water *matkas* on coiled hemp rings (*binnus*), and tethered brass *lotas*.
   - *Flying Overhead Kucha Archways (`SM_Arch_Overhead_Kucha`):* Multi-foil cusped Lahori brick flying arches with heavy shisham tie-beams (*Teh-Bandi*) vaulting the narrow Deorhi alleyway.
   - *Monumental Town Chowk Gate (`SM_Arch_Monumental_Chowk_Gate`):* 7m wide x 6.5m tall double-height arched gateway with octagonal bastion towers anchoring the entrance to Grand Bazaar.
   - *Colonial Victorian Street Lamp Posts (`SM_Street_Lamp_Post_Victorian`):* 3.4m tall fluted cast-iron lampposts with municipal lamplighter ladder crossbars and hexagonal glass lanterns.

@@ -51,6 +51,11 @@
 | `SM_Prop_SewingMachine_Singer` | `AInspectableProp` | `M_WroughtIron_PBR`, `M_AgedTeak_PBR` | Authentic 1919 cast-iron Singer treadle sewing machine with foot pedal. | In-Use (Father's Veranda) |
 | `SM_Prop_Bhishti_Mashk` | `AInspectableProp` | `M_Clay_PBR`, `M_WroughtIron_PBR` | Tanned goatskin water bag with brass nozzle and shoulder sling. | In-Use (Communal Well) |
 | `SM_Prop_ClothRolls_Manchester`| `AInspectableProp` | `M_ClothIndigo_PBR`, `M_ClothSaffron_PBR` | Bolts of imported British Manchester cotton and Swadeshi khadi. | In-Use (Grand Bazaar) |
+| `SM_Wall_Town_Faseel_Rampart` | `StaticMeshActor` | `M_LahoriBrick_PBR`, `M_WroughtIron_PBR` | Heavy 6m defensive town perimeter wall with walkway & battlements. | In-Use (Town Perimeter) |
+| `SM_Checkpoint_Picket_Sandbag_Barrier` | `StaticMeshActor` | `M_Clay_PBR`, `M_AgedTeak_PBR`, `M_WroughtIron_PBR` | British military sandbag revetment, wooden blockade & curfew sign. | In-Use (North Bazaar Exit) |
+| `SM_Haveli_Facade_3Story_Jharokha` | `StaticMeshActor` | `M_LahoriBrick_PBR`, `M_AgedTeak_PBR` | Monumental 12m 3-story haveli facade with projecting teak jharokha. | In-Use (Bazaar & Well Canyons) |
+| `SM_Prop_Litho_Press_Flatbed` | `StaticMeshActor` | `M_WroughtIron_PBR`, `M_Limestone_PBR`, `M_AgedTeak_PBR` | Authentic cast-iron flatbed stone lithographic hand press & flywheel. | In-Use (Haveli Vault Press) |
+| `SM_Mohalla_Pyaoo_Water_Shelter` | `StaticMeshActor` | `M_AgedTeak_PBR`, `M_Clay_PBR`, `M_LahoriBrick_PBR` | Covered roadside drinking water kiosk with timber pillars & matkas. | In-Use (Chowk Gateway Junction) |
 
 ---
 
@@ -69,6 +74,7 @@
 | `AHidingSpotActor` | `AActor` | Shadow alcoves and grain sack concealment spots. | 2 in alleyway and mandi |
 | `ACrawlSpaceActor` | `AActor` | 80cm foundation breach crawlway traversal. | 1 connecting alley to bazaar |
 | `ATerracottaHazardActor`| `AActor` | Fragile unbaked pottery hazards that crunch underfoot and alert AI. | 2 in domestic storage corners |
+| `ASupplyStashActor` | `AActor` | Collectible stashes for pebbles, chalk, and underground anti-Rowlatt leaflets. | 3 in level |
 
 ---
 
@@ -78,6 +84,6 @@
   - `Art/Blender/KIT_Punjabi_Mohalla.blend` (Master modular architecture kit)
   - `Art/Blender/Courtyard_Rooftop_Gym_Scene.blend` (Assembled courtyard prototype)
 - **FBX Export Directory:**
-  - `Art/Exports/` (27 modular FBX files ready for automated headless ingestion)
+  - `Art/Exports/` (37 modular FBX files ready for automated headless ingestion)
 - **Engine Maps:**
-  - `Project/Content/Maps/L_Validation_Gym.umap` (The playable 114-actor vertical slice across 5 zones)
+  - `Project/Content/Maps/L_Validation_Gym.umap` (The playable 160-actor vertical slice across 5 zones)
