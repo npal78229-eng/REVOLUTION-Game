@@ -156,18 +156,21 @@ void ARevolutionCharacter::BeginPlay()
 	// Add input mapping context to Enhanced Input Subsystem if controller already assigned
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if (ULocalPlayer* LP = PlayerController->GetLocalPlayer())
 		{
-			if (DefaultMappingContext && !Subsystem->HasMappingContext(DefaultMappingContext))
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
 			{
-				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+				if (DefaultMappingContext && !Subsystem->HasMappingContext(DefaultMappingContext))
+				{
+					Subsystem->AddMappingContext(DefaultMappingContext, 0);
+				}
 			}
-		}
 
-		FInputModeGameOnly InputModeData;
-		InputModeData.SetConsumeCaptureMouseDown(false);
-		PlayerController->SetInputMode(InputModeData);
-		PlayerController->SetShowMouseCursor(false);
+			FInputModeGameOnly InputModeData;
+			InputModeData.SetConsumeCaptureMouseDown(false);
+			PlayerController->SetInputMode(InputModeData);
+			PlayerController->SetShowMouseCursor(false);
+		}
 	}
 }
 
@@ -183,18 +186,21 @@ void ARevolutionCharacter::PossessedBy(AController* NewController)
 	// Ensure Enhanced Input Mapping Context is registered immediately upon possession
 	if (APlayerController* PlayerController = Cast<APlayerController>(NewController))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
+		if (ULocalPlayer* LP = PlayerController->GetLocalPlayer())
 		{
-			if (DefaultMappingContext && !Subsystem->HasMappingContext(DefaultMappingContext))
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
 			{
-				Subsystem->AddMappingContext(DefaultMappingContext, 0);
+				if (DefaultMappingContext && !Subsystem->HasMappingContext(DefaultMappingContext))
+				{
+					Subsystem->AddMappingContext(DefaultMappingContext, 0);
+				}
 			}
-		}
 
-		FInputModeGameOnly InputModeData;
-		InputModeData.SetConsumeCaptureMouseDown(false);
-		PlayerController->SetInputMode(InputModeData);
-		PlayerController->SetShowMouseCursor(false);
+			FInputModeGameOnly InputModeData;
+			InputModeData.SetConsumeCaptureMouseDown(false);
+			PlayerController->SetInputMode(InputModeData);
+			PlayerController->SetShowMouseCursor(false);
+		}
 	}
 }
 
@@ -209,21 +215,24 @@ void ARevolutionCharacter::PawnClientRestart()
 
 	if (APlayerController* PC = Cast<APlayerController>(GetController()))
 	{
-		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		if (ULocalPlayer* LP = PC->GetLocalPlayer())
 		{
-			if (DefaultMappingContext)
+			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(LP))
 			{
-				if (!Subsystem->HasMappingContext(DefaultMappingContext))
+				if (DefaultMappingContext)
 				{
-					Subsystem->AddMappingContext(DefaultMappingContext, 0);
+					if (!Subsystem->HasMappingContext(DefaultMappingContext))
+					{
+						Subsystem->AddMappingContext(DefaultMappingContext, 0);
+					}
 				}
 			}
-		}
 
-		FInputModeGameOnly InputModeData;
-		InputModeData.SetConsumeCaptureMouseDown(false);
-		PC->SetInputMode(InputModeData);
-		PC->SetShowMouseCursor(false);
+			FInputModeGameOnly InputModeData;
+			InputModeData.SetConsumeCaptureMouseDown(false);
+			PC->SetInputMode(InputModeData);
+			PC->SetShowMouseCursor(false);
+		}
 	}
 }
 
@@ -1053,11 +1062,13 @@ void ARevolutionCharacter::UpdateCrowdBlending(float DeltaTime)
 		APawn* NearbyPawn = *It;
 		if (NearbyPawn && NearbyPawn != this)
 		{
-			FString ActorName = NearbyPawn->GetActorLabel();
-			if (ActorName.IsEmpty())
+			FString ActorName = NearbyPawn->GetName();
+#if WITH_EDITOR
+			if (!NearbyPawn->GetActorLabel().IsEmpty())
 			{
-				ActorName = NearbyPawn->GetName();
+				ActorName = NearbyPawn->GetActorLabel();
 			}
+#endif
 
 			if (ActorName.StartsWith(TEXT("NPC_")) || ActorName.Contains(TEXT("Civilian"), ESearchCase::IgnoreCase))
 			{
