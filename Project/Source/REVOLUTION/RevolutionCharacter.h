@@ -66,6 +66,7 @@ public:
 protected:
 	virtual void BeginPlay() override;
 	virtual void PossessedBy(AController* NewController) override;
+	virtual void PawnClientRestart() override;
 	virtual void Tick(float DeltaTime) override;
 
 	/** Called for movement input */
@@ -138,7 +139,21 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
 	bool DetectVaultableObstacle(FVector& OutVaultLocation);
 
-	/** Executes vault traversal over detected obstacle */
+	// --- HIGH MANTLE TRAVERSAL SYSTEM (1.25m - 2.15m Haveli Walls, Ledges & Platforms) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Traversal")
+	bool bIsMantling = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Traversal")
+	float MantleDuration = 0.55f;
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Traversal")
+	bool IsMantling() const { return bIsMantling; }
+
+	/** Detects whether an obstacle in front is within high mantle range (125cm - 215cm) */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
+	bool DetectMantleableLedge(FVector& OutMantleLocation);
+
+	/** Executes vault or high mantle traversal over detected obstacle */
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
 	void TryVaultOrJump();
 
@@ -235,14 +250,104 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Stealth")
 	int32 MaxPebbles = 8;
 
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	bool bIsAimingPebble = false;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
 	USoundBase* PebbleThrowSound = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void StartAimingPebble();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void StopAimingPebble();
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	bool IsAimingPebble() const { return bIsAimingPebble; }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	bool CalculatePebbleTrajectory(TArray<FVector>& OutPathPoints, FVector& OutHitLocation, bool& bOutHitValid) const;
 
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
 	void ThrowPebble();
 
 	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
 	int32 GetPebbleCount() const { return PebbleCount; }
+
+	// --- SOCIAL STEALTH & CROWD BLENDING (Assassin's Creed / Hitman) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	bool bIsCrowdBlended = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Stealth")
+	float CrowdBlendRadius = 320.0f;
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	bool IsCrowdBlended() const { return bIsCrowdBlended; }
+
+	void UpdateCrowdBlending(float DeltaTime);
+
+	// --- AAA BENCHMARK: CORNER PEEKING & LEAN MECHANIC (Dishonored / The Last of Us) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	float LeanOffset = 0.0f; // -1.0 (Left) to +1.0 (Right)
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	bool bIsLeaningLeft = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	bool bIsLeaningRight = false;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void StartLeanLeft();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void StopLeanLeft();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void StartLeanRight();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void StopLeanRight();
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	bool IsCornerLeaning() const { return FMath::Abs(LeanOffset) > 0.15f; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	float GetLeanOffset() const { return LeanOffset; }
+
+	// --- AAA BENCHMARK: ENVIRONMENTAL CONCEALMENT & SHADOW METER (Thief / Splinter Cell) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	float EnvironmentalConcealmentScore = 0.5f; // 0.0 = fully exposed, 1.0 = deep shadow/concealed
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	float GetConcealmentScore() const { return EnvironmentalConcealmentScore; }
+
+	void UpdateEnvironmentalConcealment(float DeltaTime);
+
+	// --- AAA BENCHMARK: LOCOMOTIVE BOILER STEAM OBSCURITY (Hitman / Batman Arkham) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	bool bIsSteamObscured = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	float SteamObscurityRemainingTime = 0.0f;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void TriggerSteamObscurity(float Duration);
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	bool IsSteamObscured() const { return bIsSteamObscured; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	float GetSteamObscurityRemainingTime() const { return SteamObscurityRemainingTime; }
+
+	// --- AAA BENCHMARK: KEEN SENSES / BASANT INTUITION (Assassin's Creed / Hitman) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")
+	bool bIsKeenSensesActive = false;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Stealth")
+	void ToggleKeenSenses();
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Stealth")
+	bool IsKeenSensesActive() const { return bIsKeenSensesActive; }
 
 	// --- TAILOR'S CHALK SCOUT MARKING SYSTEM ---
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Stealth")
@@ -324,6 +429,10 @@ private:
 	FVector VaultStartLocation;
 	FVector VaultTargetLocation;
 	float VaultProgress = 0.0f;
+
+	FVector MantleStartLocation;
+	FVector MantleTargetLocation;
+	float MantleProgress = 0.0f;
 
 	FVector CrawlStartLocation;
 	FVector CrawlTargetLocation;

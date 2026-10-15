@@ -15,3 +15,7 @@
 ## Update 2026-10-12 (roof stairs done)
 - Roof access tested in Play: climb, roof crossing, return, and descent all pass in scripted tests. Owner to confirm by playing.
 - Next: replace brick cube steps with proper stair art if desired; check camera and visuals; then the performance measurement in a standalone build (still required).
+
+## Retexture to-do (owner feedback 2026-10-12)
+- Owner says the roof stairs look good for a preview, but the texture is weak. Retexture later: replace the plain M_LahoriBrick_PBR cube steps with proper stone or brick masonry textures. Geometry stays as it is.
+- Owner has accepted the current layout for now.

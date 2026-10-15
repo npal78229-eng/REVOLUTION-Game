@@ -1,0 +1,11 @@
+[mcp_servers.unreal]
+command = "C:\\Program Files\\nodejs\\node.exe"
+args = ["C:\\Users\\npal7\\unreal-mcp\\dist\\bin.js"]
+
+[mcp_servers.unreal.env]
+UNREAL_MCP_PROJECT_PATH = "C:\\Users\\npal7\\PROJECT\\REVOLUTION\\Project\\REVOLUTION.uproject"
+UNREAL_MCP_ENGINE_PATH = "C:\\Program Files\\Epic Games\\UE_5.5"
+
+[mcp_servers.blender]
+command = "C:\\Users\\npal7\\.local\\bin\\uvx.exe"
+args = ["mcp-for-blender"]

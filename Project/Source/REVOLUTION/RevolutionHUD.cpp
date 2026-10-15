@@ -20,6 +20,8 @@
 #include "ManjaTrapActor.h"
 #include "TelegraphWireActor.h"
 #include "LithoPressActor.h"
+#include "CivilianNPCActor.h"
+#include "SupplyStashActor.h"
 #include "ProclamationBoardActor.h"
 #include "Sound/SoundBase.h"
 #include "RevolutionGameMode.h"
@@ -43,6 +45,18 @@ ARevolutionHUD::ARevolutionHUD()
 	if (BellFinder.Succeeded())
 	{
 		CurfewBellTollSound = BellFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> BansuriFinder(TEXT("/Game/Audio/SFX/SFX_Flute_Bansuri_Sorrow.SFX_Flute_Bansuri_Sorrow"));
+	if (BansuriFinder.Succeeded())
+	{
+		MemorialBansuriSound = BansuriFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> WindFinder(TEXT("/Game/Audio/SFX/SFX_Wind_Hollow_Courtyard.SFX_Wind_Hollow_Courtyard"));
+	if (WindFinder.Succeeded())
+	{
+		MemorialWindSound = WindFinder.Object;
 	}
 }
 
@@ -110,11 +124,16 @@ void ARevolutionHUD::DrawHUD()
 		DrawInteractionPrompt(Kabir);
 		DrawStaminaGauge(Kabir);
 		DrawStealthAndDetection(Kabir);
+		DrawConcealmentMeter(Kabir);
+		DrawKeenSensesBeacons(Kabir);
 		DrawMissionDirectiveBanner(Kabir);
+		DrawPebbleAimTrajectory(Kabir);
 	}
 
-	bool bForceLetterbox = (OpeningPrologueTimer < 7.5f) || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen() || bApprehended || bMissionComplete;
+	bool bForceLetterbox = (OpeningPrologueTimer < 7.5f) || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen() || bApprehended || bMissionComplete || (CensorWindowBlurAlpha > 0.1f);
 	DrawCinematicLetterbox(DeltaTime, bForceLetterbox);
+
+	DrawCensorWindowVeilOfMemory(Kabir, DeltaTime);
 
 	if (OpeningPrologueTimer < 7.5f && !bApprehended && !bMissionComplete)
 	{
@@ -517,6 +536,33 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 		DrawFramedBox(BadgeX, BadgeY, CrawlW + 16.0f, CrawlH + 8.0f, FLinearColor(0.12f, 0.06f, 0.02f, 0.85f), CrawlCol, 1.5f);
 		DrawText(CrawlText, CrawlCol, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
 	}
+	else if (Kabir->IsCrowdBlended() && SmallFont)
+	{
+		FString BlendText = TEXT("[ BLENDED WITH CIVILIANS — LOW PROFILE ]");
+		float BlendW = 0.0f, BlendH = 0.0f;
+		GetTextSize(BlendText, BlendW, BlendH, SmallFont);
+
+		float BadgeX = 36.0f;
+		float BadgeY = Canvas->ClipY * 0.81f;
+
+		// Soft cornflower blue / ivory badge for crowd camouflage
+		FLinearColor BlendCol = FLinearColor(0.40f, 0.75f, 0.95f, 0.95f);
+		DrawFramedBox(BadgeX, BadgeY, BlendW + 16.0f, BlendH + 8.0f, FLinearColor(0.04f, 0.08f, 0.16f, 0.85f), BlendCol, 1.5f);
+		DrawText(BlendText, BlendCol, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
+	}
+	else if (Kabir->IsMantling() && SmallFont)
+	{
+		FString MantleText = TEXT("[ PARKOUR — HIGH MANTLE ]");
+		float MantleW = 0.0f, MantleH = 0.0f;
+		GetTextSize(MantleText, MantleW, MantleH, SmallFont);
+
+		float BadgeX = 36.0f;
+		float BadgeY = Canvas->ClipY * 0.81f;
+
+		FLinearColor MantleCol = FLinearColor(0.96f, 0.65f, 0.20f, 0.95f);
+		DrawFramedBox(BadgeX, BadgeY, MantleW + 16.0f, MantleH + 8.0f, FLinearColor(0.14f, 0.08f, 0.02f, 0.85f), MantleCol, 1.5f);
+		DrawText(MantleText, MantleCol, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
+	}
 	else if (Kabir->bIsCrouched && SmallFont)
 	{
 		FString StanceText = TEXT("[ CROUCHED — CONCEALED ]");
@@ -803,6 +849,256 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 	}
 }
 
+void ARevolutionHUD::DrawPebbleAimTrajectory(ARevolutionCharacter* Kabir)
+{
+	if (!Canvas || !Kabir || !Kabir->IsAimingPebble() || Kabir->GetPebbleCount() <= 0) return;
+
+	TArray<FVector> TrajectoryPoints;
+	FVector ImpactPoint;
+	bool bHitValid = false;
+
+	if (Kabir->CalculatePebbleTrajectory(TrajectoryPoints, ImpactPoint, bHitValid))
+	{
+		APlayerController* PC = Cast<APlayerController>(Kabir->GetController());
+		if (!PC) return;
+
+		FVector2D PrevScreenPos = FVector2D::ZeroVector;
+		bool bHasPrev = false;
+
+		for (const FVector& WorldPoint : TrajectoryPoints)
+		{
+			FVector2D ScreenPos;
+			if (PC->ProjectWorldLocationToScreen(WorldPoint, ScreenPos))
+			{
+				if (bHasPrev)
+				{
+					// Draw luminous amber parabolic trajectory arc line
+					DrawLine(PrevScreenPos.X, PrevScreenPos.Y, ScreenPos.X, ScreenPos.Y, FLinearColor(1.0f, 0.78f, 0.28f, 0.85f), 2.5f);
+				}
+				// Trajectory node bead
+				DrawRect(FLinearColor(1.0f, 0.90f, 0.45f, 0.92f), ScreenPos.X - 2.5f, ScreenPos.Y - 2.5f, 5.0f, 5.0f);
+
+				PrevScreenPos = ScreenPos;
+				bHasPrev = true;
+			}
+			else
+			{
+				bHasPrev = false;
+			}
+		}
+
+		if (bHitValid)
+		{
+			FVector2D ImpactScreenPos;
+			if (PC->ProjectWorldLocationToScreen(ImpactPoint, ImpactScreenPos))
+			{
+				// Reticle ring at landing point
+				DrawFramedBox(ImpactScreenPos.X - 14.0f, ImpactScreenPos.Y - 14.0f, 28.0f, 28.0f, FLinearColor(0.96f, 0.72f, 0.28f, 0.25f), FLinearColor(1.0f, 0.85f, 0.35f, 0.95f), 2.0f);
+
+				UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+				if (SmallFont)
+				{
+					FString NoisePrompt = TEXT("[ DISTRACTION IMPACT — 8.5m AUDIBLE ]");
+					float TW = 0.0f, TH = 0.0f;
+					GetTextSize(NoisePrompt, TW, TH, SmallFont);
+					DrawText(NoisePrompt, FLinearColor(1.0f, 0.88f, 0.45f, 0.95f), ImpactScreenPos.X - (TW * 0.5f), ImpactScreenPos.Y + 18.0f, SmallFont);
+				}
+			}
+		}
+	}
+}
+
+void ARevolutionHUD::DrawConcealmentMeter(ARevolutionCharacter* Kabir)
+{
+	if (!Canvas || !Kabir || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen()) return;
+
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	float Score = Kabir->GetConcealmentScore();
+	int32 Percent = FMath::Clamp(FMath::RoundToInt(Score * 100.0f), 0, 100);
+
+	FString ConcealStatus;
+	FLinearColor StatusColor;
+	if (Score >= 0.70f)
+	{
+		ConcealStatus = TEXT("DEEP SHADOW");
+		StatusColor = FLinearColor(0.25f, 0.85f, 0.95f, 0.95f);
+	}
+	else if (Score >= 0.40f)
+	{
+		ConcealStatus = TEXT("PARTIAL SHADE");
+		StatusColor = FLinearColor(0.92f, 0.78f, 0.35f, 0.95f);
+	}
+	else
+	{
+		ConcealStatus = TEXT("EXPOSED IN LIGHT");
+		StatusColor = FLinearColor(0.95f, 0.38f, 0.28f, 0.95f);
+	}
+
+	FString MeterText = FString::Printf(TEXT("[ CONCEALMENT: %d%% — %s ]"), Percent, *ConcealStatus);
+	float TextW = 0.0f, TextH = 0.0f;
+	GetTextSize(MeterText, TextW, TextH, SmallFont);
+
+	float BadgeX = 36.0f;
+	float BadgeY = Canvas->ClipY * 0.845f;
+
+	DrawFramedBox(BadgeX, BadgeY, TextW + 16.0f, TextH + 8.0f, FLinearColor(0.04f, 0.05f, 0.06f, 0.80f), StatusColor, 1.2f);
+	DrawText(MeterText, StatusColor, BadgeX + 8.0f, BadgeY + 4.0f, SmallFont);
+
+	// Corner Leaning Status Badge (Dishonored / The Last of Us benchmark)
+	if (Kabir->IsCornerLeaning())
+	{
+		FString LeanText = (Kabir->GetLeanOffset() < 0.0f)
+			? TEXT("[ CORNER PEEK: LEAN LEFT ]")
+			: TEXT("[ CORNER PEEK: LEAN RIGHT ]");
+
+		float LeanW = 0.0f, LeanH = 0.0f;
+		GetTextSize(LeanText, LeanW, LeanH, SmallFont);
+
+		float LeanX = BadgeX + TextW + 24.0f;
+		FLinearColor LeanCol = FLinearColor(0.85f, 0.75f, 0.45f, 0.95f);
+		DrawFramedBox(LeanX, BadgeY, LeanW + 16.0f, LeanH + 8.0f, FLinearColor(0.08f, 0.06f, 0.03f, 0.85f), LeanCol, 1.2f);
+		DrawText(LeanText, LeanCol, LeanX + 8.0f, BadgeY + 4.0f, SmallFont);
+	}
+
+	// Steam Obscurity Badge (Hitman / Batman Arkham benchmark)
+	if (Kabir->IsSteamObscured())
+	{
+		FString SteamText = FString::Printf(TEXT("[ STEAM CLOAK ACTIVE (%.1fs) — SENTRY LINE-OF-SIGHT BLOCKED ]"), Kabir->GetSteamObscurityRemainingTime());
+
+		float SteamW = 0.0f, SteamH = 0.0f;
+		GetTextSize(SteamText, SteamW, SteamH, SmallFont);
+
+		float SteamX = BadgeX + TextW + 24.0f;
+		if (Kabir->IsCornerLeaning())
+		{
+			SteamX += 240.0f;
+		}
+
+		FLinearColor SteamCol = FLinearColor(0.60f, 0.88f, 1.0f, 0.95f);
+		DrawFramedBox(SteamX, BadgeY, SteamW + 16.0f, SteamH + 8.0f, FLinearColor(0.03f, 0.07f, 0.12f, 0.85f), SteamCol, 1.2f);
+		DrawText(SteamText, SteamCol, SteamX + 8.0f, BadgeY + 4.0f, SmallFont);
+	}
+}
+
+void ARevolutionHUD::DrawKeenSensesBeacons(ARevolutionCharacter* Kabir)
+{
+	if (!Canvas || !Kabir || !Kabir->IsKeenSensesActive() || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen()) return;
+
+	APlayerController* PC = Cast<APlayerController>(Kabir->GetController());
+	if (!PC) return;
+
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	// Top notification that Basant Intuition / Keen Senses is active
+	FString IntuitionText = TEXT("~  BASANT INTUITION (KEEN SENSES ACTIVE) [V]  ~");
+	float IW = 0.0f, IH = 0.0f;
+	GetTextSize(IntuitionText, IW, IH, SmallFont);
+	float IntuitionPulse = 0.75f + 0.25f * FMath::Sin(GetWorld()->GetTimeSeconds() * 5.0f);
+	FLinearColor IntuitionCol = FLinearColor(1.0f, 0.78f, 0.28f, IntuitionPulse);
+	float TopBoxX = (Canvas->ClipX - (IW + 24.0f)) * 0.5f;
+	float TopBoxY = 22.0f;
+	DrawFramedBox(TopBoxX, TopBoxY, IW + 24.0f, IH + 8.0f, FLinearColor(0.12f, 0.08f, 0.02f, 0.85f), IntuitionCol, 1.5f);
+	DrawText(IntuitionText, IntuitionCol, TopBoxX + 12.0f, TopBoxY + 4.0f, SmallFont);
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	FVector KabirPos = Kabir->GetActorLocation();
+
+	// 1. Curfew Sentries & Constables (Crimson Tactical Beacons)
+	for (TActorIterator<ACurfewPatrolAI> It(World); It; ++It)
+	{
+		ACurfewPatrolAI* Sentry = *It;
+		if (Sentry)
+		{
+			FVector SentryHead = Sentry->GetActorLocation() + FVector(0.0f, 0.0f, 85.0f);
+			float DistMeters = FVector::Dist(KabirPos, Sentry->GetActorLocation()) * 0.01f;
+			if (DistMeters <= 42.0f)
+			{
+				FVector2D ScreenPos;
+				if (PC->ProjectWorldLocationToScreen(SentryHead, ScreenPos, true))
+				{
+					FLinearColor SentryCol = (Sentry->GetAlertState() == ECurfewAlertState::Alerted)
+						? FLinearColor(1.0f, 0.15f, 0.15f, 0.98f)
+						: FLinearColor(0.95f, 0.35f, 0.25f, 0.90f);
+
+					// Diamond outline
+					DrawLine(ScreenPos.X, ScreenPos.Y - 8.0f, ScreenPos.X + 8.0f, ScreenPos.Y, SentryCol, 1.5f);
+					DrawLine(ScreenPos.X + 8.0f, ScreenPos.Y, ScreenPos.X, ScreenPos.Y + 8.0f, SentryCol, 1.5f);
+					DrawLine(ScreenPos.X, ScreenPos.Y + 8.0f, ScreenPos.X - 8.0f, ScreenPos.Y, SentryCol, 1.5f);
+					DrawLine(ScreenPos.X - 8.0f, ScreenPos.Y, ScreenPos.X, ScreenPos.Y - 8.0f, SentryCol, 1.5f);
+
+					FString Tag = FString::Printf(TEXT("[ SENTRY — %.0fm ]"), DistMeters);
+					float TW = 0.0f, TH = 0.0f;
+					GetTextSize(Tag, TW, TH, SmallFont);
+					DrawText(Tag, SentryCol, ScreenPos.X - (TW * 0.5f), ScreenPos.Y - 24.0f, SmallFont);
+				}
+			}
+		}
+	}
+
+	// 2. Civilians (Amber Social Stealth Beacons)
+	for (TActorIterator<ACivilianNPCActor> It(World); It; ++It)
+	{
+		ACivilianNPCActor* NPC = *It;
+		if (NPC)
+		{
+			FVector NPCHead = NPC->GetActorLocation() + FVector(0.0f, 0.0f, 80.0f);
+			float DistMeters = FVector::Dist(KabirPos, NPC->GetActorLocation()) * 0.01f;
+			if (DistMeters <= 35.0f)
+			{
+				FVector2D ScreenPos;
+				if (PC->ProjectWorldLocationToScreen(NPCHead, ScreenPos, true))
+				{
+					FLinearColor NPCCol = FLinearColor(1.0f, 0.72f, 0.28f, 0.88f);
+
+					DrawLine(ScreenPos.X, ScreenPos.Y - 6.0f, ScreenPos.X + 6.0f, ScreenPos.Y, NPCCol, 1.2f);
+					DrawLine(ScreenPos.X + 6.0f, ScreenPos.Y, ScreenPos.X, ScreenPos.Y + 6.0f, NPCCol, 1.2f);
+					DrawLine(ScreenPos.X, ScreenPos.Y + 6.0f, ScreenPos.X - 6.0f, ScreenPos.Y, NPCCol, 1.2f);
+					DrawLine(ScreenPos.X - 6.0f, ScreenPos.Y, ScreenPos.X, ScreenPos.Y - 6.0f, NPCCol, 1.2f);
+
+					FString Tag = FString::Printf(TEXT("[ CITIZEN: %s — %.0fm ]"), *NPC->CivilianName.ToString(), DistMeters);
+					float TW = 0.0f, TH = 0.0f;
+					GetTextSize(Tag, TW, TH, SmallFont);
+					DrawText(Tag, NPCCol, ScreenPos.X - (TW * 0.5f), ScreenPos.Y - 22.0f, SmallFont);
+				}
+			}
+		}
+	}
+
+	// 3. Stashes & Haveli Caches (Gold Objective Beacons)
+	for (TActorIterator<ASupplyStashActor> It(World); It; ++It)
+	{
+		ASupplyStashActor* Stash = *It;
+		if (Stash && !Stash->bIsCollected)
+		{
+			FVector StashPos = Stash->GetActorLocation() + FVector(0.0f, 0.0f, 40.0f);
+			float DistMeters = FVector::Dist(KabirPos, Stash->GetActorLocation()) * 0.01f;
+			if (DistMeters <= 38.0f)
+			{
+				FVector2D ScreenPos;
+				if (PC->ProjectWorldLocationToScreen(StashPos, ScreenPos, true))
+				{
+					FLinearColor StashCol = FLinearColor(0.85f, 0.88f, 0.35f, 0.90f);
+
+					DrawLine(ScreenPos.X, ScreenPos.Y - 7.0f, ScreenPos.X + 7.0f, ScreenPos.Y, StashCol, 1.5f);
+					DrawLine(ScreenPos.X + 7.0f, ScreenPos.Y, ScreenPos.X, ScreenPos.Y + 7.0f, StashCol, 1.5f);
+					DrawLine(ScreenPos.X, ScreenPos.Y + 7.0f, ScreenPos.X - 7.0f, ScreenPos.Y, StashCol, 1.5f);
+					DrawLine(ScreenPos.X - 7.0f, ScreenPos.Y, ScreenPos.X, ScreenPos.Y - 7.0f, StashCol, 1.5f);
+
+					FString Tag = FString::Printf(TEXT("[ CACHE: %s — %.0fm ]"), *Stash->StashTitle.ToString(), DistMeters);
+					float TW = 0.0f, TH = 0.0f;
+					GetTextSize(Tag, TW, TH, SmallFont);
+					DrawText(Tag, StashCol, ScreenPos.X - (TW * 0.5f), ScreenPos.Y - 22.0f, SmallFont);
+				}
+			}
+		}
+	}
+}
+
 void ARevolutionHUD::DrawMissionDirectiveBanner(ARevolutionCharacter* Kabir)
 {
 	if (!bShowMissionBanner || !Canvas || !Kabir) return;
@@ -849,7 +1145,10 @@ void ARevolutionHUD::DrawMissionDirectiveBanner(ARevolutionCharacter* Kabir)
 	case ECourierMissionStage::Stage_Morning_ProclamationBoard: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 6 OF 8"); break;
 	case ECourierMissionStage::Stage_Morning_SchoolBell: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 7 OF 8"); break;
 	case ECourierMissionStage::Stage_Morning_ClassroomDesk: StageTag = TEXT("1919 ACT I  —  OBJECTIVE 8 OF 8"); break;
-	case ECourierMissionStage::Stage_Completed: StageTag = TEXT("1919 ACT I PROLOGUE  —  ACCOMPLISHED"); break;
+	case ECourierMissionStage::Stage_Afternoon_MunadiProclamation: StageTag = TEXT("1919 ACT II  —  OBJECTIVE 1 OF 3"); break;
+	case ECourierMissionStage::Stage_Afternoon_BaghNarrowEntry: StageTag = TEXT("1919 ACT II  —  OBJECTIVE 2 OF 3"); break;
+	case ECourierMissionStage::Stage_ActII_BaisakhiGathering: StageTag = TEXT("1919 ACT II  —  OBJECTIVE 3 OF 3"); break;
+	case ECourierMissionStage::Stage_Completed: StageTag = TEXT("1919 ACT II  —  HISTORICAL MILESTONE"); break;
 	}
 
 	// Draw Tag
@@ -1547,6 +1846,150 @@ void ARevolutionHUD::DrawMissionAccomplishedCard(ARevolutionCharacter* Kabir)
 	float FootW = 0.0f, FootH = 0.0f;
 	GetTextSize(FooterStr, FootW, FootH, SmallFont);
 	DrawText(FooterStr, DawnGold, CenterX - (FootW * 0.5f), CardY + CardH - 36.0f, SmallFont);
+}
+
+void ARevolutionHUD::DrawCensorWindowVeilOfMemory(ARevolutionCharacter* Kabir, float DeltaTime)
+{
+	if (!Canvas || !Kabir) return;
+
+	UFont* LargeFont = GEngine ? GEngine->GetLargeFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	URevolutionMissionSubsystem* Subsystem = GetWorld()->GetSubsystem<URevolutionMissionSubsystem>();
+	const FVector KabirLoc = Kabir->GetActorLocation();
+
+	// Active when in Zone D Memorial Courtyard or during Act II Fateful Climax
+	bool bInMemorialZone = (KabirLoc.X >= 1000.0f && KabirLoc.X <= 1650.0f && KabirLoc.Y >= 2650.0f && KabirLoc.Y <= 3350.0f);
+	bool bInMemorialStage = false;
+	if (Subsystem)
+	{
+		bInMemorialStage = (Subsystem->CurrentStage == ECourierMissionStage::Stage_ActII_TheFiring ||
+							Subsystem->CurrentStage == ECourierMissionStage::Stage_ActII_FindEscapeRoute);
+	}
+
+	bool bTargetActive = bCensorWindowActive || bInMemorialZone || bInMemorialStage;
+
+	// Smoothly interpolate blur and overlay alpha
+	CensorWindowBlurAlpha = FMath::FInterpTo(CensorWindowBlurAlpha, bTargetActive ? 1.0f : 0.0f, DeltaTime, 1.8f);
+
+	if (CensorWindowBlurAlpha <= 0.01f)
+	{
+		bMemorialAudioStarted = false;
+		return;
+	}
+
+	// Trigger solemn audio once on entry
+	if (bTargetActive && !bMemorialAudioStarted)
+	{
+		bMemorialAudioStarted = true;
+		if (MemorialBansuriSound && GetWorld())
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), MemorialBansuriSound, 0.90f);
+		}
+		if (MemorialWindSound && GetWorld())
+		{
+			UGameplayStatics::PlaySound2D(GetWorld(), MemorialWindSound, 0.70f);
+		}
+	}
+
+	const float ScreenW = Canvas->ClipX;
+	const float ScreenH = Canvas->ClipY;
+
+	// 1. Frosted Archival Vignette Blur: Concentric gradient border bands
+	const float MaxBorderW = ScreenW * 0.28f;
+	const float MaxBorderH = ScreenH * 0.28f;
+	const int32 NumBlurBands = 6;
+
+	for (int32 i = 0; i < NumBlurBands; ++i)
+	{
+		float Fraction = (float)(i + 1) / (float)NumBlurBands;
+		float BandW = MaxBorderW * (1.0f - (float)i / (float)NumBlurBands);
+		float BandH = MaxBorderH * (1.0f - (float)i / (float)NumBlurBands);
+		float Alpha = (0.16f + 0.12f * (float)i) * CensorWindowBlurAlpha;
+
+		FLinearColor BlurSepia(0.08f, 0.07f, 0.05f, Alpha);
+
+		// Top
+		DrawRect(BlurSepia, 0.0f, 0.0f, ScreenW, BandH);
+		// Bottom
+		DrawRect(BlurSepia, 0.0f, ScreenH - BandH, ScreenW, BandH);
+		// Left
+		DrawRect(BlurSepia, 0.0f, BandH, BandW, ScreenH - (2.0f * BandH));
+		// Right
+		DrawRect(BlurSepia, ScreenW - BandW, BandH, BandW, ScreenH - (2.0f * BandH));
+	}
+
+	// 2. Central Warm Amber Tint Aperture
+	FLinearColor ApertureAmber(0.12f, 0.08f, 0.04f, 0.22f * CensorWindowBlurAlpha);
+	DrawRect(ApertureAmber, 0.0f, 0.0f, ScreenW, ScreenH);
+
+	// 3. Top Archival Redaction Header Bar
+	const float HeaderH = 54.0f;
+	const float HeaderY = 40.0f;
+	const float HeaderW = FMath::Min(820.0f, ScreenW - 60.0f);
+	const float HeaderX = (ScreenW - HeaderW) * 0.5f;
+
+	FLinearColor RedactionBorder(0.65f, 0.22f, 0.18f, 0.90f * CensorWindowBlurAlpha); // Deep imperial red seal
+	FLinearColor RedactionBg(0.10f, 0.08f, 0.06f, 0.88f * CensorWindowBlurAlpha);
+	DrawFramedBox(HeaderX, HeaderY, HeaderW, HeaderH, RedactionBg, RedactionBorder, 1.5f);
+
+	UFont* HeaderFont = MediumFont ? MediumFont : SmallFont;
+	FString StampLine1 = TEXT("[ MILITARY PRESS REGULATION — DEFENSE OF INDIA ACT 1919 ]");
+	FString StampLine2 = TEXT("PUNJAB GAZETTE ARCHIVE  •  EYEWITNESS DISPATCHES SEALED BY CENSOR");
+
+	float S1W = 0.0f, S1H = 0.0f;
+	GetTextSize(StampLine1, S1W, S1H, HeaderFont);
+	DrawText(StampLine1, FLinearColor(0.95f, 0.38f, 0.32f, CensorWindowBlurAlpha), HeaderX + (HeaderW - S1W) * 0.5f, HeaderY + 8.0f, HeaderFont);
+
+	float S2W = 0.0f, S2H = 0.0f;
+	GetTextSize(StampLine2, S2W, S2H, SmallFont);
+	DrawText(StampLine2, FLinearColor(0.82f, 0.78f, 0.70f, 0.85f * CensorWindowBlurAlpha), HeaderX + (HeaderW - S2W) * 0.5f, HeaderY + 30.0f, SmallFont);
+
+	// 4. Bottom Memorial Contemplation Card
+	const float CardW = FMath::Min(880.0f, ScreenW - 40.0f);
+	const float CardH = 140.0f;
+	const float CardX = (ScreenW - CardW) * 0.5f;
+	const float CardY = ScreenH - CardH - 45.0f;
+
+	FLinearColor CardBg(0.08f, 0.07f, 0.06f, 0.92f * CensorWindowBlurAlpha);
+	FLinearColor GoldBorder(0.82f, 0.65f, 0.28f, 0.85f * CensorWindowBlurAlpha);
+	DrawFramedBox(CardX, CardY, CardW, CardH, CardBg, GoldBorder, 2.0f);
+
+	// Gold filigree header
+	FString MemorialTitle = TEXT("13 APRIL 1919 — THE VEIL OF REMEMBRANCE (स्मृति-पटल)");
+	float MTW = 0.0f, MTH = 0.0f;
+	GetTextSize(MemorialTitle, MTW, MTH, MediumFont ? MediumFont : SmallFont);
+	DrawText(MemorialTitle, AntiqueBrassColor, CardX + (CardW - MTW) * 0.5f, CardY + 12.0f, MediumFont ? MediumFont : SmallFont);
+
+	// Divider
+	DrawLine(CardX + 30.0f, CardY + 36.0f, CardX + CardW - 30.0f, CardY + 36.0f, GoldBorder, 1.0f);
+
+	// Reverent Historical Lore (100% Policy-Safe & Poignant)
+	FString Lore1 = TEXT("The high brick walls of Jallianwala Bagh stood sealed from the world. Imperial censorship barred the truth from public print, casting a heavy silence over the holy city.");
+	FString Lore2 = TEXT("What the colonial decree sought to obscure behind this veil, a nation remembers with solemn reverence. In the heart of twelve-year-old Kabir, the peaceful silence has become the seed of an unstoppable revolution.");
+
+	TArray<FString> L1Wrapped = WrapText(Lore1, SmallFont, CardW - 40.0f);
+	float TextY = CardY + 44.0f;
+	for (const FString& Line : L1Wrapped)
+	{
+		DrawText(Line, FLinearColor(0.88f, 0.85f, 0.78f, 0.95f * CensorWindowBlurAlpha), CardX + 20.0f, TextY, SmallFont);
+		TextY += 15.0f;
+	}
+
+	TArray<FString> L2Wrapped = WrapText(Lore2, SmallFont, CardW - 40.0f);
+	for (const FString& Line : L2Wrapped)
+	{
+		DrawText(Line, FLinearColor(0.78f, 0.80f, 0.72f, 0.90f * CensorWindowBlurAlpha), CardX + 20.0f, TextY, SmallFont);
+		TextY += 15.0f;
+	}
+
+	// Action Prompt at bottom of card
+	FString PromptText = TEXT("[ E ] Contemplate Courtyard Remnants   •   Preserve The Unwritten Dispatch");
+	float PW = 0.0f, PH = 0.0f;
+	GetTextSize(PromptText, PW, PH, SmallFont);
+	DrawText(PromptText, AntiqueBrassColor, CardX + (CardW - PW) * 0.5f, CardY + CardH - 22.0f, SmallFont);
 }
 
 

@@ -210,3 +210,70 @@ Executed headless via `UnrealEditor-Cmd.exe` with `-ExecutePythonScript`:
 - **Cartographic HUD Update:**
   - Updated `RevolutionHUD.cpp` with `[CHOWK GATE]` and `[KUCHA ARCH]` markers, compiling cleanly with Exit Code 0.
 
+---
+
+## 8. Milestone 8: Town Structure Expansion (Completed October 13, 2026)
+- **Monumental 3D Structures Generated in Blender 5.2 LTS:**
+  - `SM_Wall_Town_Faseel_Rampart`: 6m defensive Lahori brick wall with parapets, sentry walkway, and kanguras.
+  - `SM_Checkpoint_Picket_Sandbag_Barrier`: British sandbag revetment, wooden sawhorse blockade, and curfew order sign.
+  - `SM_Haveli_Facade_3Story_Jharokha`: 12m monumental haveli facades with overhanging teak jharokha balconies.
+  - `SM_Prop_Litho_Press_Flatbed`: Underground cast-iron stone lithographic hand press and clandestine pamphlet stash.
+  - `SM_Mohalla_Pyaoo_Water_Shelter`: Roadside drinking water kiosk with timber pillars, clay matkas, and stone plinth.
+- **Level Ingestion & Arrangement:**
+  - Placed 14 monumental actors sealing town boundaries, expanding level actors to **160**.
+
+---
+
+## 9. Milestone 9: Task 5 — The Road to Jallianwala Bagh & Baisakhi Gathering (Completed October 13, 2026)
+- **Blender 5.2 LTS 3D Modeling & Dual-Folder Pipeline:**
+  - `SM_Munadi_Proclamation_Drum`: Nagara kettle-drum on teak tripod with curved beaters and British martial law proclamation scroll.
+  - `SM_Baisakhi_Garland_Archway`: 4.2m festive portal draped with saffron marigold garlands (*Genda Phool*) and green mango leaf festoons (*Toran*).
+  - `SM_Jallianwala_Narrow_Gateway`: Historic 2.2m claustrophobic corridor entrance flanked by 5m Lahori brick haveli walls and iron wicket gate.
+  - `SM_Prop_Wheat_Sheaves_Cart`: Traditional Punjabi bullock harvest cart with 1.3m spoked wheels and piled golden Baisakhi wheat sheaves.
+  - `SM_Baisakhi_Mela_Sweet_Stall`: Festive takhtposh platform with hammered brass platters, golden jalebis, laddus, and paper bunting.
+  - Synchronized across dual directories: `Art/Exports/`, `Art/PROJECT/`, and `PROJECT/`.
+- **Audio Asset Synthesis & Ingestion:**
+  - `SFX_Munadi_Drum.uasset` (Nagara proclamation drum roll and resonant proclamation strikes).
+  - `SFX_Baisakhi_Crowd_Murmur.uasset` (Festive gathering crowd swells with low-frequency murmurs).
+- **C++ Gameplay & Mission System Integration:**
+  - Extended `ECourierMissionStage` with 3 Act II stages (`Stage_Afternoon_MunadiProclamation`, `Stage_Afternoon_BaghNarrowEntry`, `Stage_ActII_BaisakhiGathering`).
+  - Added runtime dynamic trigger instantiation in `RevolutionGameMode::BeginPlay()` with historical lore modal inspection cards.
+  - Updated `RevolutionHUD.cpp` with Act II objective banners.
+  - Compiled `UnrealEditor-REVOLUTION.dll` (Exit code 0).
+- **Automated Verification:**
+  - Executed `verify_act1_questline.py` against `L_Validation_Gym.umap`: **165 level actors, 7 NPCs, 33 landmarks, 12 story directives — 100% PASS**.
+
+---
+
+## Production Log: Phase 5 — Task 6 (The Enclosed Garden of Jallianwala Bagh)
+- **Status:** **100% Complete & Validated**
+- **Date:** October 13, 2026
+- **New 3D Assets Authored in Blender 5.2 LTS & Dual-Exported (`Art/Exports`, `Art/PROJECT`, `PROJECT`):**
+  1. `SM_Jallianwala_Shahidi_Kua_Well`: Octagonal masonry plinth, circular shaft, teak timber posts, protective hipped canopy, and iron pulley wheel.
+  2. `SM_Jallianwala_Enclosure_Wall`: 4.5m tall blind Lahori brick haveli boundary wall modules with stepped pilasters.
+  3. `SM_Jallianwala_Raised_Bank`: 1.2m elevated tactical earthen/brick mound where Dyer deployed his riflemen inside the entrance.
+  4. `SM_British_Armored_Car_Obstacle`: 1919 Austin/Crossley armored vehicle with twin Vickers turret blocked outside the narrow gate.
+  5. `SM_Jallianwala_Baisakhi_Pandal`: Woven khadi dais platform with Persian runner, masnad bolsters, speech podium, and shamiana.
+- **Synthesized Audio:** `SFX_Crowd_Rally_Speech.uasset`, `SFX_Military_Boot_March.uasset`.
+- **Level Assembly:** Placed 8 structures into `L_Validation_Gym.umap`, expanding level actors to **173**.
+- **C++ Updates:** Extended `RevolutionMissionSubsystem` with Act II stages and audio synchronization; added runtime dynamic triggers in `RevolutionGameMode::BeginPlay()`.
+- **Automated Verification:** `verify_act1_questline.py`: **173 actors, 7 NPCs, 41 landmarks — 100% PASS**.
+
+---
+
+## Production Log: Phase 5 — Task 7 (The Fateful Afternoon: Stampede Debris, Bugle Call & Wall Breach)
+- **Status:** **100% Complete & Validated**
+- **Date:** October 13, 2026
+- **New 3D Assets Authored in Blender 5.2 LTS & Dual-Exported (`Art/Exports`, `Art/PROJECT`, `PROJECT`):**
+  1. `SM_Prop_Fallen_Turban_Shoes_Scatter`: Debris scatter of discarded pagris, 3 pairs of Punjabi leather juttis, cane umbrellas, brass lotas, and clay pots dropped during the stampede.
+  2. `SM_Jallianwala_Crumbling_Wall_Breach`: 4.4m wide x 1.75m high damaged haveli brick wall section with climbable rubble talus ramp (Z = 0.0 to 0.75m) providing parkour vault traversal into adjoining alleyways.
+  3. `SM_Prop_Bullet_Pocked_Brick_Slab`: 2.8m x 3.2m Lahori brick wall slab with bullet impact crater chips and painted white memorial marker frames.
+  4. `SM_Prop_Makeshift_Timber_Ladder`: 3.6m bamboo/sal timber escape ladder with 10 rungs and hemp rope lashings leaned against the north wall.
+- **Synthesized Audio:** `SFX_Bugle_Call_Charge.uasset` (British military bugle call), `SFX_Crowd_Panic_Scream.uasset` (Stampede footfalls and panic cries).
+- **Level Assembly:** Placed 6 structures into `L_Validation_Gym.umap`, expanding level actors to **179**.
+- **C++ Updates:**
+  - Extended `ECourierMissionStage` in `RevolutionMissionSubsystem.h/.cpp` with Act II Climax stages: `Stage_ActII_TheFiring` (Step 12), `Stage_ActII_FindEscapeRoute` (Step 13), `Stage_ActII_VaultWallBreach` (Step 14), `Stage_Completed` (Step 15: Act II Finale).
+  - Added runtime objective triggers in `RevolutionGameMode.cpp` (`TheFiringTrigger`, `FindEscapeTrigger`, `VaultBreachTrigger`).
+  - Compiled `UnrealEditor-REVOLUTION.dll` (Exit code 0).
+- **Automated Verification:** `verify_act1_questline.py`: **179 actors, 7 NPCs, 47 landmarks, 15 narrative directives — 100% PASS**.
+

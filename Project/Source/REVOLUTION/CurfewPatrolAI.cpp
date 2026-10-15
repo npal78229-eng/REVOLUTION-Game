@@ -253,12 +253,23 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 		}
 	}
 
+	// Check if Kabir is cloaked in dense locomotive boiler steam (Hitman / Batman Arkham benchmark)
+	if (TargetPlayer->IsSteamObscured())
+	{
+		return false;
+	}
+
 	// Calculate base intensity based on distance falloff
 	float DistanceFactor = 1.0f - FMath::Clamp(Distance / EffectiveSightRadius, 0.0f, 1.0f);
 
 	// Stance concealment multiplier
 	float StanceMultiplier = 1.0f;
-	if (TargetPlayer->bIsCrouched)
+	if (TargetPlayer->IsCrowdBlended())
+	{
+		// Social stealth: blending into civilian groups reduces visual detection profile by 80%
+		StanceMultiplier = 0.20f;
+	}
+	else if (TargetPlayer->bIsCrouched)
 	{
 		// Crouched behind cover or in alley shadows reduces visibility profile dramatically
 		StanceMultiplier = 0.28f;
@@ -278,6 +289,17 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 	{
 		StanceMultiplier *= 1.30f;
 	}
+
+	// Corner peeking (Dishonored / The Last of Us): only subtle head silhouette exposed around corners
+	if (TargetPlayer->IsCornerLeaning())
+	{
+		StanceMultiplier *= 0.35f;
+	}
+
+	// Shadow concealment rating (Thief / Splinter Cell benchmark)
+	// In deep shadow (high concealment), sentry perception fill rate is dampened up to 75%
+	float ShadowDampening = FMath::Clamp(1.0f - (0.75f * TargetPlayer->GetConcealmentScore()), 0.25f, 1.0f);
+	StanceMultiplier *= ShadowDampening;
 
 	if (bAudibleHearing)
 	{

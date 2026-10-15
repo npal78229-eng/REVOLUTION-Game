@@ -22,8 +22,10 @@
 #include "PebbleProjectile.h"
 #include "ChalkMarkActor.h"
 #include "HidingSpotActor.h"
+#include "CurfewPatrolAI.h"
 #include "RevolutionGameMode.h"
 #include "GameFramework/ProjectileMovementComponent.h"
+#include "EngineUtils.h"
 #include "REVOLUTION.h"
 
 ARevolutionCharacter::ARevolutionCharacter()
@@ -138,16 +140,34 @@ void ARevolutionCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Ensure movement component is in walking mode by default
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+
+	// Guarantee all blocking state flags are initialized clear
+	bIsVaulting = false;
+	bIsInspecting = false;
+	bIsCrawlTraversing = false;
+	bIsSatchelJournalOpen = false;
+	bIsHidingInCover = false;
+
 	// Add input mapping context to Enhanced Input Subsystem if controller already assigned
 	if (APlayerController* PlayerController = Cast<APlayerController>(Controller))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			if (DefaultMappingContext)
+			if (DefaultMappingContext && !Subsystem->HasMappingContext(DefaultMappingContext))
 			{
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
 		}
+
+		FInputModeGameOnly InputModeData;
+		InputModeData.SetConsumeCaptureMouseDown(false);
+		PlayerController->SetInputMode(InputModeData);
+		PlayerController->SetShowMouseCursor(false);
 	}
 }
 
@@ -155,16 +175,55 @@ void ARevolutionCharacter::PossessedBy(AController* NewController)
 {
 	Super::PossessedBy(NewController);
 
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+
 	// Ensure Enhanced Input Mapping Context is registered immediately upon possession
 	if (APlayerController* PlayerController = Cast<APlayerController>(NewController))
 	{
 		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PlayerController->GetLocalPlayer()))
 		{
-			if (DefaultMappingContext)
+			if (DefaultMappingContext && !Subsystem->HasMappingContext(DefaultMappingContext))
 			{
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
 		}
+
+		FInputModeGameOnly InputModeData;
+		InputModeData.SetConsumeCaptureMouseDown(false);
+		PlayerController->SetInputMode(InputModeData);
+		PlayerController->SetShowMouseCursor(false);
+	}
+}
+
+void ARevolutionCharacter::PawnClientRestart()
+{
+	Super::PawnClientRestart();
+
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+	}
+
+	if (APlayerController* PC = Cast<APlayerController>(GetController()))
+	{
+		if (UEnhancedInputLocalPlayerSubsystem* Subsystem = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(PC->GetLocalPlayer()))
+		{
+			if (DefaultMappingContext)
+			{
+				if (!Subsystem->HasMappingContext(DefaultMappingContext))
+				{
+					Subsystem->AddMappingContext(DefaultMappingContext, 0);
+				}
+			}
+		}
+
+		FInputModeGameOnly InputModeData;
+		InputModeData.SetConsumeCaptureMouseDown(false);
+		PC->SetInputMode(InputModeData);
+		PC->SetShowMouseCursor(false);
 	}
 }
 
@@ -190,6 +249,25 @@ void ARevolutionCharacter::Tick(float DeltaTime)
 			bIsVaulting = false;
 			VaultProgress = 0.0f;
 			GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+		}
+	}
+
+	// High mantle traversal interpolation (Athletic pull-up onto haveli walls & ledges)
+	if (bIsMantling)
+	{
+		MantleProgress += (DeltaTime / FMath::Max(MantleDuration, 0.05f));
+		float ClampedProgress = FMath::Clamp(MantleProgress, 0.0f, 1.0f);
+		float SmoothedProgress = FMath::InterpEaseInOut(0.0f, 1.0f, ClampedProgress, 2.2f);
+
+		FVector CurrentLocation = FMath::Lerp(MantleStartLocation, MantleTargetLocation, SmoothedProgress);
+		SetActorLocation(CurrentLocation, true);
+
+		if (MantleProgress >= 1.0f)
+		{
+			bIsMantling = false;
+			MantleProgress = 0.0f;
+			GetCharacterMovement()->SetMovementMode(MOVE_Walking);
+			GetCharacterMovement()->Velocity = FVector::ZeroVector;
 		}
 	}
 
@@ -253,7 +331,7 @@ void ARevolutionCharacter::Tick(float DeltaTime)
 	}
 
 	// Direct keyboard movement fallback (guarantees movement even if Enhanced Input subsystem dropped context)
-	if (Controller != nullptr && !bIsVaulting && !bIsInspecting && !bIsCrawlTraversing && !bIsSatchelJournalOpen)
+	if (Controller != nullptr && !bIsVaulting && !bIsMantling && !bIsInspecting && !bIsCrawlTraversing && !bIsSatchelJournalOpen)
 	{
 		if (APlayerController* PC = Cast<APlayerController>(Controller))
 		{
@@ -284,7 +362,34 @@ void ARevolutionCharacter::Tick(float DeltaTime)
 		}
 	}
 
+	// Dynamic Corner Peeking / Lean interpolation (Dishonored / The Last of Us)
+	float TargetLean = 0.0f;
+	if (bIsLeaningLeft) TargetLean -= 1.0f;
+	if (bIsLeaningRight) TargetLean += 1.0f;
+	LeanOffset = FMath::FInterpTo(LeanOffset, TargetLean, DeltaTime, 8.0f);
+
+	if (CameraBoom)
+	{
+		CameraBoom->SocketOffset = FVector(0.0f, LeanOffset * 48.0f, 0.0f);
+		FRotator CurrentBoomRot = CameraBoom->GetRelativeRotation();
+		CurrentBoomRot.Roll = LeanOffset * 5.0f;
+		CameraBoom->SetRelativeRotation(CurrentBoomRot);
+	}
+
 	CheckForInteractables();
+	UpdateCrowdBlending(DeltaTime);
+	UpdateEnvironmentalConcealment(DeltaTime);
+
+	// Boiler steam obscurity timer decay (Hitman / Batman Arkham benchmark)
+	if (bIsSteamObscured)
+	{
+		SteamObscurityRemainingTime -= DeltaTime;
+		if (SteamObscurityRemainingTime <= 0.0f)
+		{
+			SteamObscurityRemainingTime = 0.0f;
+			bIsSteamObscured = false;
+		}
+	}
 }
 
 void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
@@ -301,6 +406,11 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 				Subsystem->AddMappingContext(DefaultMappingContext, 0);
 			}
 		}
+
+		FInputModeGameOnly InputModeData;
+		InputModeData.SetConsumeCaptureMouseDown(false);
+		PlayerController->SetInputMode(InputModeData);
+		PlayerController->SetShowMouseCursor(false);
 	}
 
 	// 1. Enhanced Input Component Bindings
@@ -361,14 +471,28 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	PlayerInputComponent->BindKey(EKeys::Tab, IE_Pressed, this, &ARevolutionCharacter::ToggleSatchelJournal);
 	PlayerInputComponent->BindKey(EKeys::J, IE_Pressed, this, &ARevolutionCharacter::ToggleSatchelJournal);
+	PlayerInputComponent->BindKey(EKeys::Escape, IE_Pressed, this, &ARevolutionCharacter::EndInspection);
 	PlayerInputComponent->BindKey(EKeys::One, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab1);
 	PlayerInputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab2);
 	PlayerInputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab3);
+
+	// Benchmark Aim & Distraction Mechanics (A Plague Tale / The Last of Us)
+	PlayerInputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ARevolutionCharacter::StartAimingPebble);
+	PlayerInputComponent->BindKey(EKeys::RightMouseButton, IE_Released, this, &ARevolutionCharacter::StopAimingPebble);
+
+	// AAA Benchmark: Corner Peeking & Lean (Dishonored / The Last of Us)
+	PlayerInputComponent->BindKey(EKeys::Q, IE_Pressed, this, &ARevolutionCharacter::StartLeanLeft);
+	PlayerInputComponent->BindKey(EKeys::Q, IE_Released, this, &ARevolutionCharacter::StopLeanLeft);
+	PlayerInputComponent->BindKey(EKeys::E, IE_Pressed, this, &ARevolutionCharacter::StartLeanRight);
+	PlayerInputComponent->BindKey(EKeys::E, IE_Released, this, &ARevolutionCharacter::StopLeanRight);
+
+	// AAA Benchmark: Keen Senses / Basant Intuition (Assassin's Creed Eagle Vision / Hitman Instinct)
+	PlayerInputComponent->BindKey(EKeys::V, IE_Pressed, this, &ARevolutionCharacter::ToggleKeenSenses);
 }
 
 void ARevolutionCharacter::Move(const FInputActionValue& Value)
 {
-	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || bIsSatchelJournalOpen) return;
+	if (bIsVaulting || bIsMantling || bIsInspecting || bIsCrawlTraversing || bIsSatchelJournalOpen) return;
 
 	FVector2D MovementVector = Value.Get<FVector2D>();
 
@@ -407,7 +531,7 @@ void ARevolutionCharacter::Look(const FInputActionValue& Value)
 
 void ARevolutionCharacter::MoveForwardAxis(float Value)
 {
-	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || bIsSatchelJournalOpen || FMath::IsNearlyZero(Value)) return;
+	if (bIsVaulting || bIsMantling || bIsInspecting || bIsCrawlTraversing || bIsSatchelJournalOpen || FMath::IsNearlyZero(Value)) return;
 
 	if (bIsHidingInCover)
 	{
@@ -429,7 +553,7 @@ void ARevolutionCharacter::MoveForwardAxis(float Value)
 
 void ARevolutionCharacter::MoveRightAxis(float Value)
 {
-	if (bIsVaulting || bIsInspecting || bIsCrawlTraversing || bIsSatchelJournalOpen || FMath::IsNearlyZero(Value)) return;
+	if (bIsVaulting || bIsMantling || bIsInspecting || bIsCrawlTraversing || bIsSatchelJournalOpen || FMath::IsNearlyZero(Value)) return;
 
 	if (bIsHidingInCover)
 	{
@@ -499,7 +623,7 @@ void ARevolutionCharacter::OnJumpReleased()
 
 void ARevolutionCharacter::TryVaultOrJump()
 {
-	if (bIsVaulting) return;
+	if (bIsVaulting || bIsMantling) return;
 
 	FVector TargetLocation;
 	if (DetectVaultableObstacle(TargetLocation))
@@ -515,6 +639,20 @@ void ARevolutionCharacter::TryVaultOrJump()
 		PlayVaultAudio();
 
 		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir vaulting over parapet to %s"), *TargetLocation.ToString());
+	}
+	else if (DetectMantleableLedge(TargetLocation))
+	{
+		bIsMantling = true;
+		MantleProgress = 0.0f;
+		MantleStartLocation = GetActorLocation();
+		MantleTargetLocation = TargetLocation;
+
+		GetCharacterMovement()->SetMovementMode(MOVE_Flying);
+		GetCharacterMovement()->Velocity = FVector::ZeroVector;
+
+		PlayVaultAudio();
+
+		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir mantling up onto high ledge to %s"), *TargetLocation.ToString());
 	}
 	else
 	{
@@ -689,6 +827,39 @@ bool ARevolutionCharacter::DetectVaultableObstacle(FVector& OutVaultLocation)
 	return false;
 }
 
+bool ARevolutionCharacter::DetectMantleableLedge(FVector& OutMantleLocation)
+{
+	FVector Start = GetActorLocation() + FVector(0.f, 0.f, 50.f);
+	FVector Forward = GetActorForwardVector();
+	FVector End = Start + (Forward * 130.f);
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+
+	if (GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params))
+	{
+		// Top of high ledge check (checks from 230cm above down to 110cm)
+		FVector HeightCheckStart = Hit.Location + (Forward * 35.f) + FVector(0.f, 0.f, 220.f);
+		FVector HeightCheckEnd = HeightCheckStart - FVector(0.f, 0.f, 180.f);
+		FHitResult HeightHit;
+
+		if (GetWorld()->LineTraceSingleByChannel(HeightHit, HeightCheckStart, HeightCheckEnd, ECC_Visibility, Params))
+		{
+			// Obstacle height relative to character ground base
+			float ObstacleHeight = (HeightHit.ImpactPoint.Z - GetActorLocation().Z) + 71.0f;
+			if (ObstacleHeight > 125.f && ObstacleHeight <= 220.f)
+			{
+				// Mantle destination: landing smoothly on top surface of the ledge with capsule clearance
+				OutMantleLocation = HeightHit.ImpactPoint + (Forward * 22.f) + FVector(0.f, 0.f, 72.0f);
+				return true;
+			}
+		}
+	}
+
+	return false;
+}
+
 void ARevolutionCharacter::PlayFootstepAudio()
 {
 	FVector Start = GetActorLocation();
@@ -761,6 +932,7 @@ void ARevolutionCharacter::ThrowPebble()
 	}
 
 	PebbleCount--;
+	bIsAimingPebble = false;
 
 	FVector SpawnLoc = GetActorLocation() + FVector(0.f, 0.f, 30.f);
 	FRotator SpawnRot = GetActorRotation();
@@ -795,6 +967,110 @@ void ARevolutionCharacter::ThrowPebble()
 	}
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir threw distraction pebble! Pebbles remaining: %d"), PebbleCount);
+}
+
+void ARevolutionCharacter::StartAimingPebble()
+{
+	if (PebbleCount > 0 && !bIsInspecting && !bIsSatchelJournalOpen)
+	{
+		bIsAimingPebble = true;
+	}
+}
+
+void ARevolutionCharacter::StopAimingPebble()
+{
+	bIsAimingPebble = false;
+}
+
+bool ARevolutionCharacter::CalculatePebbleTrajectory(TArray<FVector>& OutPathPoints, FVector& OutHitLocation, bool& bOutHitValid) const
+{
+	OutPathPoints.Reset();
+	bOutHitValid = false;
+	OutHitLocation = FVector::ZeroVector;
+
+	UWorld* World = GetWorld();
+	if (!World) return false;
+
+	FVector LaunchPos = FollowCamera ? FollowCamera->GetComponentLocation() + (FollowCamera->GetForwardVector() * 50.f)
+	                                 : (GetActorLocation() + GetActorForwardVector() * 40.f + FVector(0.f, 0.f, 30.f));
+
+	FRotator LaunchRot = FollowCamera ? FollowCamera->GetComponentRotation() : GetActorRotation();
+	LaunchRot.Pitch = FMath::Clamp(LaunchRot.Pitch + 5.0f, -60.0f, 60.0f);
+
+	FVector InitialVelocity = LaunchRot.Vector() * 1350.0f;
+	const FVector Gravity = FVector(0.0f, 0.0f, -980.0f * 1.15f);
+
+	OutPathPoints.Add(LaunchPos);
+	FVector PrevPos = LaunchPos;
+
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(this);
+
+	const float StepTime = 0.05f;
+	const int32 MaxSteps = 24;
+
+	for (int32 Step = 1; Step <= MaxSteps; ++Step)
+	{
+		float T = Step * StepTime;
+		FVector CurrentPos = LaunchPos + (InitialVelocity * T) + (0.5f * Gravity * T * T);
+
+		FHitResult Hit;
+		if (World->LineTraceSingleByChannel(Hit, PrevPos, CurrentPos, ECC_Visibility, TraceParams))
+		{
+			OutPathPoints.Add(Hit.ImpactPoint);
+			OutHitLocation = Hit.ImpactPoint;
+			bOutHitValid = true;
+			break;
+		}
+
+		OutPathPoints.Add(CurrentPos);
+		PrevPos = CurrentPos;
+	}
+
+	return OutPathPoints.Num() > 1;
+}
+
+void ARevolutionCharacter::UpdateCrowdBlending(float DeltaTime)
+{
+	if (bIsSprinting || bIsVaulting || bIsMantling || bIsHidingInCover || bIsCrawlTraversing)
+	{
+		bIsCrowdBlended = false;
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	if (!World)
+	{
+		bIsCrowdBlended = false;
+		return;
+	}
+
+	int32 NearbyCiviliansCount = 0;
+	const FVector PlayerLoc = GetActorLocation();
+
+	for (TActorIterator<APawn> It(World); It; ++It)
+	{
+		APawn* NearbyPawn = *It;
+		if (NearbyPawn && NearbyPawn != this)
+		{
+			FString ActorName = NearbyPawn->GetActorLabel();
+			if (ActorName.IsEmpty())
+			{
+				ActorName = NearbyPawn->GetName();
+			}
+
+			if (ActorName.StartsWith(TEXT("NPC_")) || ActorName.Contains(TEXT("Civilian"), ESearchCase::IgnoreCase))
+			{
+				float Dist = FVector::Dist(PlayerLoc, NearbyPawn->GetActorLocation());
+				if (Dist <= CrowdBlendRadius)
+				{
+					NearbyCiviliansCount++;
+				}
+			}
+		}
+	}
+
+	bIsCrowdBlended = (NearbyCiviliansCount >= 1);
 }
 
 void ARevolutionCharacter::DrawChalkMark()
@@ -957,6 +1233,101 @@ void ARevolutionCharacter::SelectSatchelTab(int32 TabIndex)
 		UE_LOG(LogREVOLUTION, Log, TEXT("Switched satchel journal tab to %d"), ActiveSatchelTab);
 	}
 }
+
+void ARevolutionCharacter::StartLeanLeft()
+{
+	bIsLeaningLeft = true;
+}
+
+void ARevolutionCharacter::StopLeanLeft()
+{
+	bIsLeaningLeft = false;
+}
+
+void ARevolutionCharacter::StartLeanRight()
+{
+	if (CurrentInteractableActor != nullptr)
+	{
+		OnInteract();
+		return;
+	}
+	bIsLeaningRight = true;
+}
+
+void ARevolutionCharacter::StopLeanRight()
+{
+	bIsLeaningRight = false;
+}
+
+void ARevolutionCharacter::ToggleKeenSenses()
+{
+	bIsKeenSensesActive = !bIsKeenSensesActive;
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir Keen Senses (Basant Intuition): %s"), bIsKeenSensesActive ? TEXT("ACTIVE") : TEXT("INACTIVE"));
+}
+
+void ARevolutionCharacter::UpdateEnvironmentalConcealment(float DeltaTime)
+{
+	float TargetScore = 0.50f;
+
+	// Stance base concealment
+	if (bIsCrouched)
+	{
+		TargetScore += 0.25f; // Crouching provides substantial low-profile shadow cover
+	}
+	if (bIsHidingInCover)
+	{
+		TargetScore = 0.95f; // In hiding spots (tandoor, charpai, sacks), Kabir is virtually invisible
+	}
+	else if (bIsCrowdBlended)
+	{
+		TargetScore += 0.22f; // Blending with civilians breaks solitary silhouette
+	}
+	else if (bIsSprinting)
+	{
+		TargetScore -= 0.35f; // Fast sprinting silhouette is easily caught in ambient light
+	}
+
+	// Check illumination from active sentry lanterns
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		FVector KabirPos = GetActorLocation() + FVector(0.0f, 0.0f, 40.0f);
+		for (TActorIterator<ACurfewPatrolAI> It(World); It; ++It)
+		{
+			ACurfewPatrolAI* Sentry = *It;
+			if (Sentry && Sentry->LanternLight)
+			{
+				float Dist = FVector::Dist(KabirPos, Sentry->GetActorLocation());
+				if (Dist < 850.0f)
+				{
+					// Check if light is occluded by walls
+					FCollisionQueryParams TraceParams(SCENE_QUERY_STAT(ConcealmentTrace), true, this);
+					TraceParams.AddIgnoredActor(Sentry);
+					FHitResult Hit;
+					bool bBlocked = World->LineTraceSingleByChannel(Hit, Sentry->GetActorLocation() + FVector(0.0f, 0.0f, 50.0f), KabirPos, ECC_Visibility, TraceParams);
+					if (!bBlocked)
+					{
+						// In direct line of lantern glow
+						float ProximityRatio = 1.0f - (Dist / 850.0f);
+						TargetScore -= (0.45f * ProximityRatio);
+					}
+				}
+			}
+		}
+	}
+
+	TargetScore = FMath::Clamp(TargetScore, 0.05f, 0.98f);
+	EnvironmentalConcealmentScore = FMath::FInterpTo(EnvironmentalConcealmentScore, TargetScore, DeltaTime, 4.0f);
+}
+
+void ARevolutionCharacter::TriggerSteamObscurity(float Duration)
+{
+	bIsSteamObscured = true;
+	SteamObscurityRemainingTime = FMath::Max(SteamObscurityRemainingTime, Duration);
+	UE_LOG(LogREVOLUTION, Log, TEXT("Steam Obscurity Cloak activated for %.1f seconds."), SteamObscurityRemainingTime);
+}
+
+
 
 
 

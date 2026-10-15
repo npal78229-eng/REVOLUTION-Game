@@ -23,7 +23,7 @@ The player steps into the shoes of **Kabir**, a 12-year-old son of a traditional
 
 ---
 
-## 2. Playable Vertical Slice (160 Actors across 5 Contiguous Zones)
+## 2. Playable Vertical Slice (205 Actors across 8 Contiguous Zones, Outskirts, Railway Cutting & Civil Lines Cantonment)
 
 The project currently features a contiguous, high-fidelity historical environment assembled in `Project/Content/Maps/L_Validation_Gym.umap`:
 
@@ -66,10 +66,30 @@ flowchart TD
         S5["Classroom Interior (4 Dual student desk benches, slate blackboard)"]
     end
 
+    subgraph ZoneE["Zone E & F: Outskirts & North Western Railway (94 Actors)"]
+        E1["Upper Bari Doab Canal Sluice Aqueduct & Stone Coping"]
+        E2["Timber Persian Wheel (Rahat) with Terracotta Pots"]
+        E3["Bhatta Brick Kiln Conical Chimney & Safehouse Stash"]
+        E4["Monumental Imperial Railway Brick Overpass Arch (8.0m Span)"]
+        E5["Broad-Gauge Railway Tracks with Stone Ballast Embankment"]
+        E6["Lattice Iron Semaphore Signal Gantry (6.5m Tower)"]
+        E7["Civil Lines Club Cast-Iron Spearhead Security Palisade"]
+    end
+
+    subgraph ZoneG["Zone G: Locomotive Depot & Colonial Cantonment (5 Actors)"]
+        G1["SM_Locomotive_Engine_PunjabMail (British 4-6-0 Steam Engine)"]
+        G2["SM_Cantonment_Guardhouse_Picket (Fortified Sentry Post & Sandbags)"]
+        G3["SM_Civil_Lines_Clubhouse_Bungalow (Colonial Headquarters & Doric Veranda)"]
+        G4["SM_Prop_Cantonment_Archive_Cabinet (Clandestine Telegraph Dispatches)"]
+        G5["Locomotive_Steam_Pressure_Relief_Valve (High-Pressure Steam Cloak Distraction)"]
+    end
+
     ZoneA -->|Deorhi Gateway Arch| ZoneB
     ZoneB -->|Connecting Galli| ZoneC
     ZoneC -->|North Thoroughfare| ZoneD
     ZoneC -->|East Arched Portal| DistrictC
+    ZoneD -->|West Canal Aqueduct| ZoneE
+    ZoneE -->|Railway Cutting Gate| ZoneG
 ```
 
 ### Environmental Highlights
@@ -96,21 +116,39 @@ flowchart TD
   - *Colonial Victorian Street Lamp Posts (`SM_Street_Lamp_Post_Victorian`):* 3.4m tall fluted cast-iron lampposts with municipal lamplighter ladder crossbars and hexagonal glass lanterns.
   - *Bazaar Khadi Awning Canopies (`SM_Bazaar_Canopy_Khadi_Awning`):* Timber post frames with draped indigo and saffron khadi canopies creating shaded market corridors.
   - *Carved Stone Street Gutters (`SM_Street_Drain_Stone_Gutter`):* Stone curb modules with longitudinal runoff channels and crossing bridge flagstones.
-- **Authentic PBR Materials:** Kiln-baked Lahori brick (`M_LahoriBrick_PBR`), aged Punjabi teak and sheesham (`M_AgedTeak_PBR`), blacksmith wrought iron (`M_WroughtIron_PBR`), and unglazed terracotta pottery (`M_Clay_PBR`).
+  - *Baisakhi Festive Garland Archway (`SM_Baisakhi_Garland_Archway`):* 4.2m grand festive timber portal draped with saffron marigold garlands (*Genda Phool*) and green mango leaf festoons (*Toran*) welcoming pilgrims into the chowk.
+  - *Town Crier Munadi Proclamation Drum (`SM_Munadi_Proclamation_Drum`):* Historic copper kettle-drum (Nagara) on teak tripod stand with beaters and British curfew proclamation scroll at Grand Bazaar chowk.
+  - *Baisakhi Harvest Wheat Sheaves Bullock Cart (`SM_Prop_Wheat_Sheaves_Cart`):* Heavy Punjabi two-wheeled cart (*Bail Gadi*) with 1.3m spoked wooden wheels and piled golden Baisakhi wheat sheaves at the Mandi grain market.
+  - *Baisakhi Festive Halwai Stall (`SM_Baisakhi_Mela_Sweet_Stall`):* Takhtposh market platform with hammered brass platters laden with golden jalebis, laddus, samovar, and triangular festival bunting.
+  - *Jallianwala Bagh Historic Narrow Gateway (`SM_Jallianwala_Narrow_Gateway`):* 2.2m claustrophobic corridor entrance flanked by 5m Lahori brick haveli walls and overhead corbelled arch framing the transition to the fateful April 13, 1919 gathering ground.
+  - *Historic Martyrs' Well Shahidi Kua (`SM_Jallianwala_Shahidi_Kua_Well`):* Deep masonry well with octagonal plinth, stone parapet, teak posts, hipped terracotta canopy, and iron pulley wheel where hundreds jumped to escape rifle fire.
+  - *Jallianwala Bagh Blind Haveli Enclosure Walls (`SM_Jallianwala_Enclosure_Wall`):* 4.5m tall blind kiln-baked Lahori brick haveli wall modules with pilaster buttresses completely enclosing the garden.
+  - *Tactical Elevated Raised Bank (`SM_Jallianwala_Raised_Bank`):* 1.2m earthen and brick terrace inside the corridor mouth where General Dyer deployed his 50 riflemen with unobstructed firing lines.
+  - *British Austin Armored Car Obstacle (`SM_British_Armored_Car_Obstacle`):* Riveted imperial armored car with dual Vickers machine-gun turret blocked in the outer street by the narrow 2.2m gateway arch.
+  - *Peaceful Assembly Pandal Dais (`SM_Jallianwala_Baisakhi_Pandal`):* Elevated khadi platform dais with Persian carpet runner, masnad bolsters, speech podium, and striped shamiana canopy.
+  - *Stampede Panic Debris Scatter (`SM_Prop_Fallen_Turban_Shoes_Scatter`):* Discarded saffron & white pagris, 3 pairs of curved-toe Punjabi leather juttis, broken cane umbrellas, brass lotas, and clay pots dropped during the sudden firing.
+  - *Historic Bullet-Pocked Memorial Wall Slab (`SM_Prop_Bullet_Pocked_Brick_Slab`):* 2.8m x 3.2m Lahori brick wall module with indented .303 bullet impact craters and painted white memorial marker frames.
+  - *Makeshift Bamboo Escape Ladder (`SM_Prop_Makeshift_Timber_Ladder`):* 3.6m rough-hewn bamboo/sal timber ladder with 10 rungs and hemp rope lashings leaned at 72 degrees against the north boundary wall.
+  - *Crumbling Boundary Wall Breach (`SM_Jallianwala_Crumbling_Wall_Breach`):* Damaged 4.4m wide x 1.75m high haveli brick wall section with climbable stepped rubble talus on the garden side (Z = 0.0 to 0.75m) providing parkour vault traversal into the adjoining rear alleys.
+- **Authentic PBR Materials:** Kiln-baked Lahori brick (`M_LahoriBrick_PBR`), aged Punjabi teak and sheesham (`M_AgedTeak_PBR`), blacksmith wrought iron (`M_WroughtIron_PBR`), unglazed terracotta pottery (`M_Clay_PBR`), festive saffron cloth (`M_ClothSaffron_PBR`), and undyed cotton (`M_ClothUndyedCotton_PBR`).
 - **Punjab Golden Hour Lighting (3200K):** Warm 75,000 lux sunlight casting deep amber light shafts and soft volumetric height fog through narrow alleys.
 
 ---
 
-## 3. Controls & Gameplay Systems
+## 3. Controls & Benchmark Gameplay Systems
 
-| Action | Primary Key | Gamepad | Description |
+Reverse-engineered and synthesized from proven AAA benchmark titles (*Assassin's Creed*, *A Plague Tale: Innocence*, *Dishonored*, *Hitman*):
+
+| Action | Primary Key | Gamepad | Benchmark Origin & Mechanic Description |
 | :--- | :--- | :--- | :--- |
-| **Move** | `W`, `A`, `S`, `D` / Arrows | Left Thumbstick | 8-way locomotion calibrated to 12-year-old Kabir (3.8 km/h). |
+| **Move** | `W`, `A`, `S`, `D` / Arrows | Left Thumbstick | Grounded locomotion calibrated to 12-year-old Kabir (3.8 km/h). |
 | **Sprint** | `Left Shift` | Left Thumbstick Click | Accelerate to 7.2 km/h sprint; consumes stamina. |
-| **Vault / Jump** | `SpaceBar` | Face Button Bottom (A) | Dynamic hurdle over 1.1m low brick parapets and obstacles. |
-| **Crouch** | `C` | Face Button Right (B) | Low-profile stealth posture; required for 80cm foundation crawlspaces. |
+| **Parkour Vault / High Mantle** | `SpaceBar` | Face Button Bottom (A) | **Assassin's Creed / Uncharted:** Context-sensitive parkour automatically executes Low Vault (50–125cm) or High Two-Handed Mantle (125–215cm) to scale haveli walls, compound ledges, and railway cutting embankments. |
+| **Crouch & Cover** | `C` | Face Button Right (B) | Low-profile stealth posture; required for 80cm foundation crawlspaces and hiding behind low brick parapets. |
+| **Social Stealth (Crowd Blend)** | *Passive Walk near NPCs* | *Left Stick Gently* | **Assassin's Creed / Hitman:** Walking calmly within 3.2m of civilians/shopkeepers grants `[ BLENDED WITH CIVILIANS ]`, reducing sentry detection rate by **80%**. |
+| **Aim Distraction Pebble** | `Right Mouse Button` (Hold) | Left Trigger (LT) | **A Plague Tale / The Last of Us:** Renders real-time parabolic ballistic trajectory arc with gravity compensation and an impact reticle indicating the 8.5m audible distraction radius. |
+| **Throw Pebble** | `Left Click` (while aiming) / `F` | Right Shoulder (RB) | Launch clay marble to strike walls/pots, scattering pigeons and luring curfew patrols away from checkpoints. |
 | **Interact / Inspect** | `E` / `Enter` | Face Button Left (X) | Inspect artifacts, open doors, draw well water, examine 3D lore cards. |
-| **Throw Pebble** | `F` / `G` | Right Shoulder (RB) | Throw clay marble to generate sound distraction and divert patrols. |
 | **Tailor's Chalk** | `T` | D-Pad Up | Scout-mark safe doors, secret passages, and patrol routes. |
 | **Satchel & Journal** | `Tab` / `J` | View / Select Button | Open courier satchel (Tabs `1`, `2`, `3` for equipment, map, and dispatches). |
 | **Camera Look** | `Mouse` | Right Thumbstick | Smooth third-person orbital camera with collision boom. |
@@ -201,10 +239,72 @@ REVOLUTION/
   - Level actors expanded to 146 across the 5 historical districts (100% PASS on automated verification suite `Scripts/verify_act1_questline.py`).
   - Expanded Satchel Journal (<kbd>Tab</kbd>) C++ HUD with North-up real-time 5-district route cartography, district boundaries, Chowk Gate / Kucha Arch landmarks, NPC tracking, and 10 period archival lore entries.
   - Implemented Underground Pamphlet Drop & Clandestine Printing Network: Kabir can retrieve freshly lithographed anti-Rowlatt strike bulletins, carry up to 5 handbills in his satchel, and secretly slip them to trusted merchants (Lala Karam Chand, Hira Halwai) while navigating heightened constable suspicion (+30% visual detection rate).
-- [ ] **Phase 6 (Next):**
-  - Crowd protest dynamics & Baisakhi festival gathering simulation in town square.
-  - General Dyer's proclamation drum-beater announcement (*Munadi*) reverberating across the bazaars.
-  - Expansion toward the enclosed walled garden entrance of Jallianwala Bagh.
-  - Dynamic time-of-day audio ambience (morning prayer call, temple bells, crows, ambient Punjab bazaar buzz).
+- [x] **Phase 6: The Road to Jallianwala Bagh & The Fateful Afternoon (Tasks 5, 6 & 7):**
+  - Synthesized and ingested authentic 16-bit 44.1kHz audio: `SFX_Munadi_Drum`, `SFX_Baisakhi_Crowd_Murmur`, `SFX_Crowd_Rally_Speech`, `SFX_Military_Boot_March`, `SFX_Bugle_Call_Charge`, and `SFX_Crowd_Panic_Scream`.
+  - Authored 14 monumental & period 3D assets in Blender 5.2 LTS and dual-exported to `Art/Exports/`, `Art/PROJECT/`, and `PROJECT/`:
+    - Munadi Proclamation Drum (`SM_Munadi_Proclamation_Drum`)
+    - Baisakhi Garland Archway (`SM_Baisakhi_Garland_Archway`)
+    - Baisakhi Wheat Sheaves Bullock Cart (`SM_Prop_Wheat_Sheaves_Cart`)
+    - Baisakhi Halwai Sweet Stall (`SM_Baisakhi_Mela_Sweet_Stall`)
+    - Jallianwala Bagh Narrow Gateway (`SM_Jallianwala_Narrow_Gateway`)
+    - Historic Martyrs' Well (`SM_Jallianwala_Shahidi_Kua_Well`)
+    - 4.5m Blind Haveli Enclosure Walls (`SM_Jallianwala_Enclosure_Wall`)
+    - Tactical Raised Earthen Bank (`SM_Jallianwala_Raised_Bank`)
+    - British Austin Armored Car Obstacle (`SM_British_Armored_Car_Obstacle`)
+    - Assembly Dais & Pandal (`SM_Jallianwala_Baisakhi_Pandal`)
+    - Stampede Panic Debris Scatter (`SM_Prop_Fallen_Turban_Shoes_Scatter`)
+    - Bullet-Pocked Memorial Wall Slab (`SM_Prop_Bullet_Pocked_Brick_Slab`)
+    - Makeshift Bamboo Escape Ladder (`SM_Prop_Makeshift_Timber_Ladder`)
+    - Vaultable Crumbling Wall Breach (`SM_Jallianwala_Crumbling_Wall_Breach`)
+  - Configured `CTF_USE_COMPLEX_AS_SIMPLE` collision across all structures and assembled into `L_Validation_Gym.umap`, expanding level actors to **179**.
+  - Expanded C++ `ECourierMissionStage` across 15 complete narrative story directives (from family courtyard dispatch to Act II Finale escape).
+  - Integrated dynamic interactive objective triggers with historical lore cards and audio playback in `RevolutionGameMode::BeginPlay()`.
+  - 100% PASS on automated headless verification suite `Scripts/verify_act1_questline.py` across 179 actors, 7 NPCs, 47 landmarks, and 15 story stages.
+- [x] **Phase 7: Act III — The Fateful Dusk & The Amritsar Curfew (Task 8):**
+  - Synthesized and ingested authentic 16-bit 44.1kHz audio: `SFX_Night_Cricket_Ambience` (nocturnal crickets & alley drafts) and `SFX_Police_Whistle_Curfew` (British Acme police curfew whistle).
+  - Authored 4 authentic period 3D assets in Blender 5.2 LTS and dual-exported to `Art/Exports/`, `Art/PROJECT/`, and `PROJECT/`:
+    - Imperial Carbon-Arc Searchlight on Tripod (`SM_Prop_Searchlight_Tripod_Imperial`)
+    - General Dyer's Martial Law Curfew Proclamation Easel (`SM_Prop_Curfew_Notice_Martial_Law`)
+    - Makeshift Bamboo & Charpai Casualty Stretcher (`SM_Prop_Makeshift_Stretcher_Charpai`)
+    - Fortified Sandbag Sentry Bunker with Timber Shoring (`SM_Checkpoint_Sandbag_Sentry_Bunker`)
+  - Configured `CTF_USE_COMPLEX_AS_SIMPLE` collision and assembled 5 curfew structures into `L_Validation_Gym.umap`, expanding total level actors to **184**.
+  - Extended C++ `ECourierMissionStage` with Act III stages: `Stage_ActIII_NightCurfewFall`, `Stage_ActIII_EvadeSearchlightPicket`, `Stage_ActIII_AidWoundedSurvivors`, and `Stage_ActIII_Completed`.
+  - Added runtime dynamic objective triggers with historical lore cards in `RevolutionGameMode::BeginPlay()`.
+
+- [x] **Phase 8: Act IV — Rural Outskirts & Upper Bari Doab Canal Network (Task 9):**
+  - Synthesized and ingested authentic 16-bit 44.1kHz audio: `SFX_Canal_Water_Flow_Gentle` (sluice turbulence & stream ripples) and `SFX_Persian_Wheel_Rahat_Creak` (timber cogwheel stress creaks, iron axle squeaks, and pottery splashes).
+  - Authored 4 monumental & industrial 3D assets in Blender 5.2 LTS and dual-exported to `Art/Exports/`, `Art/PROJECT/`, and `PROJECT/`:
+    - Canal Distributary Aqueduct & Sluice Gate Regulator (`SM_Canal_Distributary_Aqueduct_Stone`) with Lahori brick revetments, iron lift gate, gear racks, twin handwheels, and teak catwalk.
+    - Punjabi Persian Wheel Rahat Well Mechanism (`SM_Persian_Wheel_Rahat_Timber`) with 3m vertical drive wheel, 8 terracotta *tind* water pots, horizontal spur gear with wooden pegs, 3.2m bullock draught beam, and discharge flume trough.
+    - Traditional Bull's Trench Brick Kiln Bhatta Chimney (`SM_Brick_Kiln_Chimney_Bhatta`) with 7.5m conical brick chimney, corbelled crown rim, arched draft flue, firing trench bed, and green & fired brick hacks.
+    - Clandestine Resistance Safehouse Supply Cache (`SM_Prop_Clandestine_Safehouse_Crate_Cache`) with stenciled cargo crates, metal printing ink drums, vintage courier roadster bicycle, and draped burlap tarpaulin.
+  - Configured `CTF_USE_COMPLEX_AS_SIMPLE` collision and assembled into Zone F Western Outskirts of `L_Validation_Gym.umap`, expanding level actors to **188**.
+  - Extended C++ `ECourierMissionStage` across 23 complete story directives, advancing into Act IV: `Stage_ActIV_ReachCanalDistributary`, `Stage_ActIV_PersianWheelContact`, `Stage_ActIV_BrickKilnSafehouse`, and `Stage_Completed`.
+  - Recompiled `UnrealEditor-REVOLUTION.dll` (Exit code 0).
+  - Headless automated QA test suite `Scripts/verify_act1_questline.py` passed with **100% SUCCESS** across 188 actors, 7 NPCs, 56 landmarks, and all 23 narrative stages.
+
+- [x] **Phase 9: Layer 4 — Railway Junction & Colonial Civil Lines (Task 10):**
+  - Synthesized and ingested authentic 16-bit 44.1kHz audio: `SFX_Steam_Locomotive_Idling` and `SFX_Railway_Signal_Bell`.
+  - Authored 4 monumental 3D assets in Blender 5.2 LTS and dual-exported to `Art/Exports/`, `Art/PROJECT/`, and `PROJECT/`:
+    - Monumental 8.0m Brick Railway Overpass Arch (`SM_Railway_Brick_Overpass_Arch`)
+    - Broad-Gauge Dual Steel Track & Timber Sleepers with Ballast (`SM_Railway_Tracks_Ballast_Bed_4m`)
+    - 6.5m Colonial Structural Iron Lattice Signal Gantry (`SM_Colonial_Railway_Signal_Gantry`)
+    - Civil Lines Club Spearhead Security Perimeter Palisade (`SM_Civil_Lines_Club_Perimeter_Railing`)
+  - Assembled along Northern Perimeter of `L_Validation_Gym.umap` via `assemble_task10_railway_and_civil_lines.py`. Total level actors expanded to **199**.
+  - Extended C++ narrative loop across 27 distinct story stages spanning all five acts.
+
+- [x] **Phase 10: AAA Benchmark Mechanics Synthesis (Task 11):**
+  - **Dynamic High Mantling & Parkour Traversal (Assassin's Creed / Uncharted):** Low vault (50-125cm) and athletic high ledge mantle (125-215cm) with smooth cubic ease-in-out root interpolation (`bIsMantling`).
+  - **Social Stealth & Civilian Blending (Assassin's Creed / Hitman):** Walking calmly within 3.2m of civilians drops patrol detection speed by **80%** (`bIsCrowdBlended`).
+  - **Ballistic Pebble Aim Trajectory & Distraction (A Plague Tale / The Last of Us):** 24-step parabolic ballistic arc with gravity compensation ($g = -1127\text{ cm/s}^2$) and landing impact reticle with 8.5m audible beacon.
+
+- [x] **Phase 11: Layer 5 Historical Dynamic Atmosphere & Extended AAA Stealth Synthesis (Task 12):**
+  - **5 Historical Atmosphere Phases:** Seamless transitions across Morning Dawn (3200K, Act I), Baisakhi Midday (5200K, Act II), Curfew Night (8500K, Act III), Canal Distributary Night (6500K, Act IV), and Golden Sunrise Finale (2850K, Act V).
+  - **Persistent Atmosphere Controller:** `AtmosphereController_Historical` placed in `L_Validation_Gym.umap`, expanding level actors to **200**.
+  - **Corner Peeking & Lean Mechanic (Dishonored / The Last of Us):** Real-time camera boom lateral offset ($\pm 48\text{ cm}$) and roll tilt ($\pm 5^\circ$) via `Q` and `E`, dampening detection profile to **0.35x**.
+  - **Environmental Shadow Concealment Rating (Thief / Splinter Cell):** Real-time luminance evaluation against active lanterns and haveli shade, dampening sentry detection speed by up to **75%**.
+  - **Keen Senses / Basant Intuition (Assassin's Creed Eagle Vision / Hitman Instinct):** Activated via `V` key, projecting crimson sentry beacons, amber civilian badges, and golden cache reticles in world space.
+  - **Protagonist Hero Skeletal Mesh:** Authentic historical PBR materials bound across all 10 material slots of `SK_Kabir_Protagonist_AAA`.
+  - **Master Automated QA Suite:** `verify_act1_questline.py` passed with **100% SUCCESS** across 200 actors, 7 NPCs, 64 landmarks, and 27 story milestones.
 
 

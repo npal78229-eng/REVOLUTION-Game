@@ -26,6 +26,7 @@
 #include "MatkaStandActor.h"
 #include "CurfewGongActor.h"
 #include "CivilianNPCActor.h"
+#include "LocomotiveSteamValveActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
 #include "Components/StaticMeshComponent.h"
@@ -306,6 +307,481 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			}
 
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Classroom 4B Student Desk at (1150, 1850, 35)."));
+		}
+
+		// Objective Trigger: General Dyer's Munadi Proclamation Drum (Grand Bazaar Chowk)
+		AObjectiveTriggerActor* MunadiDrumTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(80.0f, 1920.0f, 50.0f),
+			FRotator(0.0f, -30.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (MunadiDrumTrigger)
+		{
+			MunadiDrumTrigger->RequiredMissionStage = ECourierMissionStage::Stage_Afternoon_MunadiProclamation;
+			MunadiDrumTrigger->InteractionPrompt = FText::FromString(TEXT("Hear General Dyer's Proclamation"));
+			MunadiDrumTrigger->ItemTitle = FText::FromString(TEXT("General Dyer's Curfew Proclamation (Munadi)"));
+			MunadiDrumTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("On the morning of April 13, 1919, British town criers beat nagara drums across Amritsar, reading General Dyer's proclamation banning all public assemblies under martial law. Most citizens in the bazaars and visiting villagers never heard it.")
+			);
+			MunadiDrumTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* DrumSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Munadi_Drum.SFX_Munadi_Drum"));
+			if (DrumSFX)
+			{
+				MunadiDrumTrigger->TriggerSound = DrumSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Munadi Proclamation Drum at (80, 1920, 50)."));
+		}
+
+		// Objective Trigger: The Historic Narrow Gateway of Jallianwala Bagh
+		AObjectiveTriggerActor* JallianwalaGateTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(900.0f, 2250.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (JallianwalaGateTrigger)
+		{
+			JallianwalaGateTrigger->RequiredMissionStage = ECourierMissionStage::Stage_Afternoon_BaghNarrowEntry;
+			JallianwalaGateTrigger->InteractionPrompt = FText::FromString(TEXT("Enter Jallianwala Bagh Passage"));
+			JallianwalaGateTrigger->ItemTitle = FText::FromString(TEXT("The Historic Choke-Point of Jallianwala Bagh"));
+			JallianwalaGateTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("The entrance to Jallianwala Bagh was an extraordinarily narrow alley, barely 2.2 meters wide between high brick haveli walls. Over 20,000 peaceful men, women, and children have gathered for the Baisakhi festival and peaceful assembly. Unbeknownst to them, General Dyer's troops are marching toward this choke-point.")
+			);
+			JallianwalaGateTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* CrowdSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Baisakhi_Crowd_Murmur.SFX_Baisakhi_Crowd_Murmur"));
+			if (CrowdSFX)
+			{
+				JallianwalaGateTrigger->TriggerSound = CrowdSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Jallianwala Narrow Gateway at (900, 2250, 50)."));
+		}
+
+		// Objective Trigger: The Martyrs' Well (Shahidi Kua)
+		AObjectiveTriggerActor* ShahidiWellTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(1200.0f, 2950.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (ShahidiWellTrigger)
+		{
+			ShahidiWellTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActII_BaisakhiGathering;
+			ShahidiWellTrigger->InteractionPrompt = FText::FromString(TEXT("Examine the Martyrs' Well (Shahidi Kua)"));
+			ShahidiWellTrigger->ItemTitle = FText::FromString(TEXT("The Martyrs' Well (Shahidi Kua)"));
+			ShahidiWellTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("A deep brick masonry well in the northern quadrangle of Jallianwala Bagh. When the 9th Bhopal and Gurkha rifles opened fire on the trapped crowd without warning, hundreds jumped into the narrow shaft to escape the hail of bullets. Over 120 bodies were later recovered from its depths.")
+			);
+			ShahidiWellTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* MarchSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Military_Boot_March.SFX_Military_Boot_March"));
+			if (MarchSFX)
+			{
+				ShahidiWellTrigger->TriggerSound = MarchSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Shahidi Kua Martyrs' Well at (1200, 2950, 50)."));
+		}
+
+		// Objective Trigger: The Peaceful Assembly Pandal & Speakers Dais
+		AObjectiveTriggerActor* PandalTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(1450.0f, 3100.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (PandalTrigger)
+		{
+			PandalTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActII_BaisakhiGathering;
+			PandalTrigger->InteractionPrompt = FText::FromString(TEXT("Listen to Assembly Speakers"));
+			PandalTrigger->ItemTitle = FText::FromString(TEXT("The Peaceful Baisakhi Assembly Dais"));
+			PandalTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("On April 13, 1919, over 20,000 citizens from across Punjab gathered peacefully in this walled garden. Speakers peacefully passed resolutions demanding the repeal of the Rowlatt Act and the release of arrested leaders Dr. Saifuddin Kitchlew and Dr. Satyapal, unaware that General Dyer had blocked the sole exit.")
+			);
+			PandalTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* RallySFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Crowd_Rally_Speech.SFX_Crowd_Rally_Speech"));
+			if (RallySFX)
+			{
+				PandalTrigger->TriggerSound = RallySFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Baisakhi Pandal Dais at (1450, 3100, 50)."));
+		}
+
+		// Objective Trigger: General Dyer Orders Fire (Bugle Call & Rifle Firing Line)
+		AObjectiveTriggerActor* TheFiringTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(1250.0f, 2800.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (TheFiringTrigger)
+		{
+			TheFiringTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActII_TheFiring;
+			TheFiringTrigger->InteractionPrompt = FText::FromString(TEXT("Hear Dyer's Firing Command"));
+			TheFiringTrigger->ItemTitle = FText::FromString(TEXT("The Orders of General Dyer (April 13, 1919)"));
+			TheFiringTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Without giving any warning to disperse, Brigadier-General Reginald Dyer deployed 50 Gurkha and Baluch riflemen across the raised bank at the narrow mouth of Jallianwala Bagh. A sharp bugle call echoed across the garden, followed instantly by the deafening crack of .303 Lee-Enfield volleys. The crowd had no way to escape through the blocked gateway.")
+			);
+			TheFiringTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* BugleSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Bugle_Call_Charge.SFX_Bugle_Call_Charge"));
+			if (BugleSFX)
+			{
+				TheFiringTrigger->TriggerSound = BugleSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: The Firing Trigger at (1250, 2800, 50)."));
+		}
+
+		// Objective Trigger: Panic in the Enclosure & Stampede Debris
+		AObjectiveTriggerActor* FindEscapeTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(950.0f, 3100.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (FindEscapeTrigger)
+		{
+			FindEscapeTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActII_FindEscapeRoute;
+			FindEscapeTrigger->InteractionPrompt = FText::FromString(TEXT("Evade Stampede and Seek Escape"));
+			FindEscapeTrigger->ItemTitle = FText::FromString(TEXT("Panic in the Trapped Enclosure"));
+			FindEscapeTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("As rifle fire tore into the dense crowd, sheer pandemonium erupted. Desperate mothers, fathers, and children ran in waves toward the 5-meter blind haveli walls, only to find them insurmountable. Hundreds of turbans and shoes were lost in the stampede. Kabir must keep his footing and search for a damaged low wall section.")
+			);
+			FindEscapeTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* PanicSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Crowd_Panic_Scream.SFX_Crowd_Panic_Scream"));
+			if (PanicSFX)
+			{
+				FindEscapeTrigger->TriggerSound = PanicSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Find Escape Route Trigger at (950, 3100, 50)."));
+		}
+
+		// Objective Trigger: Vault the Crumbling Wall Breach
+		AObjectiveTriggerActor* VaultBreachTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(680.0f, 3320.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (VaultBreachTrigger)
+		{
+			VaultBreachTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActII_VaultWallBreach;
+			VaultBreachTrigger->InteractionPrompt = FText::FromString(TEXT("Vault Crumbling Wall Breach"));
+			VaultBreachTrigger->ItemTitle = FText::FromString(TEXT("The Crumbling Boundary Wall Breach"));
+			VaultBreachTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("A damaged 1.8-meter low section of rear haveli brickwork with collapsed rubble beneath offers a slender chance of survival. With a burst of agility, 12-year-old Kabir scrambles up the fallen bricks, grabs the fractured coping ledge, and vaults over into the adjoining back alleyways of Amritsar, surviving the massacre.")
+			);
+			VaultBreachTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* CompleteSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Dawn_Gong_Complete.SFX_Dawn_Gong_Complete"));
+			if (CompleteSFX)
+			{
+				VaultBreachTrigger->TriggerSound = CompleteSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Vault Breach Trigger at (680, 3320, 50)."));
+		}
+
+		// Objective Trigger: Martial Law Curfew Notice (Act III Step 16)
+		AObjectiveTriggerActor* CurfewNoticeTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(-80.0f, 1850.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (CurfewNoticeTrigger)
+		{
+			CurfewNoticeTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActIII_NightCurfewFall;
+			CurfewNoticeTrigger->InteractionPrompt = FText::FromString(TEXT("Examine Martial Law Curfew Notice"));
+			CurfewNoticeTrigger->ItemTitle = FText::FromString(TEXT("General Dyer's 8:00 PM Curfew Proclamation"));
+			CurfewNoticeTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Following the firing at Jallianwala Bagh, General Dyer clamped an inflexible 8:00 PM curfew upon Amritsar. Any citizen found outside their home was liable to be shot on sight. Mothers and fathers were prohibited from searching for their wounded and dying children overnight in the dark garden.")
+			);
+			CurfewNoticeTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* WhistleSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Police_Whistle_Curfew.SFX_Police_Whistle_Curfew"));
+			if (WhistleSFX)
+			{
+				CurfewNoticeTrigger->TriggerSound = WhistleSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Curfew Notice Trigger at (-80, 1850, 50)."));
+		}
+
+		// Objective Trigger: Evade Searchlight Picket (Act III Step 17)
+		AObjectiveTriggerActor* SearchlightPicketTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(0.0f, 2260.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (SearchlightPicketTrigger)
+		{
+			SearchlightPicketTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActIII_EvadeSearchlightPicket;
+			SearchlightPicketTrigger->InteractionPrompt = FText::FromString(TEXT("Slip Past Searchlight Picket"));
+			SearchlightPicketTrigger->ItemTitle = FText::FromString(TEXT("Imperial Carbon-Arc Searchlight Picket"));
+			SearchlightPicketTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("High-intensity carbon-arc searchlights mounted on heavy iron tripods illuminated key intersections and sandbag bunkers. Young couriers used knowledge of narrow covered mohalla alleys and rooftop blind spots to slip past the illuminated sweep cones.")
+			);
+			SearchlightPicketTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* MarchSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Military_Boot_March.SFX_Military_Boot_March"));
+			if (MarchSFX)
+			{
+				SearchlightPicketTrigger->TriggerSound = MarchSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Searchlight Picket Trigger at (0, 2260, 50)."));
+		}
+
+		// Objective Trigger: Aid Wounded Survivors with Makeshift Stretcher (Act III Step 18)
+		AObjectiveTriggerActor* SecretStretcherClinicTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(-120.0f, 950.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (SecretStretcherClinicTrigger)
+		{
+			SecretStretcherClinicTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActIII_AidWoundedSurvivors;
+			SecretStretcherClinicTrigger->InteractionPrompt = FText::FromString(TEXT("Deliver First Aid to Stretcher"));
+			SecretStretcherClinicTrigger->ItemTitle = FText::FromString(TEXT("Makeshift Stretcher & Clandestine Medical Relief"));
+			SecretStretcherClinicTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Defying the mortal danger of the martial law curfew, Amritsar residents like Ratan Devi crept through dark kucha alleys to carry water and bandages to survivors. Makeshift woven charpais served as stretchers to carry the injured into secret community shelters.")
+			);
+			SecretStretcherClinicTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* CompleteSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Dawn_Gong_Complete.SFX_Dawn_Gong_Complete"));
+			if (CompleteSFX)
+			{
+				SecretStretcherClinicTrigger->TriggerSound = CompleteSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Secret Stretcher Clinic Trigger at (-120, 950, 50)."));
+		}
+
+		// Objective Trigger: Canal Sluice Regulator (Act IV Step 20)
+		AObjectiveTriggerActor* CanalAqueductTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(-950.0f, 2200.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (CanalAqueductTrigger)
+		{
+			CanalAqueductTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActIV_ReachCanalDistributary;
+			CanalAqueductTrigger->InteractionPrompt = FText::FromString(TEXT("Inspect Canal Sluice Regulator"));
+			CanalAqueductTrigger->ItemTitle = FText::FromString(TEXT("Upper Bari Doab Canal Distributary"));
+			CanalAqueductTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Engineered as part of the extensive British canal irrigation network across Punjab, the Upper Bari Doab distributary channels brought life to agricultural fields. For independence couriers, its masonry bridges and stone sluice banks served as critical escape routes beyond urban cordons.")
+			);
+			CanalAqueductTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* WaterSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Canal_Water_Flow_Gentle.SFX_Canal_Water_Flow_Gentle"));
+			if (WaterSFX)
+			{
+				CanalAqueductTrigger->TriggerSound = WaterSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Canal Aqueduct Trigger at (-950, 2200, 50)."));
+		}
+
+		// Objective Trigger: Persian Wheel Rahat (Act IV Step 21)
+		AObjectiveTriggerActor* PersianWheelTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(-1150.0f, 2050.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (PersianWheelTrigger)
+		{
+			PersianWheelTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActIV_PersianWheelContact;
+			PersianWheelTrigger->InteractionPrompt = FText::FromString(TEXT("Meet Contact at Persian Wheel (Rahat)"));
+			PersianWheelTrigger->ItemTitle = FText::FromString(TEXT("The Punjabi Rahat (Persian Wheel Well)"));
+			PersianWheelTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("The traditional Rahat has irrigated Punjabi soil for centuries, using bullocks circling a geared timber crown wheel to lift chains of clay water pots. Rural farmers sympathetic to the anti-colonial cause used its continuous wooden groans and water cascades to mask clandestine exchanges.")
+			);
+			PersianWheelTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* RahatSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Persian_Wheel_Rahat_Creak.SFX_Persian_Wheel_Rahat_Creak"));
+			if (RahatSFX)
+			{
+				PersianWheelTrigger->TriggerSound = RahatSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Persian Wheel Trigger at (-1150, 2050, 50)."));
+		}
+
+		// Objective Trigger: Brick Kiln Resistance Cache (Act IV Step 22)
+		AObjectiveTriggerActor* BrickKilnCacheTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(-1180.0f, 2520.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (BrickKilnCacheTrigger)
+		{
+			BrickKilnCacheTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActIV_BrickKilnSafehouse;
+			BrickKilnCacheTrigger->InteractionPrompt = FText::FromString(TEXT("Secure Resistance Safe Cache"));
+			BrickKilnCacheTrigger->ItemTitle = FText::FromString(TEXT("The Bhatta Brick Kiln Resistance Stash"));
+			BrickKilnCacheTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Bull's trench brick kilns on the rural outskirts provided perfect industrial hideouts. Tucked beneath weathered burlap tarpaulins and drying brick hacks, couriers stored lithographed pamphlets, ink supplies, and bicycles to connect village freedom fighters with town centers.")
+			);
+			BrickKilnCacheTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* CompleteSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Dawn_Gong_Complete.SFX_Dawn_Gong_Complete"));
+			if (CompleteSFX)
+			{
+				BrickKilnCacheTrigger->TriggerSound = CompleteSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Brick Kiln Cache Trigger at (-1180, 2520, 50)."));
+		}
+
+		// Objective Trigger: Railway Overpass (Act V Step 24)
+		AObjectiveTriggerActor* RailwayOverpassTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(900.0f, 3900.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (RailwayOverpassTrigger)
+		{
+			RailwayOverpassTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActV_ReachRailwayCutting;
+			RailwayOverpassTrigger->InteractionPrompt = FText::FromString(TEXT("Scout Railway Cutting"));
+			RailwayOverpassTrigger->ItemTitle = FText::FromString(TEXT("The North Western Railway Cutting"));
+			RailwayOverpassTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Constructed by the colonial Public Works Department, the North Western Railway broad-gauge tracks formed a rigid physical and social barrier dividing indigenous walled towns from European Civil Lines. Under martial law, military steam locomotives patrolled the tracks.")
+			);
+			RailwayOverpassTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* TrainSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Steam_Locomotive_Idling.SFX_Steam_Locomotive_Idling"));
+			if (TrainSFX)
+			{
+				RailwayOverpassTrigger->TriggerSound = TrainSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Railway Overpass Trigger at (900, 3900, 50)."));
+		}
+
+		// Objective Trigger: Semaphore Signal Gantry (Act V Step 25)
+		AObjectiveTriggerActor* SignalGantryTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(1160.0f, 3960.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (SignalGantryTrigger)
+		{
+			SignalGantryTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActV_ClimbSignalGantry;
+			SignalGantryTrigger->InteractionPrompt = FText::FromString(TEXT("Shift Railway Semaphore Lever"));
+			SignalGantryTrigger->ItemTitle = FText::FromString(TEXT("The Junction Semaphore Signal Gantry"));
+			SignalGantryTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Standing 6.5 meters tall, the lattice iron semaphore tower controlled broad-gauge troop and freight movements. By shifting the mechanical counterbalance lever, couriers altered junction signals to divert colonial military transport trains.")
+			);
+			SignalGantryTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* BellSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Railway_Signal_Bell.SFX_Railway_Signal_Bell"));
+			if (BellSFX)
+			{
+				SignalGantryTrigger->TriggerSound = BellSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Semaphore Signal Gantry Trigger at (1160, 3960, 50)."));
+		}
+
+		// Objective Trigger: Civil Lines Palisade Perimeter (Act V Step 26)
+		AObjectiveTriggerActor* CivilLinesPalisadeTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(900.0f, 4200.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (CivilLinesPalisadeTrigger)
+		{
+			CivilLinesPalisadeTrigger->RequiredMissionStage = ECourierMissionStage::Stage_ActV_CrossCivilLinesPalisade;
+			CivilLinesPalisadeTrigger->InteractionPrompt = FText::FromString(TEXT("Breach Civil Lines Palisade"));
+			CivilLinesPalisadeTrigger->ItemTitle = FText::FromString(TEXT("The Segregated Cantonment Perimeter"));
+			CivilLinesPalisadeTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Cast-iron spearhead palisades separated the colonial club and administrative cantonment from Indian citizens. Slipping through this boundary marked the culmination of Kabir's courier journey, carrying the unified demands of the people into the imperial administration.")
+			);
+			CivilLinesPalisadeTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* CompleteSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Dawn_Gong_Complete.SFX_Dawn_Gong_Complete"));
+			if (CompleteSFX)
+			{
+				CivilLinesPalisadeTrigger->TriggerSound = CompleteSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Civil Lines Palisade Trigger at (900, 4200, 50)."));
+		}
+
+		// Objective Trigger: Cantonment Veranda Archive Cabinet (Act V Climax Infiltration)
+		AObjectiveTriggerActor* CantonmentArchiveTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(820.0f, 4520.0f, 75.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (CantonmentArchiveTrigger)
+		{
+			CantonmentArchiveTrigger->RequiredMissionStage = ECourierMissionStage::Stage_Completed;
+			CantonmentArchiveTrigger->InteractionPrompt = FText::FromString(TEXT("Secure Clandestine Imperial Dispatches"));
+			CantonmentArchiveTrigger->ItemTitle = FText::FromString(TEXT("The Clandestine Telegraph Dispatches"));
+			CantonmentArchiveTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Intercepted telegraph cables between the Deputy Commissioner of Amritsar and the Punjab Secretariat in Lahore reveal the military's suppression of press reporting and the truth of the April 1919 uprising. Securing these dispatches ensures the sacrifice of Kot Gurdarshan can never be forgotten.")
+			);
+			CantonmentArchiveTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* TelegraphSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Telegraph_Chirp_Ticker.SFX_Telegraph_Chirp_Ticker"));
+			if (TelegraphSFX)
+			{
+				CantonmentArchiveTrigger->TriggerSound = TelegraphSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Cantonment Veranda Archive Trigger at (820, 4520, 75)."));
+		}
+
+		// Locomotive Boiler Steam Pressure Relief Valve (Hitman / Batman Arkham benchmark)
+		FActorSpawnParameters SteamValveParams;
+		SteamValveParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ALocomotiveSteamValveActor* SteamValve = World->SpawnActor<ALocomotiveSteamValveActor>(
+			ALocomotiveSteamValveActor::StaticClass(),
+			FVector(1000.0f, 3880.0f, 90.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			SteamValveParams
+		);
+		if (SteamValve)
+		{
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned LocomotiveSteamValveActor on boiler at (1000, 3880, 90)."));
+		}
+
+		// Cantonment Gate Sentinel (Punjab Imperial Police Picket)
+		FActorSpawnParameters SentrySpawnParams;
+		SentrySpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+		ACurfewPatrolAI* CantonmentSentry = World->SpawnActor<ACurfewPatrolAI>(
+			ACurfewPatrolAI::StaticClass(),
+			FVector(650.0f, 4220.0f, 10.0f),
+			FRotator(0.0f, -90.0f, 0.0f),
+			SentrySpawnParams
+		);
+		if (CantonmentSentry)
+		{
+			CantonmentSentry->WatchmanTitle = FText::FromString(TEXT("Punjab Imperial Police Cantonment Sentinel"));
+			CantonmentSentry->PatrolWaypoints.Empty();
+			CantonmentSentry->PatrolWaypoints.Add(FVector(650.0f, 4220.0f, 10.0f)); // Guardhouse picket
+			CantonmentSentry->PatrolWaypoints.Add(FVector(800.0f, 4220.0f, 10.0f)); // Civil lines gate
+			CantonmentSentry->PatrolWaypoints.Add(FVector(950.0f, 4220.0f, 10.0f)); // Palisade perimeter
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Cantonment Sentinel at (650, 4220, 10)."));
 		}
 	}
 

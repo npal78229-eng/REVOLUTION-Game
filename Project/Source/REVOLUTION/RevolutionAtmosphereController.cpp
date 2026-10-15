@@ -17,17 +17,10 @@ ARevolutionAtmosphereController::ARevolutionAtmosphereController()
 {
 	PrimaryActorTick.bCanEverTick = true;
 
-	NightRotation = FRotator(-68.0f, 40.0f, 0.0f);
-	DawnRotation = FRotator(-6.5f, 85.0f, 0.0f);
-
-	NightSunIntensity = 2.5f;
-	DawnSunIntensity = 16.0f;
-
-	NightSunColor = FLinearColor(0.60f, 0.72f, 0.95f, 1.0f);
-	DawnSunColor = FLinearColor(1.0f, 0.76f, 0.52f, 1.0f);
-
-	NightSkyLightIntensity = 0.25f;
-	DawnSkyLightIntensity = 1.05f;
+	CurrentPhase = EHistoricalAtmospherePhase::MorningDawn;
+	CurrentSettings = GetSettingsForPhase(CurrentPhase);
+	TargetSettings = CurrentSettings;
+	SourceSettings = CurrentSettings;
 
 	static ConstructorHelpers::FObjectFinder<USoundBase> BellSoundFinder(TEXT("/Game/Audio/SFX/SFX_Dawn_Temple_Bell.SFX_Dawn_Temple_Bell"));
 	if (BellSoundFinder.Succeeded())
@@ -40,6 +33,93 @@ ARevolutionAtmosphereController::ARevolutionAtmosphereController()
 	{
 		TrainDistantSound = TrainSoundFinder.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> WhistleSoundFinder(TEXT("/Game/Audio/SFX/SFX_Police_Whistle_Curfew.SFX_Police_Whistle_Curfew"));
+	if (WhistleSoundFinder.Succeeded())
+	{
+		CurfewWhistleSound = WhistleSoundFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> CanalSoundFinder(TEXT("/Game/Audio/SFX/SFX_Canal_Water_Flow_Gentle.SFX_Canal_Water_Flow_Gentle"));
+	if (CanalSoundFinder.Succeeded())
+	{
+		CanalWaterSound = CanalSoundFinder.Object;
+	}
+}
+
+FHistoricalAtmosphereSettings ARevolutionAtmosphereController::GetSettingsForPhase(EHistoricalAtmospherePhase Phase) const
+{
+	FHistoricalAtmosphereSettings Settings;
+
+	switch (Phase)
+	{
+	case EHistoricalAtmospherePhase::MorningDawn:
+		// Act I: 1919 Morning Dawn — warm golden sunlight breaking over haveli parapets, soft morning mist
+		Settings.SunRotation = FRotator(-15.0f, 75.0f, 0.0f);
+		Settings.SunIntensity = 14.0f;
+		Settings.SunColor = FLinearColor(1.0f, 0.82f, 0.60f, 1.0f);
+		Settings.SunTemperature = 3200.0f;
+		Settings.SkyLightIntensity = 0.85f;
+		Settings.SkyLightColor = FLinearColor(0.82f, 0.88f, 1.0f, 1.0f);
+		Settings.FogDensity = 0.012f;
+		Settings.FogHeightFalloff = 0.25f;
+		Settings.FogInscatteringColor = FLinearColor(0.85f, 0.75f, 0.60f, 1.0f);
+		break;
+
+	case EHistoricalAtmospherePhase::BaisakhiMidday:
+		// Act II: Baisakhi Festival Midday — bright, vibrant Punjabi spring sun, crisp visibility in bazaars
+		Settings.SunRotation = FRotator(-62.0f, 165.0f, 0.0f);
+		Settings.SunIntensity = 28.0f;
+		Settings.SunColor = FLinearColor(1.0f, 0.96f, 0.90f, 1.0f);
+		Settings.SunTemperature = 5200.0f;
+		Settings.SkyLightIntensity = 1.25f;
+		Settings.SkyLightColor = FLinearColor(0.75f, 0.85f, 1.0f, 1.0f);
+		Settings.FogDensity = 0.004f;
+		Settings.FogHeightFalloff = 0.15f;
+		Settings.FogInscatteringColor = FLinearColor(0.80f, 0.85f, 0.95f, 1.0f);
+		break;
+
+	case EHistoricalAtmospherePhase::CurfewNight:
+		// Act III: Martial Law Curfew Night — sharp high-contrast moonlight, cold blue shadows, dense urban smog
+		Settings.SunRotation = FRotator(-68.0f, 40.0f, 0.0f);
+		Settings.SunIntensity = 2.2f;
+		Settings.SunColor = FLinearColor(0.55f, 0.68f, 0.95f, 1.0f);
+		Settings.SunTemperature = 8500.0f;
+		Settings.SkyLightIntensity = 0.20f;
+		Settings.SkyLightColor = FLinearColor(0.40f, 0.55f, 0.85f, 1.0f);
+		Settings.FogDensity = 0.040f;
+		Settings.FogHeightFalloff = 0.35f;
+		Settings.FogInscatteringColor = FLinearColor(0.15f, 0.20f, 0.35f, 1.0f);
+		break;
+
+	case EHistoricalAtmospherePhase::CanalNight:
+		// Act IV: Upper Bari Doab Outskirts — pale river moonlight, heavy ground fog rolling off water canals
+		Settings.SunRotation = FRotator(-48.0f, 25.0f, 0.0f);
+		Settings.SunIntensity = 3.2f;
+		Settings.SunColor = FLinearColor(0.65f, 0.78f, 0.92f, 1.0f);
+		Settings.SunTemperature = 6500.0f;
+		Settings.SkyLightIntensity = 0.32f;
+		Settings.SkyLightColor = FLinearColor(0.45f, 0.60f, 0.80f, 1.0f);
+		Settings.FogDensity = 0.058f;
+		Settings.FogHeightFalloff = 0.45f;
+		Settings.FogInscatteringColor = FLinearColor(0.20f, 0.30f, 0.40f, 1.0f);
+		break;
+
+	case EHistoricalAtmospherePhase::GoldenSunrise:
+		// Act V: Golden Sunrise Finale — triumphant golden dawn breaking across the North Western Railway cutting
+		Settings.SunRotation = FRotator(-6.5f, 85.0f, 0.0f);
+		Settings.SunIntensity = 22.0f;
+		Settings.SunColor = FLinearColor(1.0f, 0.74f, 0.45f, 1.0f);
+		Settings.SunTemperature = 2850.0f;
+		Settings.SkyLightIntensity = 1.15f;
+		Settings.SkyLightColor = FLinearColor(0.95f, 0.80f, 0.65f, 1.0f);
+		Settings.FogDensity = 0.018f;
+		Settings.FogHeightFalloff = 0.20f;
+		Settings.FogInscatteringColor = FLinearColor(0.95f, 0.70f, 0.45f, 1.0f);
+		break;
+	}
+
+	return Settings;
 }
 
 void ARevolutionAtmosphereController::BeginPlay()
@@ -68,36 +148,124 @@ void ARevolutionAtmosphereController::BeginPlay()
 		break;
 	}
 
-	// Apply Initial Curfew Midnight Atmosphere
+	// Apply Initial Atmosphere based on active Mission Stage
+	EHistoricalAtmospherePhase InitialPhase = EHistoricalAtmospherePhase::MorningDawn;
+
+	if (URevolutionMissionSubsystem* Subsystem = World->GetSubsystem<URevolutionMissionSubsystem>())
+	{
+		Subsystem->OnMissionDirectiveChanged.AddDynamic(this, &ARevolutionAtmosphereController::HandleMissionDirectiveChanged);
+		ECourierMissionStage InitStage = Subsystem->GetCurrentStage();
+
+		if (InitStage <= ECourierMissionStage::Stage_Morning_ClassroomDesk)
+		{
+			InitialPhase = EHistoricalAtmospherePhase::MorningDawn;
+		}
+		else if (InitStage <= ECourierMissionStage::Stage_ActII_Completed)
+		{
+			InitialPhase = EHistoricalAtmospherePhase::BaisakhiMidday;
+		}
+		else if (InitStage <= ECourierMissionStage::Stage_ActIII_Completed)
+		{
+			InitialPhase = EHistoricalAtmospherePhase::CurfewNight;
+		}
+		else if (InitStage < ECourierMissionStage::Stage_Completed)
+		{
+			InitialPhase = EHistoricalAtmospherePhase::CanalNight;
+		}
+		else
+		{
+			InitialPhase = EHistoricalAtmospherePhase::GoldenSunrise;
+		}
+	}
+
+	SetAtmospherePhase(InitialPhase, 0.0f);
+	UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController initialized with Historical Phase %d."), (int32)InitialPhase);
+}
+
+void ARevolutionAtmosphereController::ApplyAtmosphereSettings(const FHistoricalAtmosphereSettings& Settings)
+{
+	CurrentSettings = Settings;
+
 	if (SunMoonLight)
 	{
 		SunMoonLight->SetMobility(EComponentMobility::Movable);
+		SunMoonLight->SetActorRotation(Settings.SunRotation);
+
 		if (UDirectionalLightComponent* LightComp = Cast<UDirectionalLightComponent>(SunMoonLight->GetComponentByClass(UDirectionalLightComponent::StaticClass())))
 		{
 			LightComp->SetMobility(EComponentMobility::Movable);
-			LightComp->SetIntensity(NightSunIntensity);
-			LightComp->SetLightColor(NightSunColor);
-			LightComp->SetTemperature(8500.0f);
+			LightComp->SetIntensity(Settings.SunIntensity);
+			LightComp->SetLightColor(Settings.SunColor);
+			LightComp->SetTemperature(Settings.SunTemperature);
 			LightComp->SetUseTemperature(true);
 		}
-		SunMoonLight->SetActorRotation(NightRotation);
 	}
 
 	if (SkyLightActor)
 	{
 		if (USkyLightComponent* SkyComp = Cast<USkyLightComponent>(SkyLightActor->GetComponentByClass(USkyLightComponent::StaticClass())))
 		{
-			SkyComp->SetIntensity(NightSkyLightIntensity);
+			SkyComp->SetIntensity(Settings.SkyLightIntensity);
+			SkyComp->SetLightColor(Settings.SkyLightColor);
 		}
 	}
 
-	// Subscribe to mission events for the dawn break trigger
-	if (URevolutionMissionSubsystem* Subsystem = World->GetSubsystem<URevolutionMissionSubsystem>())
+	if (HeightFogActor)
 	{
-		Subsystem->OnMissionDirectiveChanged.AddDynamic(this, &ARevolutionAtmosphereController::HandleMissionDirectiveChanged);
+		if (UExponentialHeightFogComponent* FogComp = Cast<UExponentialHeightFogComponent>(HeightFogActor->GetComponentByClass(UExponentialHeightFogComponent::StaticClass())))
+		{
+			FogComp->SetFogDensity(Settings.FogDensity);
+			FogComp->SetFogHeightFalloff(Settings.FogHeightFalloff);
+			FogComp->SetFogInscatteringColor(Settings.FogInscatteringColor);
+		}
+	}
+}
+
+void ARevolutionAtmosphereController::SetAtmospherePhase(EHistoricalAtmospherePhase NewPhase, float InTransitionDuration)
+{
+	CurrentPhase = NewPhase;
+	TargetSettings = GetSettingsForPhase(NewPhase);
+
+	if (InTransitionDuration <= 0.0f)
+	{
+		bIsTransitioning = false;
+		ApplyAtmosphereSettings(TargetSettings);
+	}
+	else
+	{
+		SourceSettings = CurrentSettings;
+		TransitionDuration = InTransitionDuration;
+		TransitionProgress = 0.0f;
+		bIsTransitioning = true;
 	}
 
-	UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController initialized with Curfew Nocturnal lighting."));
+	// Play accompanying audio for the phase change
+	switch (NewPhase)
+	{
+	case EHistoricalAtmospherePhase::MorningDawn:
+	case EHistoricalAtmospherePhase::GoldenSunrise:
+		if (DawnTempleBellSound)
+		{
+			UGameplayStatics::PlaySound2D(this, DawnTempleBellSound, 0.9f);
+		}
+		break;
+	case EHistoricalAtmospherePhase::CurfewNight:
+		if (CurfewWhistleSound)
+		{
+			UGameplayStatics::PlaySound2D(this, CurfewWhistleSound, 0.85f);
+		}
+		break;
+	case EHistoricalAtmospherePhase::CanalNight:
+		if (CanalWaterSound)
+		{
+			UGameplayStatics::PlaySound2D(this, CanalWaterSound, 0.75f);
+		}
+		break;
+	default:
+		break;
+	}
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController: Transitioning to Atmosphere Phase %d over %.1f seconds."), (int32)NewPhase, InTransitionDuration);
 }
 
 void ARevolutionAtmosphereController::Tick(float DeltaTime)
@@ -133,52 +301,65 @@ void ARevolutionAtmosphereController::Tick(float DeltaTime)
 		}
 	}
 
-	if (bIsTransitioningToDawn)
+	// Smooth Atmosphere Phase Interpolation
+	if (bIsTransitioning)
 	{
 		TransitionProgress = FMath::Clamp(TransitionProgress + (DeltaTime / TransitionDuration), 0.0f, 1.0f);
 		float Alpha = FMath::SmoothStep(0.0f, 1.0f, TransitionProgress);
 
-		if (SunMoonLight)
-		{
-			FRotator CurrRot = FMath::Lerp(NightRotation, DawnRotation, Alpha);
-			SunMoonLight->SetActorRotation(CurrRot);
+		FHistoricalAtmosphereSettings InterpSettings;
+		InterpSettings.SunRotation = FRotator(
+			FMath::Lerp(SourceSettings.SunRotation.Pitch, TargetSettings.SunRotation.Pitch, Alpha),
+			FMath::Lerp(SourceSettings.SunRotation.Yaw, TargetSettings.SunRotation.Yaw, Alpha),
+			FMath::Lerp(SourceSettings.SunRotation.Roll, TargetSettings.SunRotation.Roll, Alpha)
+		);
+		InterpSettings.SunIntensity = FMath::Lerp(SourceSettings.SunIntensity, TargetSettings.SunIntensity, Alpha);
+		InterpSettings.SunColor = FMath::Lerp(SourceSettings.SunColor, TargetSettings.SunColor, Alpha);
+		InterpSettings.SunTemperature = FMath::Lerp(SourceSettings.SunTemperature, TargetSettings.SunTemperature, Alpha);
+		InterpSettings.SkyLightIntensity = FMath::Lerp(SourceSettings.SkyLightIntensity, TargetSettings.SkyLightIntensity, Alpha);
+		InterpSettings.SkyLightColor = FMath::Lerp(SourceSettings.SkyLightColor, TargetSettings.SkyLightColor, Alpha);
+		InterpSettings.FogDensity = FMath::Lerp(SourceSettings.FogDensity, TargetSettings.FogDensity, Alpha);
+		InterpSettings.FogHeightFalloff = FMath::Lerp(SourceSettings.FogHeightFalloff, TargetSettings.FogHeightFalloff, Alpha);
+		InterpSettings.FogInscatteringColor = FMath::Lerp(SourceSettings.FogInscatteringColor, TargetSettings.FogInscatteringColor, Alpha);
 
-			if (UDirectionalLightComponent* LightComp = Cast<UDirectionalLightComponent>(SunMoonLight->GetComponentByClass(UDirectionalLightComponent::StaticClass())))
-			{
-				LightComp->SetIntensity(FMath::Lerp(NightSunIntensity, DawnSunIntensity, Alpha));
-				LightComp->SetLightColor(FMath::Lerp(NightSunColor, DawnSunColor, Alpha));
-				LightComp->SetTemperature(FMath::Lerp(8500.0f, 2850.0f, Alpha));
-			}
-		}
-
-		if (SkyLightActor)
-		{
-			if (USkyLightComponent* SkyComp = Cast<USkyLightComponent>(SkyLightActor->GetComponentByClass(USkyLightComponent::StaticClass())))
-			{
-				SkyComp->SetIntensity(FMath::Lerp(NightSkyLightIntensity, DawnSkyLightIntensity, Alpha));
-			}
-		}
+		ApplyAtmosphereSettings(InterpSettings);
 
 		if (TransitionProgress >= 1.0f)
 		{
-			bIsTransitioningToDawn = false;
-			UE_LOG(LogREVOLUTION, Log, TEXT("Atmospheric dawn transition complete: April 1919 morning light established."));
+			bIsTransitioning = false;
+			ApplyAtmosphereSettings(TargetSettings);
+			UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController: Atmosphere transition to Phase %d complete."), (int32)CurrentPhase);
 		}
 	}
 }
 
 void ARevolutionAtmosphereController::HandleMissionDirectiveChanged(ECourierMissionStage NewStage, FText Title, FText Directive)
 {
-	if (NewStage == ECourierMissionStage::Stage_Completed)
+	EHistoricalAtmospherePhase DesiredPhase = CurrentPhase;
+
+	if (NewStage <= ECourierMissionStage::Stage_Morning_ClassroomDesk)
 	{
-		bIsTransitioningToDawn = true;
-		TransitionProgress = 0.0f;
+		DesiredPhase = EHistoricalAtmospherePhase::MorningDawn;
+	}
+	else if (NewStage <= ECourierMissionStage::Stage_ActII_Completed)
+	{
+		DesiredPhase = EHistoricalAtmospherePhase::BaisakhiMidday;
+	}
+	else if (NewStage <= ECourierMissionStage::Stage_ActIII_Completed)
+	{
+		DesiredPhase = EHistoricalAtmospherePhase::CurfewNight;
+	}
+	else if (NewStage < ECourierMissionStage::Stage_Completed)
+	{
+		DesiredPhase = EHistoricalAtmospherePhase::CanalNight;
+	}
+	else
+	{
+		DesiredPhase = EHistoricalAtmospherePhase::GoldenSunrise;
+	}
 
-		if (DawnTempleBellSound)
-		{
-			UGameplayStatics::PlaySound2D(this, DawnTempleBellSound, 1.0f);
-		}
-
-		UE_LOG(LogREVOLUTION, Log, TEXT("Mission complete! Initiating historical 1919 dawn atmosphere transition."));
+	if (DesiredPhase != CurrentPhase)
+	{
+		SetAtmospherePhase(DesiredPhase, 10.0f);
 	}
 }

@@ -50,6 +50,15 @@ protected:
 	/** Draw stealth suspicion indicator and threat direction arc */
 	void DrawStealthAndDetection(ARevolutionCharacter* Kabir);
 
+	/** Draw predictive parabolic pebble aim trajectory and impact beacon (A Plague Tale benchmark) */
+	void DrawPebbleAimTrajectory(ARevolutionCharacter* Kabir);
+
+	/** Draw Keen Senses tactical beacons (Assassin's Creed / Hitman benchmark) */
+	void DrawKeenSensesBeacons(ARevolutionCharacter* Kabir);
+
+	/** Draw Environmental Shadow Concealment meter (Thief / Dishonored benchmark) */
+	void DrawConcealmentMeter(ARevolutionCharacter* Kabir);
+
 	/** Draw clandestine courier mission directive banner */
 	void DrawMissionDirectiveBanner(ARevolutionCharacter* Kabir);
 
@@ -70,6 +79,9 @@ protected:
 
 	/** Draw dawn mission accomplished & town-wide Hartal chronicle modal card */
 	void DrawMissionAccomplishedCard(ARevolutionCharacter* Kabir);
+
+	/** Draw the stylized Censor Window & Veil of Memory archival presentation */
+	void DrawCensorWindowVeilOfMemory(ARevolutionCharacter* Kabir, float DeltaTime);
 
 	/** Helper to draw a framed card with outer/inner borders */
 	void DrawFramedBox(float X, float Y, float Width, float Height, const FLinearColor& FillColor, const FLinearColor& BorderColor, float BorderThickness = 2.0f);
@@ -117,6 +129,15 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
 	USoundBase* CurfewBellTollSound = nullptr;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* MemorialBansuriSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* MemorialWindSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
+	bool bCensorWindowActive = false;
+
 	UPROPERTY(Transient, BlueprintReadOnly, Category = "Revolution|UI")
 	URevolutionHUDWidget* HUDWidgetInstance = nullptr;
 
@@ -125,4 +146,6 @@ private:
 	float ReticleFocusPulse = 0.0f;
 	float LetterboxAlpha = 0.0f;
 	float OpeningPrologueTimer = 0.0f;
+	float CensorWindowBlurAlpha = 0.0f;
+	bool bMemorialAudioStarted = false;
 };
