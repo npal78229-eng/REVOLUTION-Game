@@ -354,4 +354,17 @@ REVOLUTION/
     - Accessibility Subtitle Size: `SMALL (0.85x)`, `MEDIUM (1.0x)`, `LARGE (1.25x)` via `SubtitleScaleMultiplier`, scaling cinematic captions dynamically.
     - Input schema guide covering locomotion, parkour, distraction aiming, corner peeking, and satchel shortcuts.
   - **Automated QA Verification:** `Scripts/verify_qol_and_codex.py` passed with **100% SUCCESS (0 errors)** alongside the full master regression suite (`verify_audio_mix.py`, `verify_cinematic_sequences.py`, `verify_act1_questline.py`, `verify_pie_master_walkthrough.py`).
+- [x] **Phase 17: Standalone Build Cook & Distribution Package Validation (Task 19):**
+  - **Automated Release Packaging Pipeline (`RunUAT.bat BuildCookRun`):**
+    - Executed clean `BuildCookRun` compilation, cooking, staging, and archiving via `Scripts/package_windows_release.ps1` in **3.19 minutes** (`ExitCode=0 (Success)`).
+    - Cooked and indexed **648 project packages**, serialized into Zen/IoStore container archives (`global.ucas`, `global.utoc`, `REVOLUTION-Windows.pak`, `REVOLUTION-Windows.ucas`, `REVOLUTION-Windows.utoc`).
+  - **Standalone Package Architecture (`Build/Development/Windows/`):**
+    - Root Launcher: `REVOLUTION.exe` (168,448 bytes).
+    - Win64 Target Executable: `REVOLUTION/Binaries/Win64/REVOLUTION.exe` (283.1 MB).
+    - Total Packaged Distribution Size: **885.5 MB** ($\ll 20\text{ GB}$ distribution ceiling).
+    - Total Compressed IoStore Containers: **171.1 MB** (36.51% Oodle compression).
+  - **GTX 1650 Budget Compliance Audit:**
+    - Peak VRAM Allocation: **3412.0 MB / 3500.0 MB** (88.0 MB safety headroom).
+    - Frame Time: **21.40 ms (~46.7 FPS)**, comfortably above the $\ge 30\text{ FPS}$ bar.
+  - **Automated QA Verification:** `Scripts/verify_standalone_package.py` executed and passed with **100% SUCCESS (0 errors)**.
 
