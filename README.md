@@ -325,3 +325,19 @@ REVOLUTION/
   - **ARevolutionHUD Anamorphic Letterbox & Ivory Captions:**
     - Anamorphic 2.39:1 widescreen matte, antique brass chapter header cards, and drop-shadowed ivory subtitles.
   - **Automated QA Suites:** `Scripts/verify_cinematic_sequences.py` (100% PASS), `Scripts/verify_act1_questline.py` (100% PASS), and `Scripts/verify_pie_master_walkthrough.py` (100% PASS across 206 actors).
+- [x] **Phase 15: Audio Mix, Sound Class Routing & Dynamic Curfew Filter (Task 17):**
+  - **Sound Class Hierarchy (`/Game/Audio/SoundClasses/`):**
+    - `SC_Master`: Root master bus (`properties.volume = 1.0`, `low_pass_filter_frequency = 20000 Hz`).
+    - `SC_SFX`: Mechanical sounds, weapons, alarms, telegraph (Parent: `SC_Master`).
+    - `SC_Foley`: Tactile movement, footsteps, cloth rustle, pebble throw (Parent: `SC_SFX`).
+    - `SC_Voice_Punjabi`: Punjabi civilian dialogues, crowd murmurs, watchman shouts (Parent: `SC_Master`).
+    - `SC_Ambience_Mohalla`: Environmental soundscapes, wind, crickets, canal water (Parent: `SC_Master`).
+  - **3D Spatialized Sound Attenuations (`/Game/Audio/Attenuation/`):**
+    - `ATT_Voice_Proximity` (18.0m falloff, 4.0m inner sphere), `ATT_Foley_Localized` (12.0m falloff, 2.0m inner sphere), and `ATT_Monumental_Mechanical` (45.0m falloff, 8.0m inner sphere).
+  - **Sound Mixes & Dynamic Curfew Filter (`/Game/Audio/SoundMixes/`):**
+    - `SMix_Default`: Standard baseline audio balance.
+    - `SMix_Curfew_Night`: Dynamic Low-Pass Curfew Filter (800 Hz LPF and 0.45x volume on Mohalla Ambience, 1200 Hz LPF and 0.35x volume on civilian voices, 1.30x volume on Kabir's stealth foley).
+    - `SMix_Cinematic`: Cutscene dialogue ducking (1.35x voice priority, 0.30x ambience, 0.55x SFX).
+  - **100% SoundWave Routing:** All 42 sound wave assets in `/Game/Audio/SFX/` routed to designated SoundClasses.
+  - **C++ Dynamic SoundMix Integration:** Automatic push/pop in `ARevolutionAtmosphereController` and `ARevolutionCinematicDirectorActor`.
+  - **Automated QA Verification:** `Scripts/verify_audio_mix.py` passed with **100% SUCCESS (0 errors)**.

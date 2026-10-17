@@ -419,12 +419,53 @@ flowchart LR
 
 ---
 
-### Task 17: Audio Mix & Sound Class Routing [NEXT]
+### Task 17: Audio Mix & Sound Class Routing [COMPLETED]
+- **Status:** **100% COMPLETE & VALIDATED IN-ENGINE**
+- **Implemented Components:**
+  - **Sound Class Hierarchy (`/Game/Audio/SoundClasses/`):**
+    - `SC_Master`: Root Master Bus (Volume: 1.0, LPF: 20000 Hz).
+    - `SC_SFX`: Mechanical sounds, weapons, alarms, telegraph (Parent: `SC_Master`, Volume: 1.0).
+    - `SC_Foley`: Tactile movement, footsteps, cloth rustle, pebble throw (Parent: `SC_SFX`, Volume: 1.0).
+    - `SC_Voice_Punjabi`: Punjabi civilian dialogues, crowd murmurs, watchman shouts (Parent: `SC_Master`, Volume: 1.0).
+    - `SC_Ambience_Mohalla`: Environmental soundscapes, wind, crickets, canal water (Parent: `SC_Master`, Volume: 0.85).
+  - **3D Spatialized Sound Attenuations (`/Game/Audio/Attenuation/`):**
+    - `ATT_Voice_Proximity`: Natural human voice falloff (18.0m radius, 4.0m inner sphere).
+    - `ATT_Foley_Localized`: Intimate footstep and interaction falloff (12.0m radius, 2.0m inner sphere).
+    - `ATT_Monumental_Mechanical`: Heavy locomotive and industrial kiln falloff (45.0m radius, 8.0m inner sphere).
+  - **Sound Mixes & Dynamic Curfew Filter (`/Game/Audio/SoundMixes/`):**
+    - `SMix_Default`: Baseline audio balance.
+    - `SMix_Curfew_Night`: Dynamic Low-Pass Curfew Filter:
+      - `SC_Ambience_Mohalla`: LPF at 800 Hz, volume dampened to 0.45 (muffling distant town life under martial law).
+      - `SC_Voice_Punjabi`: LPF at 1200 Hz, volume dampened to 0.35 (enforced street curfew stillness).
+      - `SC_Foley`: Volume boosted to 1.30 (heightened sensory stealth perception for Kabir).
+      - `SC_SFX`: Volume boosted to 1.15 (sentry whistles, searchlight hum, boiler release).
+    - `SMix_Cinematic`: Cutscene dialogue ducking:
+      - `SC_Voice_Punjabi`: Volume boosted to 1.35.
+      - `SC_Ambience_Mohalla`: Volume dampened to 0.30.
+      - `SC_SFX`: Volume dampened to 0.55.
+      - `SC_Foley`: Volume dampened to 0.60.
+  - **100% SoundWave Asset Coverage:**
+    - Routed all 42 individual sound waves in `/Game/Audio/SFX/` to designated SoundClasses:
+      - `SC_Voice_Punjabi`: 4 assets
+      - `SC_Ambience_Mohalla`: 7 assets
+      - `SC_Foley`: 13 assets
+      - `SC_SFX`: 18 assets
+  - **C++ Dynamic SoundMix Integration:**
+    - `ARevolutionAtmosphereController`: Automatically pushes `SMix_Curfew_Night` when transitioning to `CurfewNight` and restores `SMix_Default` for daytime/sunrise phases.
+    - `ARevolutionCinematicDirectorActor`: Pushes `SMix_Cinematic` during cutscenes and restores gameplay mix upon completion.
+  - **Automated Verification:**
+    - `Scripts/verify_audio_mix.py`: 100% PASS (0 errors).
+    - `Scripts/verify_cinematic_sequences.py`: 100% PASS (0 errors).
+    - `Scripts/verify_act1_questline.py`: 100% PASS (0 errors across 206 actors).
+    - `Scripts/verify_pie_master_walkthrough.py`: 100% PASS (0 errors across 206 actors, 27 milestones).
+
+---
+
+### Task 18: Quality-of-Life, Historical Glossary Codex UI & Keybinding Remap [NEXT]
 - **Target Objectives:**
-  1. Author Sound Class hierarchy: `Master`, `SFX`, `Foley`, `Voice_Punjabi`, `Ambience_Mohalla`.
-  2. Implement dynamic low-pass curfew filter (Section 144 Martial Law nocturnal atmosphere dampens high frequencies, heightening tension).
-  3. Spatialized 3D audio attenuation for Punjabi civilian proximity barks and market streetscapes.
-  4. Build automated test suite `Scripts/verify_audio_mix.py` to validate Sound Class routing and filter modulation.
+  1. Author In-Game Historical Glossary Codex UI accessible via Satchel Journal tab (detailed archival background on Rowlatt Act, Khadi movement, Baisakhi festival, Jallianwala Bagh, and Section 144 martial law).
+  2. Implement Enhanced Input runtime keybinding remapping and accessibility subtitle configuration.
+  3. Validate through automated test suite `Scripts/verify_qol_and_codex.py`.
 
 
 

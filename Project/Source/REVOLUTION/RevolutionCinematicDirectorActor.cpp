@@ -9,6 +9,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/PlayerController.h"
 #include "GameFramework/Pawn.h"
+#include "Sound/SoundMix.h"
 #include "REVOLUTION.h"
 
 ARevolutionCinematicDirectorActor::ARevolutionCinematicDirectorActor()
@@ -66,6 +67,12 @@ bool ARevolutionCinematicDirectorActor::PlayCinematicCutscene(ULevelSequence* In
 		CachedHUD->SetCinematicSequenceActive(true, ChapterTitle, Subtitle);
 	}
 
+	// Push cutscene audio ducking mix
+	if (CinematicSoundMix)
+	{
+		UGameplayStatics::PushSoundMixModifier(World, CinematicSoundMix);
+	}
+
 	// Create Level Sequence Player
 	FMovieSceneSequencePlaybackSettings PlaybackSettings;
 	PlaybackSettings.bAutoPlay = false;
@@ -118,6 +125,12 @@ void ARevolutionCinematicDirectorActor::StopCinematicCutscene(float InBlendOutTi
 	if (CachedHUD.IsValid())
 	{
 		CachedHUD->SetCinematicSequenceActive(false);
+	}
+
+	// Restore gameplay audio mix
+	if (CinematicSoundMix && World)
+	{
+		UGameplayStatics::PopSoundMixModifier(World, CinematicSoundMix);
 	}
 
 	FName FinishedSeqName = ActiveSequence ? ActiveSequence->GetFName() : NAME_None;

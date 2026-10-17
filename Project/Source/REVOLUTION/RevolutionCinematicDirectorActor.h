@@ -11,6 +11,7 @@ class ALevelSequenceActor;
 class ULevelSequencePlayer;
 class ACineCameraActor;
 class ARevolutionHUD;
+class USoundMix;
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnCinematicSequenceCompleted, FName, SequenceName);
 
@@ -73,6 +74,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")
 	ULevelSequence* GoldenSunriseFinaleSequence = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundMix* CinematicSoundMix = nullptr;
 
 private:
 	UFUNCTION()

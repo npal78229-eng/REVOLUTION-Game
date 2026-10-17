@@ -11,6 +11,7 @@ class ADirectionalLight;
 class ASkyLight;
 class AExponentialHeightFog;
 class USoundBase;
+class USoundMix;
 
 /**
  * Historical Dynamic Lighting & Atmosphere Phase for REVOLUTION (Kot Gurdarshan / Amritsar, April 1919)
@@ -101,6 +102,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
 	USoundBase* TrainDistantSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundMix* DefaultSoundMix = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundMix* CurfewSoundMix = nullptr;
 
 	// Periodic Environmental Sound Masking (North Western Railway Train)
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Stealth")

@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Sound/SoundBase.h"
+#include "Sound/SoundMix.h"
 #include "EngineUtils.h"
 #include "REVOLUTION.h"
 
@@ -263,6 +264,35 @@ void ARevolutionAtmosphereController::SetAtmospherePhase(EHistoricalAtmospherePh
 		break;
 	default:
 		break;
+	}
+
+	// Update dynamic sound mix modifier
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		if (NewPhase == EHistoricalAtmospherePhase::CurfewNight)
+		{
+			if (DefaultSoundMix)
+			{
+				UGameplayStatics::PopSoundMixModifier(World, DefaultSoundMix);
+			}
+			if (CurfewSoundMix)
+			{
+				UGameplayStatics::PushSoundMixModifier(World, CurfewSoundMix);
+				UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController: Pushed CurfewSoundMix modifier."));
+			}
+		}
+		else
+		{
+			if (CurfewSoundMix)
+			{
+				UGameplayStatics::PopSoundMixModifier(World, CurfewSoundMix);
+			}
+			if (DefaultSoundMix)
+			{
+				UGameplayStatics::PushSoundMixModifier(World, DefaultSoundMix);
+			}
+		}
 	}
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController: Transitioning to Atmosphere Phase %d over %.1f seconds."), (int32)NewPhase, InTransitionDuration);
