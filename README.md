@@ -7,7 +7,7 @@
 [![Target GPU](https://img.shields.io/badge/Target%20GPU-NVIDIA%20GTX%201650%20(4GB)-76B900?logo=nvidia)](https://nvidia.com)
 [![Build Status](https://img.shields.io/badge/Build-Passing%20(Exit%20Code%200)-success)]()
 [![Release Status](https://img.shields.io/badge/Release-Gold%20Master%20v1.0.0-gold?logo=github)]()
-[![Master CI](https://img.shields.io/badge/Master%20CI-9%2F9%20Passed%20(100%25)-brightgreen)]()
+[![Master CI](https://img.shields.io/badge/Master%20CI-10%2F10%20Passed%20(100%25)-brightgreen)]()
 
 > A dark, grounded, cinematic, story-driven historical open-world game about India's struggle for independence against British colonial rule.
 
@@ -418,5 +418,19 @@ REVOLUTION/
     - `ARevolutionHUD`: Dynamic prompt glyphs (`[E / (X)] Interact`, `[ (B) ] Close`), Satchel Journal D-Pad navigation, and dual-column control schema badges.
   - **Automated QA Verification Suite (`Scripts/verify_steamos_handheld_profile.py`):**
     - `TEST-09` verified in master 9-suite CI harness (`Scripts/run_all_tests.ps1`) with **100% PASS (9/9 Suites, 0 Errors, 0 Warnings)**.
+- [x] **Phase 22: Advanced Photogrammetry Texturing & Heritage Material Architecture (Task 24):**
+  - **Procedural PBR Photogrammetry Texture Generation (`Scripts/generate_photogrammetry_textures.py`):**
+    - High-performance, zero-dependency pure Python PNG generator synthesizing 12 1024x1024 32-bit RGBA PBR texture maps (BaseColor, Normal, packed Occlusion-Roughness-Metallic):
+      - *Nanakshahi Brickwork (`T_NanakshahiBrick_BC`, `_N`, `_ORM`):* Traditional slim Punjabi kiln-fired terracotta brick masonry with coarse lime-surkhi mortar pointing.
+      - *Carved Shisham Timber (`T_CarvedShisham_BC`, `_N`, `_ORM`):* Dense North Indian rosewood (*Dalbergia sissoo*) featuring authentic 8-petal acanthus floral reliefs and natural oil sheen.
+      - *Hammered Brass Metalwork (`T_HammeredBrass_BC`, `_N`, `_ORM`):* Hand-peened brass (*pittal*) with spherical ball-peen hammer dimpling and tarnish patina.
+      - *Woven Jute Twine & Burlap (`T_WovenJute_BC`, `_N`, `_ORM`):* Handspun organic jute cordage in tight plain-weave burlap canvas.
+  - **Automated Unreal Ingestion & Material Compilation (`Scripts/import_and_build_photogrammetry_materials.py`):**
+    - Ingested all 12 texture assets into `/Game/Environment/Mohalla/Textures/` with correct compression (`TC_DEFAULT`, `TC_NORMALMAP`, `TC_MASKS`), sRGB configuration, and LOD groups.
+    - Constructed and compiled Master Material `M_Master_Heritage_PBR` and 4 parameterized Material Instances (`MI_NanakshahiBrick_Photogrammetry`, `MI_CarvedShisham_Photogrammetry`, `MI_HammeredBrass_Photogrammetry`, `MI_WovenJute_Photogrammetry`).
+    - Assigned photogrammetry materials across 15 landmark static mesh slots in `/Game/Environment/Mohalla/Meshes/`.
+  - **Master 10-Suite Continuous Integration Harness (`Scripts/run_all_tests.ps1` & `Scripts/run_all_tests.py`):**
+    - `TEST-10` (`verify_photogrammetry_materials.py`) verified in master 10-suite CI harness in **3.55 minutes** with **100% PASS (10/10 Suites, 0 Errors, 0 Warnings)**.
+    - Total photogrammetry streaming footprint: 16.0 MB (0.89% of GTX 1650 pool, 1.56% of Steam Deck pool).
 
 

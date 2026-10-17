@@ -67,6 +67,12 @@ $TestSuites = @(
         Name = 'SteamOS & Handheld Proton Scalability Profile and Controller Mappings'
         Script = "$ScriptsDir\verify_steamos_handheld_profile.py"
         Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-10'
+        Name = 'Advanced Photogrammetry Texturing & Material Architecture'
+        Script = "$ScriptsDir\verify_photogrammetry_materials.py"
+        Type = 'Commandlet'
     }
 )
 

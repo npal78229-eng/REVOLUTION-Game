@@ -317,9 +317,10 @@ All nine automated QA verification suites were executed through the unified CI t
 | **TEST-04** | Act I Narrative Story Questline & Landmarks | UE Commandlet | 206 Level actors, 7 NPCs, 69 historic landmarks, Act I–V triggers | **PASS** | 24.21s |
 | **TEST-05** | Master PIE & Story Simulation | UE Commandlet | 27 Story milestones, 5 atmosphere phases, stealth mechanics | **PASS** | 26.21s |
 | **TEST-06** | Standalone Build Cook, IoStore Packaging & GTX 1650 Budget | Python Native | Executables, IoStore containers, manifests, VRAM/frame budget | **PASS** | 1.02s |
-| **TEST-07** | Civilian Dialogue Voice Localization & Ambient Proximity Audio | UE Commandlet | 14 Voice tracks, 6 Civilian NPCs, curfew patrol sentries, ATT spatialization | **PASS** | 23.19s |
-| **TEST-08** | Pedestrian Reaction, Dynamic Stumble & Curiosity System | UE Commandlet | Procedural stumble recovery, non-violent collision damping, acoustic curiosity, 0 alarm escalation | **PASS** | 23.20s |
-| **TEST-09** | SteamOS & Handheld Proton Scalability Profile & Controller Mappings | UE Commandlet | 800p native 16:10, TSR 66%-85%, 40 FPS sweet spot, full gamepad bindings, 3.51h battery | **PASS** | 15.12s |
+| **TEST-07** | Civilian Dialogue Voice Localization & Ambient Proximity Audio | UE Commandlet | 14 Voice tracks, 6 Civilian NPCs, curfew patrol sentries, ATT spatialization | **PASS** | 24.21s |
+| **TEST-08** | Pedestrian Reaction, Dynamic Stumble & Curiosity System | UE Commandlet | Procedural stumble recovery, non-violent collision damping, acoustic curiosity, 0 alarm escalation | **PASS** | 25.23s |
+| **TEST-09** | SteamOS & Handheld Proton Scalability Profile & Controller Mappings | UE Commandlet | 800p native 16:10, TSR 66%-85%, 40 FPS sweet spot, full gamepad bindings, 3.51h battery | **PASS** | 17.16s |
+| **TEST-10** | Advanced Photogrammetry Texturing & Material Architecture | UE Commandlet | 12 PBR textures, M_Master_Heritage_PBR, 4 Material Instances, 15 static mesh slots, 16.0 MB streaming footprint | **PASS** | 19.19s |
 
 ```text
 ================================================================================
@@ -327,18 +328,19 @@ All nine automated QA verification suites were executed through the unified CI t
 ================================================================================
 ID         STATUS   DURATION   TEST SUITE NAME
 --------------------------------------------------------------------------------
-TEST-01    PASS     23.31s     Quality-of-Life, Satchel Modal and Historical Codex
-TEST-02    PASS     23.20s     Audio Mix, SoundClass Hierarchy and Dynamic Curfew Filter
-TEST-03    PASS     23.19s     Cinematic Camera Sequences and C++ Director Actor
-TEST-04    PASS     24.21s     Act I Narrative Story Questline and Landmarks [206 Actors]
-TEST-05    PASS     26.21s     Master PIE and Story Simulation [27 Milestones across Acts I-V]
+TEST-01    PASS     25.30s     Quality-of-Life, Satchel Modal and Historical Codex
+TEST-02    PASS     25.23s     Audio Mix, SoundClass Hierarchy and Dynamic Curfew Filter
+TEST-03    PASS     24.18s     Cinematic Camera Sequences and C++ Director Actor
+TEST-04    PASS     25.20s     Act I Narrative Story Questline and Landmarks [206 Actors]
+TEST-05    PASS     26.22s     Master PIE and Story Simulation [27 Milestones across Acts I-V]
 TEST-06    PASS      1.02s     Standalone Build Cook, IoStore Packaging and GTX 1650 Budget
-TEST-07    PASS     23.19s     Civilian Dialogue Voice Localization and Ambient Proximity Audio
-TEST-08    PASS     23.20s     Pedestrian Reaction, Dynamic Stumble and Curiosity System
-TEST-09    PASS     15.12s     SteamOS & Handheld Proton Scalability Profile and Controller Mappings
+TEST-07    PASS     24.21s     Civilian Dialogue Voice Localization and Ambient Proximity Audio
+TEST-08    PASS     25.23s     Pedestrian Reaction, Dynamic Stumble and Curiosity System
+TEST-09    PASS     17.16s     SteamOS & Handheld Proton Scalability Profile and Controller Mappings
+TEST-10    PASS     19.19s     Advanced Photogrammetry Texturing & Material Architecture
 --------------------------------------------------------------------------------
 ================================================================================
-  OVERALL RESULT: 100% PASS (9/9 SUITES PASSED) in 3.05 minutes!
+  OVERALL RESULT: 100% PASS (10/10 SUITES PASSED) in 3.55 minutes!
   PROJECT REVOLUTION IS CERTIFIED GOLD MASTER READY ACROSS DESKTOP & HANDHELD!
 ================================================================================
 ```
@@ -347,9 +349,9 @@ TEST-09    PASS     15.12s     SteamOS & Handheld Proton Scalability Profile and
 
 ## 11. Release Sign-Off & Next Horizons
 
-With 100% PASS across all verification suites, 0 compilation errors across all C++ modules, 0 falling/void defects in `L_Validation_Gym.umap`, rock-solid hardware budget compliance on NVIDIA GTX 1650 and Steam Deck / SteamOS handheld profiles, and a fully packaged standalone Windows release, **PROJECT REVOLUTION** is certified for Gold Master deployment.
+With 100% PASS across all 10 verification suites, 0 compilation errors across all C++ modules, 0 falling/void defects in `L_Validation_Gym.umap`, rock-solid hardware budget compliance on NVIDIA GTX 1650 and Steam Deck / SteamOS handheld profiles, high-fidelity photogrammetry PBR heritage texturing, and a fully packaged standalone Windows release, **PROJECT REVOLUTION** is certified for Gold Master deployment.
 
 ### Recommended Future Development Horizons (Post-GM / Phase 6):
-1. **Task 24: Advanced Photogrammetry Texturing:** Additional Nanakshahi brick, carved shisham timber, and brass metalwork micro-detail layers.
-2. **Task 25: Historical Narrative Epilogue:** "The Baisakhi Dawn" contemplative historical epilogue cinematic and codex finalization.
-3. **Task 26: Multi-Dialect Punjabi Voice Recording Expansion:** Expanded bazaar crowd walla barks across Doabi and Majhi Punjabi vernacular.
+1. **Task 25: Historical Narrative Epilogue:** "The Baisakhi Dawn" contemplative historical epilogue cinematic and codex finalization.
+2. **Task 26: Multi-Dialect Punjabi Voice Recording Expansion:** Expanded bazaar crowd walla barks across Doabi and Majhi Punjabi vernacular.
+3. **Task 27: Dynamic Time-of-Day Weather States:** Morning golden hour haze to evening curfew dust storm atmospheric transitions.
