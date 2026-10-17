@@ -338,6 +338,20 @@ REVOLUTION/
     - `SMix_Default`: Standard baseline audio balance.
     - `SMix_Curfew_Night`: Dynamic Low-Pass Curfew Filter (800 Hz LPF and 0.45x volume on Mohalla Ambience, 1200 Hz LPF and 0.35x volume on civilian voices, 1.30x volume on Kabir's stealth foley).
     - `SMix_Cinematic`: Cutscene dialogue ducking (1.35x voice priority, 0.30x ambience, 0.55x SFX).
-  - **100% SoundWave Routing:** All 42 sound wave assets in `/Game/Audio/SFX/` routed to designated SoundClasses.
-  - **C++ Dynamic SoundMix Integration:** Automatic push/pop in `ARevolutionAtmosphereController` and `ARevolutionCinematicDirectorActor`.
   - **Automated QA Verification:** `Scripts/verify_audio_mix.py` passed with **100% SUCCESS (0 errors)**.
+- [x] **Phase 16: Quality-of-Life, Historical Glossary Codex UI & Keybinding Remap (Task 18):**
+  - **Tactile Satchel Journal 4-Tab Architecture (`ARevolutionHUD` & `ARevolutionCharacter`):**
+    - `[ 1 ] SATCHEL EQUIPMENT`: Real-time status for Tailored Khadi Coat Parcel, Tailor's Chalk Marks, Clay Distraction Pebbles, and Clandestine Anti-Rowlatt Pamphlets.
+    - `[ 2 ] MOHALLA ROUTE MAP`: Hand-drawn khadi parchment map of Kot Gurdarshan with real-time scout location diamond, orientation notch, dynamic chalk markings, and curfew patrol route vectors.
+    - `[ 3 ] HISTORICAL CODEX`: 17-record period archival knowledge base with scrollable directory and deep archival dossiers.
+    - `[ 4 ] SETTINGS & CONTROLS`: Interactive SoundClass volume sliders, accessibility subtitle scaling toggles, and comprehensive keyboard/mouse input schema.
+  - **17-Record Archival Historical Codex:**
+    - *7 Core Historical Treatises:* The Rowlatt Black Act (1919), Swadeshi & Khadi Weave, Baisakhi Harvest Festival, Jallianwala Bagh Memorial, Section 144 Martial Curfew, Clandestine Printing Press, and Punjabi Architectural Fabric.
+    - *10 Material Culture Artifacts:* Student Takhti & Qalam, Mud Chulha, Vendor Thela, Pigeon Loft, Basant Kites, Anti-Rowlatt Handbill, Imperial Postbox, Mandi Tarazu, Shisham Sandook, and Classroom Punjab Map.
+    - Interactive navigation via `SelectNextCodexEntry()`, `SelectPrevCodexEntry()`, bound to `[ / ]` and `UP / DOWN`.
+  - **Audio & Accessibility Configuration:**
+    - Real-time SoundClass volume sliders: `MasterVolume`, `SFXVolume`, `FoleyVolume`, `VoiceVolume`, `AmbienceVolume` modifying mixes dynamically via `UGameplayStatics::SetSoundMixClassOverride`.
+    - Accessibility Subtitle Size: `SMALL (0.85x)`, `MEDIUM (1.0x)`, `LARGE (1.25x)` via `SubtitleScaleMultiplier`, scaling cinematic captions dynamically.
+    - Input schema guide covering locomotion, parkour, distraction aiming, corner peeking, and satchel shortcuts.
+  - **Automated QA Verification:** `Scripts/verify_qol_and_codex.py` passed with **100% SUCCESS (0 errors)** alongside the full master regression suite (`verify_audio_mix.py`, `verify_cinematic_sequences.py`, `verify_act1_questline.py`, `verify_pie_master_walkthrough.py`).
+

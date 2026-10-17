@@ -19,6 +19,8 @@
 #include "InteractableInterface.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "Sound/SoundMix.h"
+#include "Sound/SoundClass.h"
 #include "PebbleProjectile.h"
 #include "ChalkMarkActor.h"
 #include "HidingSpotActor.h"
@@ -484,6 +486,14 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 	PlayerInputComponent->BindKey(EKeys::One, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab1);
 	PlayerInputComponent->BindKey(EKeys::Two, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab2);
 	PlayerInputComponent->BindKey(EKeys::Three, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab3);
+	PlayerInputComponent->BindKey(EKeys::Four, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab4);
+
+	PlayerInputComponent->BindKey(EKeys::Up, IE_Pressed, this, &ARevolutionCharacter::OnMenuUp);
+	PlayerInputComponent->BindKey(EKeys::Down, IE_Pressed, this, &ARevolutionCharacter::OnMenuDown);
+	PlayerInputComponent->BindKey(EKeys::Left, IE_Pressed, this, &ARevolutionCharacter::OnMenuLeft);
+	PlayerInputComponent->BindKey(EKeys::Right, IE_Pressed, this, &ARevolutionCharacter::OnMenuRight);
+	PlayerInputComponent->BindKey(EKeys::LeftBracket, IE_Pressed, this, &ARevolutionCharacter::SelectPrevCodexEntry);
+	PlayerInputComponent->BindKey(EKeys::RightBracket, IE_Pressed, this, &ARevolutionCharacter::SelectNextCodexEntry);
 
 	// Benchmark Aim & Distraction Mechanics (A Plague Tale / The Last of Us)
 	PlayerInputComponent->BindKey(EKeys::RightMouseButton, IE_Pressed, this, &ARevolutionCharacter::StartAimingPebble);
@@ -1239,7 +1249,7 @@ void ARevolutionCharacter::SelectSatchelTab(int32 TabIndex)
 {
 	if (bIsSatchelJournalOpen)
 	{
-		ActiveSatchelTab = FMath::Clamp(TabIndex, 0, 2);
+		ActiveSatchelTab = FMath::Clamp(TabIndex, 0, 3);
 		PlayInspectAudio(true);
 		UE_LOG(LogREVOLUTION, Log, TEXT("Switched satchel journal tab to %d"), ActiveSatchelTab);
 	}
@@ -1336,6 +1346,163 @@ void ARevolutionCharacter::TriggerSteamObscurity(float Duration)
 	bIsSteamObscured = true;
 	SteamObscurityRemainingTime = FMath::Max(SteamObscurityRemainingTime, Duration);
 	UE_LOG(LogREVOLUTION, Log, TEXT("Steam Obscurity Cloak activated for %.1f seconds."), SteamObscurityRemainingTime);
+}
+
+void ARevolutionCharacter::SelectNextCodexEntry()
+{
+	if (!bIsSatchelJournalOpen) return;
+	SelectedCodexIndex = (SelectedCodexIndex + 1) % 17;
+	PlayInspectAudio(true);
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir selected codex entry: %d"), SelectedCodexIndex);
+}
+
+void ARevolutionCharacter::SelectPrevCodexEntry()
+{
+	if (!bIsSatchelJournalOpen) return;
+	SelectedCodexIndex = (SelectedCodexIndex - 1 + 17) % 17;
+	PlayInspectAudio(true);
+	UE_LOG(LogREVOLUTION, Log, TEXT("Kabir selected codex entry: %d"), SelectedCodexIndex);
+}
+
+void ARevolutionCharacter::AdjustCurrentSetting(float Delta)
+{
+	switch (SelectedSettingsIndex)
+	{
+	case 0:
+		MasterVolume = FMath::Clamp(MasterVolume + Delta, 0.0f, 1.0f);
+		break;
+	case 1:
+		SFXVolume = FMath::Clamp(SFXVolume + Delta, 0.0f, 1.0f);
+		break;
+	case 2:
+		FoleyVolume = FMath::Clamp(FoleyVolume + Delta, 0.0f, 1.0f);
+		break;
+	case 3:
+		VoiceVolume = FMath::Clamp(VoiceVolume + Delta, 0.0f, 1.0f);
+		break;
+	case 4:
+		AmbienceVolume = FMath::Clamp(AmbienceVolume + Delta, 0.0f, 1.0f);
+		break;
+	case 5:
+		if (Delta > 0.0f)
+		{
+			if (SubtitleScaleMultiplier < 0.95f) SubtitleScaleMultiplier = 1.0f;
+			else if (SubtitleScaleMultiplier < 1.15f) SubtitleScaleMultiplier = 1.25f;
+		}
+		else
+		{
+			if (SubtitleScaleMultiplier > 1.15f) SubtitleScaleMultiplier = 1.0f;
+			else if (SubtitleScaleMultiplier > 0.95f) SubtitleScaleMultiplier = 0.85f;
+		}
+		break;
+	default:
+		break;
+	}
+
+	ApplyAudioSettings();
+}
+
+void ARevolutionCharacter::SelectNextSetting()
+{
+	SelectedSettingsIndex = (SelectedSettingsIndex + 1) % 6;
+	PlayInspectAudio(true);
+}
+
+void ARevolutionCharacter::SelectPrevSetting()
+{
+	SelectedSettingsIndex = (SelectedSettingsIndex - 1 + 6) % 6;
+	PlayInspectAudio(true);
+}
+
+void ARevolutionCharacter::SetSubtitleScaleMultiplier(float InScale)
+{
+	SubtitleScaleMultiplier = FMath::Clamp(InScale, 0.5f, 2.0f);
+}
+
+void ARevolutionCharacter::CycleSubtitleScale()
+{
+	if (SubtitleScaleMultiplier < 0.95f)
+	{
+		SubtitleScaleMultiplier = 1.0f; // Medium
+	}
+	else if (SubtitleScaleMultiplier < 1.15f)
+	{
+		SubtitleScaleMultiplier = 1.25f; // Large
+	}
+	else
+	{
+		SubtitleScaleMultiplier = 0.85f; // Small
+	}
+}
+
+void ARevolutionCharacter::ApplyAudioSettings()
+{
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	USoundMix* DefaultMix = Cast<USoundMix>(StaticLoadObject(USoundMix::StaticClass(), nullptr, TEXT("/Game/Audio/SoundMixes/SMix_Default.SMix_Default")));
+	if (!DefaultMix) return;
+
+	auto SetClassVol = [&](const TCHAR* ClassPath, float Volume)
+	{
+		USoundClass* SC = Cast<USoundClass>(StaticLoadObject(USoundClass::StaticClass(), nullptr, ClassPath));
+		if (SC)
+		{
+			UGameplayStatics::SetSoundMixClassOverride(World, DefaultMix, SC, Volume, 1.0f, 0.05f, true);
+		}
+	};
+
+	SetClassVol(TEXT("/Game/Audio/SoundClasses/SC_Master.SC_Master"), MasterVolume);
+	SetClassVol(TEXT("/Game/Audio/SoundClasses/SC_SFX.SC_SFX"), SFXVolume);
+	SetClassVol(TEXT("/Game/Audio/SoundClasses/SC_Foley.SC_Foley"), FoleyVolume);
+	SetClassVol(TEXT("/Game/Audio/SoundClasses/SC_Voice_Punjabi.SC_Voice_Punjabi"), VoiceVolume);
+	SetClassVol(TEXT("/Game/Audio/SoundClasses/SC_Ambience_Mohalla.SC_Ambience_Mohalla"), AmbienceVolume);
+
+	UGameplayStatics::PushSoundMixModifier(World, DefaultMix);
+}
+
+void ARevolutionCharacter::OnMenuUp()
+{
+	if (!bIsSatchelJournalOpen) return;
+	if (ActiveSatchelTab == 2)
+	{
+		SelectPrevCodexEntry();
+	}
+	else if (ActiveSatchelTab == 3)
+	{
+		SelectPrevSetting();
+	}
+}
+
+void ARevolutionCharacter::OnMenuDown()
+{
+	if (!bIsSatchelJournalOpen) return;
+	if (ActiveSatchelTab == 2)
+	{
+		SelectNextCodexEntry();
+	}
+	else if (ActiveSatchelTab == 3)
+	{
+		SelectNextSetting();
+	}
+}
+
+void ARevolutionCharacter::OnMenuLeft()
+{
+	if (!bIsSatchelJournalOpen) return;
+	if (ActiveSatchelTab == 3)
+	{
+		AdjustCurrentSetting(-0.05f);
+	}
+}
+
+void ARevolutionCharacter::OnMenuRight()
+{
+	if (!bIsSatchelJournalOpen) return;
+	if (ActiveSatchelTab == 3)
+	{
+		AdjustCurrentSetting(0.05f);
+	}
 }
 
 

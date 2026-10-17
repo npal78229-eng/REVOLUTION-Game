@@ -73,6 +73,8 @@ protected:
 	void DrawSatchelTabEquipment(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
 	void DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
 	void DrawSatchelTabDispatchesLore(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
+	void DrawSatchelTabHistoricalCodex(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
+	void DrawSatchelTabSettingsControls(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH);
 
 	/** Draw Section 144 martial law curfew apprehension modal card */
 	void DrawApprehendedCard(ARevolutionCharacter* Kabir);

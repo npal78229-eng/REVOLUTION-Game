@@ -1218,6 +1218,7 @@ void ARevolutionHUD::DrawCinematicCaptions(float DeltaTime)
 
 	UFont* LargeFont = GEngine ? GEngine->GetLargeFont() : nullptr;
 	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
 	if (!MediumFont) return;
 
 	float CinematicHeight = Canvas->ClipX / 2.39f;
@@ -1247,15 +1248,31 @@ void ARevolutionHUD::DrawCinematicCaptions(float DeltaTime)
 	if (!CinematicSubtitleText.IsEmpty())
 	{
 		FString SubtitleStr = CinematicSubtitleText.ToString();
+		float SubScale = 1.0f;
+		if (ARevolutionCharacter* Kabir = Cast<ARevolutionCharacter>(GetOwningPawn()))
+		{
+			SubScale = Kabir->GetSubtitleScaleMultiplier();
+		}
+
+		UFont* SubFont = MediumFont;
+		if (SubScale > 1.15f && LargeFont)
+		{
+			SubFont = LargeFont;
+		}
+		else if (SubScale < 0.90f && SmallFont)
+		{
+			SubFont = SmallFont;
+		}
+
 		float SubW, SubH;
-		GetTextSize(SubtitleStr, SubW, SubH, MediumFont);
+		GetTextSize(SubtitleStr, SubW, SubH, SubFont);
 
 		float SubX = (Canvas->ClipX - SubW) * 0.5f;
 		float SubY = Canvas->ClipY - (FullBarHeight * 0.65f) - (SubH * 0.5f);
 
 		// Drop shadow
-		DrawText(SubtitleStr, FLinearColor(0.0f, 0.0f, 0.0f, 0.9f), SubX + 1.5f, SubY + 1.5f, MediumFont);
-		DrawText(SubtitleStr, FLinearColor(0.96f, 0.94f, 0.88f, 1.0f), SubX, SubY, MediumFont);
+		DrawText(SubtitleStr, FLinearColor(0.0f, 0.0f, 0.0f, 0.9f), SubX + 1.5f, SubY + 1.5f, SubFont);
+		DrawText(SubtitleStr, FLinearColor(0.96f, 0.94f, 0.88f, 1.0f), SubX, SubY, SubFont);
 	}
 }
 
@@ -1355,16 +1372,17 @@ void ARevolutionHUD::DrawSatchelJournalModal(ARevolutionCharacter* Kabir)
 	// Tab Bar Ribbon
 	const float TabY = BoxY + 60.0f;
 	const float TabH = 28.0f;
-	const float TabW = (BoxW - 48.0f) / 3.0f;
+	const float TabW = (BoxW - 48.0f) / 4.0f;
 	const int32 ActiveTab = Kabir->GetActiveSatchelTab();
 
 	const FString TabTitles[] = {
 		TEXT("[ 1 ]  SATCHEL EQUIPMENT"),
 		TEXT("[ 2 ]  MOHALLA ROUTE MAP"),
-		TEXT("[ 3 ]  DISPATCHES & LORE")
+		TEXT("[ 3 ]  HISTORICAL CODEX"),
+		TEXT("[ 4 ]  SETTINGS & CONTROLS")
 	};
 
-	for (int32 i = 0; i < 3; ++i)
+	for (int32 i = 0; i < 4; ++i)
 	{
 		float TabX = BoxX + 24.0f + (i * TabW);
 		bool bSelected = (ActiveTab == i);
@@ -1394,15 +1412,18 @@ void ARevolutionHUD::DrawSatchelJournalModal(ARevolutionCharacter* Kabir)
 		DrawSatchelTabMohallaMap(Kabir, BoxX + 24.0f, ContentY, ContentW, ContentH);
 		break;
 	case 2:
+		DrawSatchelTabHistoricalCodex(Kabir, BoxX + 24.0f, ContentY, ContentW, ContentH);
+		break;
+	case 3:
 	default:
-		DrawSatchelTabDispatchesLore(Kabir, BoxX + 24.0f, ContentY, ContentW, ContentH);
+		DrawSatchelTabSettingsControls(Kabir, BoxX + 24.0f, ContentY, ContentW, ContentH);
 		break;
 	}
 
 	// Bottom Navigation Footer
 	DrawLine(BoxX + 16.0f, BoxY + BoxH - 32.0f, BoxX + BoxW - 16.0f, BoxY + BoxH - 32.0f, AntiqueBrassColor, 1.0f);
 
-	FString FooterNav = TEXT("[ 1 / 2 / 3 ] Switch Section     |     [ TAB / J / E / ESC ] Close Satchel");
+	FString FooterNav = TEXT("[ 1 / 2 / 3 / 4 ] Switch Section   |   [ UP / DOWN / [ / ] ] Browse Entries / Options   |   [ TAB / J / ESC ] Close");
 	DrawText(FooterNav, MutedSepiaColor, BoxX + 24.0f, BoxY + BoxH - 24.0f, SmallFont);
 }
 
@@ -1693,97 +1714,415 @@ void ARevolutionHUD::DrawSatchelTabMohallaMap(ARevolutionCharacter* Kabir, float
 
 void ARevolutionHUD::DrawSatchelTabDispatchesLore(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH)
 {
+	DrawSatchelTabHistoricalCodex(Kabir, BoxX, ContentY, ContentW, ContentH);
+}
+
+void ARevolutionHUD::DrawSatchelTabHistoricalCodex(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH)
+{
 	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
 	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
 	if (!SmallFont) return;
 
-	// Two-column layout for discovered historical artifacts
-	const float ColW = (ContentW - 16.0f) * 0.5f;
-	const float Col1X = BoxX;
-	const float Col2X = BoxX + ColW + 16.0f;
-
-	struct FLoreEntry
+	struct FHistoricalCodexRecord
 	{
 		FString Title;
 		FString Category;
-		FString Description;
+		FString DateLocation;
+		FString ProclamationQuote;
+		FString ArchivalSummary;
+		FString GameplayRelevance;
 	};
 
-	static const FLoreEntry Entries[] = {
+	static const FHistoricalCodexRecord CodexRecords[] = {
+		// 1. The Rowlatt Black Act (1919)
 		{
-			TEXT("Student Wooden Takhti & Qalam"),
+			TEXT("THE ROWLATT BLACK ACT (1919)"),
+			TEXT("Colonial Legislation  •  Emergency War Powers"),
+			TEXT("March 21, 1919  •  Imperial Legislative Council, Delhi"),
+			TEXT("\"Na Dalil, Na Vakil, Na Appeal.\"  — Punjab Popular Proverb"),
+			TEXT("Officially the Anarchical and Revolutionary Crimes Act of 1919. Drafted by Sir Sidney Rowlatt's Sedition Committee, this repressive statute authorized indefinite preventive detention, incarceration without trial, in-camera tribunals with no legal representation, and draconian bans on vernacular printing presses. It provoked universal outrage across India, uniting communities against colonial despotism."),
+			TEXT("Under Rowlatt regulations, carrying printed literature is treasonous. Kabir must maintain low stance, utilize chalk-marked evasion routes, and deposit handbills into clandestine post drops before night curfew patrols seal the kuchas.")
+		},
+		// 2. Swadeshi & Khadi Weave
+		{
+			TEXT("SWADESHI & KHADI WEAVE"),
+			TEXT("Economic Self-Reliance  •  Vernacular Craft"),
+			TEXT("Mohalla Kot Gurdarshan  •  Textile Weaver Quarter"),
+			TEXT("\"Khadi is the symbol of unity of Indian humanity, of its economic freedom and equality.\""),
+			TEXT("The Swadeshi movement championed native homespun cotton (khadi) as a direct moral and economic strike against imported Lancashire mill cloth. By boycotting foreign garments, Indian artisans reclaimed economic autonomy. In Kot Gurdarshan, weavers and tailors spun charkha yarn in quiet courtyards, transforming every garment into a symbol of quiet national defiance."),
+			TEXT("Kabir carries homespun khadi tailored parcels for father Ram Lubhaya. Khadi cloth delivery acts as legitimate courier cover to cross the Deorhi arch without raising sepoy suspicion.")
+		},
+		// 3. Baisakhi Harvest Festival
+		{
+			TEXT("BAISAKHI HARVEST FESTIVAL"),
+			TEXT("Punjabi Cultural Heritage  •  Solar New Year"),
+			TEXT("April 13, 1919  •  Spring Harvest Assembly"),
+			TEXT("\"Aayi Baisakhi, khil gaye chehre — when the golden wheat bends to the sickle.\""),
+			TEXT("Vaisakhi marks the joyous spring rabi harvest across Punjab and the historic 1699 founding of the Khalsa Panth by Guru Gobind Singh Ji. Tens of thousands of peasants, cattle traders, and pilgrims poured into Amritsar from rural villages to bathe at the sacred Amrit Sarovar and trade at local cattle fairs, entirely unaware of martial assembly bans."),
+			TEXT("The vibrant holiday crowd in the Mandi square shields Kabir. Temple gongs and chatter provide acoustic masking, while festival kites and lanterns indicate favorable wind and safe rooftop transit.")
+		},
+		// 4. Jallianwala Bagh Memorial
+		{
+			TEXT("JALLIANWALA BAGH MEMORIAL"),
+			TEXT("Sacred Memorial  •  The Veil of Remembrance"),
+			TEXT("Amritsar Walled City  •  April 13, 1919"),
+			TEXT("\"The disproportionate severity... will awaken an empire to its moral conscience.\""),
+			TEXT("A six-acre open walled ground surrounded on all sides by five-story brick havelis with only five narrow chinks for entry. A peaceful, unarmed gathering assembled here on Baisakhi afternoon to protest the detention of Dr. Kitchlew and Dr. Satyapal. The tragic events that unfolded here galvanized the nation's resolve for complete independence."),
+			TEXT("Treated in-game with profound solemnity through the Censor Window and Veil of Remembrance. Graphic violence is completely veiled in favor of atmospheric reflection, reverent bansuri melodies, and historical contemplation.")
+		},
+		// 5. Section 144 Martial Curfew
+		{
+			TEXT("SECTION 144 MARTIAL CURFEW"),
+			TEXT("Military Decrees  •  Night Movement Ban"),
+			TEXT("8:00 PM Curfew Order  •  Kot Gurdarshan Thoroughfares"),
+			TEXT("\"All assemblies are declared unlawful. Streets must remain cleared after sunset.\""),
+			TEXT("Issued by the colonial district magistrate, Section 144 prohibited any gathering of more than four individuals and mandated an 8:00 PM curfew. Citizens caught outdoors after the evening bugle faced summary flogging or imprisonment under military regulations. Kot Gurdarshan became an eerie grid of barred wooden shutters and pacing constables."),
+			TEXT("Curfew activation triggers the 800 Hz low-pass ambient audio filter, sharpens patrol alert cones, and requires Kabir to use rooftops, timber pigeon lofts, and cellar crawls to deliver dispatches undetected.")
+		},
+		// 6. Clandestine Printing Press
+		{
+			TEXT("CLANDESTINE PRINTING PRESS"),
+			TEXT("Underground Press  •  Free Expression"),
+			TEXT("Cellar Workshop  •  Kucha Press Quarter"),
+			TEXT("\"The pen may be outlawed by edict, but the stone press speaks in the dark.\""),
+			TEXT("When colonial censors seized printing establishments and enforced the Indian Press Act of 1910, resistance networks retreated underground. Miniature lithographic flatbed stones were operated by candlelight in subterranean haveli cellars, churning out thousands of strike handbills on coarse rag paper overnight."),
+			TEXT("Kabir's central mission objective: slip past bazaar pickets to retrieve freshly lithographed handbills and deliver them to courier drops across the 5 historical zones before dawn.")
+		},
+		// 7. Punjabi Architectural Fabric
+		{
+			TEXT("PUNJABI ARCHITECTURAL FABRIC"),
+			TEXT("Vernacular Urbanism  •  The Mohalla Network"),
+			TEXT("Walled City Punjab  •  Nanakshahi Brick Havelis"),
+			TEXT("\"The haveli's walls keep the noon heat out and the community's bond within.\""),
+			TEXT("Historic Punjabi mohallas were masterclasses in climate-adaptive, defensive urban planning. Built with slender Nanakshahi kiln-fired bricks, lime mortar, and carved shisham jharokha balconies, multi-story havelis formed contiguous rooftop corridors (kothas) connected by low parapets, shaded courtyards, and communal wells."),
+			TEXT("The interconnected flat roofs allow Kabir to leap over 1.1m parapets, traverse high clotheslines, and bypass guarded ground streets entirely through authentic historical parkour.")
+		},
+		// 8. Student Wooden Takhti & Qalam
+		{
+			TEXT("STUDENT TAKHTI & REED QALAM"),
 			TEXT("Vernacular Education  •  Literacy"),
-			TEXT("Carved wooden writing board washed with pale chalk slip (gachi). 12-year-old pupils practice calligraphy using bamboo reed pens (qalam) and lampblack ink.")
+			TEXT("Primary Mohalla Maktab  •  April 1919"),
+			TEXT("\"Vidya vichari taan parupkari — true learning yields selfless action.\""),
+			TEXT("Carved shisham wood writing board washed with pale chalk slip (gachi). 12-year-old pupils practice Punjabi and Urdu calligraphy using sharpened bamboo reed pens (qalam) and lampblack ink, learning ancestral history despite colonial curricula."),
+			TEXT("Found in Kabir's home classroom; symbolizes the quiet education and literacy that enabled young couriers to read dispatches and coordinate resistance routes.")
 		},
+		// 9. Earthen Mud Chulha Stove
 		{
-			TEXT("Earthen Mud Chulha Stove"),
+			TEXT("EARTHEN MUD CHULHA STOVE"),
 			TEXT("Domestic Life  •  Foodways"),
-			TEXT("Double-burner clay cooking hearth with terracotta handi pot and hammered brass lota. The morning scent of woodsmoke and ginger tea anchors the family courtyard.")
+			TEXT("Courtyard Kitchen  •  Kot Gurdarshan"),
+			TEXT("\"Ghar da chulha te maa di mamta — the courtyard hearth that sustains life.\""),
+			TEXT("Double-burner clay cooking hearth with terracotta handi pot and hammered brass lota. The morning scent of cow-dung fuel, woodsmoke, and ginger cardamom tea anchors the family courtyard, providing refuge before dangerous assignments."),
+			TEXT("Courtyard cooking fires produce rising smoke plumes that Kabir can use from rooftops as visual landmarks to navigate during foggy mornings and dusk.")
 		},
+		// 10. Bazaar Vendor Thela (Handcart)
 		{
-			TEXT("Bazaar Vendor Thela (Handcart)"),
+			TEXT("BAZAAR VENDOR THELA (HANDCART)"),
 			TEXT("Mandi Commerce  •  Octroi Taxes"),
-			TEXT("Heavy timber cart with 76cm iron-spoked wheels, laden with grain sacks and clay matkas. Provides essential crouch cover against patrolling British police sepoys.")
+			TEXT("Grand Bazaar Mandi  •  Wheat & Grain Stalls"),
+			TEXT("\"Haath-thela te rozi-roti — honest labour under oppressive octroi levies.\""),
+			TEXT("Heavy timber cart with 76cm iron-spoked wheels, laden with jute grain sacks and clay water matkas. Mandi vendors used these heavy carts to transport daily produce while resisting colonial middleman syndicates."),
+			TEXT("Provides essential waist-high crouch cover against patrolling British police sepoys; Kabir can creep behind loaded thelas to break line-of-sight across open squares.")
 		},
+		// 11. Rooftop Pigeon Loft (Kabootar-khana)
 		{
-			TEXT("Rooftop Pigeon Loft (Kabootar-khana)"),
-			TEXT("Mohalla Culture  •  Signaling"),
-			TEXT("Slatted timber loft for racing tumbler pigeons. Neighborhood boys and dispatch runners used cooing flocks to mask rooftop footsteps during curfews.")
+			TEXT("ROOFTOP PIGEON LOFT"),
+			TEXT("Mohalla Culture  •  Acoustic Signaling"),
+			TEXT("Haveli Rooftop Terraces  •  Kotha Network"),
+			TEXT("\"Kabootar bazi — the high art of flight and rooftop brotherhood.\""),
+			TEXT("Slatted timber loft for racing tumbler pigeons (kabootar-khana). Neighborhood boys and courier scouts used fluttering flocks and rhythmic whistle calls to signal patrol movements without alerting ground sepoys."),
+			TEXT("Functions as interactive hiding spots across haveli roofs; entering a slatted pigeon loft conceals Kabir completely while fluttering coos mask audio signatures.")
 		},
+		// 12. Basant Fighter Kites & Manja
 		{
-			TEXT("Basant Fighter Kites & Manja"),
+			TEXT("BASANT FIGHTER KITES & MANJA"),
 			TEXT("Childhood Heritage  •  Basant 1919"),
-			TEXT("Thin tissue paper diamond kite with arched bamboo spars and a lathe-turned hardwood reel wound with glass-coated saffron manja thread.")
+			TEXT("Spring Skies  •  Kot Gurdarshan Havelis"),
+			TEXT("\"Woh kaata! — the joyous triumphant cry echoing across spring rooftops.\""),
+			TEXT("Thin tissue paper diamond kite with arched bamboo spars and a lathe-turned hardwood reel (charkhi) wound with glass-coated saffron manja thread. Symbolizes the resilient spirit and childhood joy that survived wartime hardships."),
+			TEXT("Kite reels and drying manja lines strung between roofs serve as visual breadcrumbs for rooftop crossing paths, signaling safe mantling points for agile couriers.")
 		},
+		// 13. Anti-Rowlatt Satyagraha Handbill
 		{
-			TEXT("Anti-Rowlatt Satyagraha Handbill"),
+			TEXT("ANTI-ROWLATT HANDBILL"),
 			TEXT("Underground Press  •  Hartal 1919"),
-			TEXT("Freshly lithographed strike notice on rag paper: 'Na Dalil, Na Vakil, Na Appeal.' Calling for a total province-wide shutdown of all bazaars, schools, and railways.")
+			TEXT("Lithographed Overnight  •  Secret Courier Network"),
+			TEXT("\"Na Dalil, Na Vakil, Na Appeal — Complete Hartal Shutdown.\""),
+			TEXT("Freshly lithographed strike notice on coarse rag paper calling for a total province-wide shutdown of all bazaars, schools, and railways in protest of the Rowlatt Act."),
+			TEXT("Kabir's principal objective item. Depositing bundles into secret postboxes and merchant stashes mobilizes the town for the historic April 1919 Hartal.")
 		},
+		// 14. Imperial Red Pillar Postbox (GR)
 		{
-			TEXT("Imperial Red Pillar Postbox (GR)"),
-			TEXT("Colonial Rule  •  Boycott Target"),
-			TEXT("Cast-iron red postbox bearing the George V royal cypher and collection plate. Anti-colonial scouts pasted boycott notices across its imperial crest.")
+			TEXT("IMPERIAL PILLAR POSTBOX (GR)"),
+			TEXT("Colonial Administration  •  Boycott Target"),
+			TEXT("Grand Bazaar Crossing  •  Post Office Road"),
+			TEXT("\"Royal Cypher George V  •  Monopoly of Official Transit.\""),
+			TEXT("Cast-iron cylindrical red postbox bearing the royal cypher and imperial collection schedule plate. Symbolized British bureaucratic dominance over postal communications."),
+			TEXT("Anti-colonial scouts plastered boycott notices across its imperial crest, turning the colonial communications node into an undercover message beacon.")
 		},
+		// 15. Mandi Iron Tarazu Scale & Weights
 		{
-			TEXT("Mandi Iron Tarazu Scale & Weights"),
+			TEXT("MANDI TARAZU SCALE & WEIGHTS"),
 			TEXT("Fair Trade  •  Requisition Scarcity"),
-			TEXT("Traditional merchant balance scale with dual brass pans and cast-iron weights. Reminds shoppers of colonial wartime grain requisitioning and market rationing.")
+			TEXT("Grain Merchant Guild  •  Mandi Square"),
+			TEXT("\"Sach da tarazu — weighing honesty amidst war requisitions and shortages.\""),
+			TEXT("Traditional merchant balance scale with dual brass pans and cast-iron standard weights. Reminds shoppers of colonial wartime grain requisitioning and market rationing."),
+			TEXT("Located near Lala Karam Chand's stall; can be interacted with to study fair commerce and inspect the grain shortages that fueled popular protest in spring 1919.")
 		},
+		// 16. Shisham Carved Grain Sandook
 		{
-			TEXT("Shisham Carved Grain Sandook"),
+			TEXT("SHISHAM CARVED GRAIN SANDOOK"),
 			TEXT("Haveli Heritage  •  Heirloom Storage"),
-			TEXT("Heavy Punjabi hardwood chest with iron corner brackets, floral repoussé carvings, and brass hasp lock, elevated on stilts to keep seed and khadi safe.")
+			TEXT("Family Living Quarters  •  Haveli Interior"),
+			TEXT("\"Peedhi-dar-peedhi — generational chest preserving heirlooms and grain.\""),
+			TEXT("Heavy Punjabi hardwood chest with iron corner brackets, floral repoussé brass relief carvings, and padlock hasp, elevated on turned feet to protect seeds and khadi cloth."),
+			TEXT("Serves as Kabir's domestic stash point where tailored khadi deliveries and clandestine pamphlets are concealed safely under family textiles.")
 		},
+		// 17. Classroom 1919 Punjab Map Easel
 		{
-			TEXT("Classroom 1919 Punjab Map Easel"),
-			TEXT("Vernacular School  •  Geography"),
-			TEXT("Classroom easel displaying the 1919 map of Punjab Province and Frontier. Headmaster Pandit Kashi Ram uses it to instill proud historical roots.")
+			TEXT("CLASSROOM 1919 PUNJAB MAP"),
+			TEXT("Vernacular School  •  Historical Cartography"),
+			TEXT("Vernacular Middle School  •  Room 4B"),
+			TEXT("\"Land of Five Rivers  •  The Grand Trunk Corridor.\""),
+			TEXT("Hand-drafted classroom easel displaying the 1919 British administrative map of Punjab Province, demarcating Amritsar, Lahore, Jalandhar, and Rawalpindi."),
+			TEXT("Studying the map allows Kabir to visualize the wider provincial scale of the Satyagraha network and track historical landmarks across Kot Gurdarshan.")
 		}
 	};
 
-	const int32 TotalEntries = 10;
-	const int32 RowsPerCol = 5;
-	const float CardH = (ContentH - 28.0f) / (float)RowsPerCol;
+	const int32 TotalEntries = 17;
+	const int32 CurrentIdx = Kabir ? FMath::Clamp(Kabir->SelectedCodexIndex, 0, TotalEntries - 1) : 0;
 
-	for (int32 i = 0; i < TotalEntries; ++i)
+	// Layout dimensions
+	const float LeftW = ContentW * 0.38f;
+	const float RightW = ContentW - LeftW - 14.0f;
+	const float RightX = BoxX + LeftW + 14.0f;
+
+	// --- LEFT COLUMN: Scrollable Directory of 17 Historical Entries ---
+	const int32 MaxVisible = 6;
+	const int32 StartIdx = FMath::Clamp(CurrentIdx - 2, 0, FMath::Max(0, TotalEntries - MaxVisible));
+	const float CardH = (ContentH - 28.0f) / (float)MaxVisible;
+
+	for (int32 i = 0; i < MaxVisible; ++i)
 	{
-		float CurX = (i < RowsPerCol) ? Col1X : Col2X;
-		float CurY = ContentY + 4.0f + ((i % RowsPerCol) * (CardH + 5.0f));
+		int32 RecordIdx = StartIdx + i;
+		if (RecordIdx >= TotalEntries) break;
 
-		DrawFramedBox(CurX, CurY, ColW, CardH, FLinearColor(0.88f, 0.84f, 0.74f, 0.90f), AntiqueBrassColor, 1.0f);
+		float CurY = ContentY + 4.0f + (i * (CardH + 4.0f));
+		bool bSelected = (RecordIdx == CurrentIdx);
 
-		DrawText(Entries[i].Title, DarkInkColor, CurX + 8.0f, CurY + 4.0f, MediumFont ? MediumFont : SmallFont);
-		DrawText(Entries[i].Category, AntiqueBrassColor, CurX + 8.0f, CurY + 18.0f, SmallFont);
+		FLinearColor CardBg = bSelected ? DarkInkColor : FLinearColor(0.88f, 0.84f, 0.74f, 0.90f);
+		FLinearColor CardBorder = bSelected ? AntiqueBrassColor : MutedSepiaColor;
+		FLinearColor TitleColor = bSelected ? AntiqueBrassColor : DarkInkColor;
+		FLinearColor CatColor = bSelected ? FLinearColor(0.92f, 0.88f, 0.80f, 0.90f) : MutedSepiaColor;
 
-		TArray<FString> Wrapped = WrapText(Entries[i].Description, SmallFont, ColW - 16.0f);
-		float TextY = CurY + 32.0f;
-		for (const FString& Line : Wrapped)
-		{
-			DrawText(Line, MutedSepiaColor, CurX + 8.0f, TextY, SmallFont);
-			TextY += 12.0f;
-		}
+		DrawFramedBox(BoxX, CurY, LeftW, CardH, CardBg, CardBorder, bSelected ? 1.5f : 1.0f);
+
+		FString Prefix = bSelected ? TEXT("> ") : TEXT("  ");
+		FString EntryLabel = FString::Printf(TEXT("%s[%02d] %s"), *Prefix, RecordIdx + 1, *CodexRecords[RecordIdx].Title);
+
+		DrawText(EntryLabel, TitleColor, BoxX + 8.0f, CurY + 4.0f, SmallFont);
+		DrawText(CodexRecords[RecordIdx].Category, CatColor, BoxX + 16.0f, CurY + 20.0f, SmallFont);
 	}
+
+	// --- RIGHT COLUMN: Rich Archival Dossier ---
+	DrawFramedBox(RightX, ContentY + 4.0f, RightW, ContentH - 8.0f, FLinearColor(0.90f, 0.86f, 0.77f, 0.95f), AntiqueBrassColor, 1.5f);
+
+	// Archival Header Tag
+	FString DossierTag = FString::Printf(TEXT("ARCHIVAL DOSSIER  •  RECORD #%02d OF %d  •  PUNJAB 1919"), CurrentIdx + 1, TotalEntries);
+	DrawText(DossierTag, AntiqueBrassColor, RightX + 14.0f, ContentY + 12.0f, SmallFont);
+	DrawLine(RightX + 14.0f, ContentY + 28.0f, RightX + RightW - 14.0f, ContentY + 28.0f, AntiqueBrassColor, 1.0f);
+
+	// Title
+	DrawText(CodexRecords[CurrentIdx].Title, DarkInkColor, RightX + 14.0f, ContentY + 34.0f, MediumFont ? MediumFont : SmallFont);
+
+	// Category & Historical Period Subtitle
+	FString Subtitle = CodexRecords[CurrentIdx].Category + TEXT("   |   ") + CodexRecords[CurrentIdx].DateLocation;
+	DrawText(Subtitle, MutedSepiaColor, RightX + 14.0f, ContentY + 54.0f, SmallFont);
+
+	// Proclamation / Period Quote Callout Box
+	float QuoteY = ContentY + 72.0f;
+	float QuoteH = 34.0f;
+	DrawFramedBox(RightX + 12.0f, QuoteY, RightW - 24.0f, QuoteH, FLinearColor(0.12f, 0.10f, 0.08f, 0.90f), AntiqueBrassColor, 1.0f);
+	DrawText(CodexRecords[CurrentIdx].ProclamationQuote, AntiqueBrassColor, RightX + 22.0f, QuoteY + 8.0f, SmallFont);
+
+	// Historical Analysis / Treatise
+	float TreatY = QuoteY + QuoteH + 12.0f;
+	TArray<FString> SummaryLines = WrapText(CodexRecords[CurrentIdx].ArchivalSummary, SmallFont, RightW - 28.0f);
+	for (const FString& Line : SummaryLines)
+	{
+		DrawText(Line, DarkInkColor, RightX + 14.0f, TreatY, SmallFont);
+		TreatY += 14.0f;
+	}
+
+	// Gameplay Stealth Dynamics Box (at bottom)
+	float MechBoxH = 64.0f;
+	float MechBoxY = ContentY + ContentH - MechBoxH - 18.0f;
+	DrawFramedBox(RightX + 12.0f, MechBoxY, RightW - 24.0f, MechBoxH, FLinearColor(0.85f, 0.81f, 0.70f, 0.92f), MutedSepiaColor, 1.0f);
+	DrawText(TEXT("STEALTH & TACTICAL APPLICATION:"), AntiqueBrassColor, RightX + 20.0f, MechBoxY + 6.0f, SmallFont);
+
+	TArray<FString> MechLines = WrapText(CodexRecords[CurrentIdx].GameplayRelevance, SmallFont, RightW - 40.0f);
+	float MechTextY = MechBoxY + 22.0f;
+	for (const FString& MLine : MechLines)
+	{
+		DrawText(MLine, DarkInkColor, RightX + 20.0f, MechTextY, SmallFont);
+		MechTextY += 13.0f;
+	}
+}
+
+void ARevolutionHUD::DrawSatchelTabSettingsControls(ARevolutionCharacter* Kabir, float BoxX, float ContentY, float ContentW, float ContentH)
+{
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	if (!SmallFont) return;
+
+	const float LeftW = (ContentW - 16.0f) * 0.49f;
+	const float RightW = (ContentW - 16.0f) * 0.51f;
+	const float RightX = BoxX + LeftW + 16.0f;
+
+	// --- LEFT COLUMN: AUDIO MIX & ACCESSIBILITY CONFIGURATION ---
+	DrawFramedBox(BoxX, ContentY + 4.0f, LeftW, ContentH - 8.0f, FLinearColor(0.89f, 0.85f, 0.76f, 0.95f), AntiqueBrassColor, 1.5f);
+
+	DrawText(TEXT("AUDIO MIX & ACCESSIBILITY OPTIONS"), DarkInkColor, BoxX + 14.0f, ContentY + 12.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("Dynamic Task 17 SoundClass Routing & Subtitle Scaling"), MutedSepiaColor, BoxX + 14.0f, ContentY + 30.0f, SmallFont);
+	DrawLine(BoxX + 14.0f, ContentY + 46.0f, BoxX + LeftW - 14.0f, ContentY + 46.0f, AntiqueBrassColor, 1.0f);
+
+	const int32 SelectedSetting = Kabir ? Kabir->SelectedSettingsIndex : 0;
+
+	auto DrawAudioSlider = [&](float Y, float Value, const FString& Label, const FString& SoundClassTag, bool bSelected)
+	{
+		float CardY = Y;
+		float CardW = LeftW - 28.0f;
+		float CardH = 38.0f;
+		float CardX = BoxX + 14.0f;
+
+		FLinearColor Bg = bSelected ? DarkInkColor : FLinearColor(0.93f, 0.90f, 0.82f, 0.85f);
+		FLinearColor Border = bSelected ? AntiqueBrassColor : MutedSepiaColor;
+		FLinearColor TextCol = bSelected ? AntiqueBrassColor : DarkInkColor;
+
+		DrawFramedBox(CardX, CardY, CardW, CardH, Bg, Border, bSelected ? 1.5f : 1.0f);
+
+		FString Indicator = bSelected ? TEXT("> ") : TEXT("  ");
+		DrawText(Indicator + Label, TextCol, CardX + 8.0f, CardY + 4.0f, SmallFont);
+
+		FString PctStr = FString::Printf(TEXT("%d%%  [%s]"), FMath::RoundToInt(Value * 100.0f), *SoundClassTag);
+		float PctW = 0.0f, PctH = 0.0f;
+		GetTextSize(PctStr, PctW, PctH, SmallFont);
+		DrawText(PctStr, bSelected ? FLinearColor(0.95f, 0.92f, 0.85f, 1.0f) : MutedSepiaColor, CardX + CardW - PctW - 8.0f, CardY + 4.0f, SmallFont);
+
+		// Slider Track
+		float BarX = CardX + 10.0f;
+		float BarY = CardY + 22.0f;
+		float BarW = CardW - 20.0f;
+		float BarH = 8.0f;
+		DrawRect(FLinearColor(0.2f, 0.18f, 0.15f, 0.9f), BarX, BarY, BarW, BarH);
+		DrawRect(AntiqueBrassColor, BarX + 1.0f, BarY + 1.0f, (BarW - 2.0f) * FMath::Clamp(Value, 0.0f, 1.0f), BarH - 2.0f);
+	};
+
+	float MasterVol = Kabir ? Kabir->MasterVolume : 1.0f;
+	float SFXVol = Kabir ? Kabir->SFXVolume : 1.0f;
+	float FoleyVol = Kabir ? Kabir->FoleyVolume : 1.0f;
+	float VoiceVol = Kabir ? Kabir->VoiceVolume : 1.0f;
+	float AmbVol = Kabir ? Kabir->AmbienceVolume : 1.0f;
+	float SubScale = Kabir ? Kabir->SubtitleScaleMultiplier : 1.0f;
+
+	DrawAudioSlider(ContentY + 54.0f, MasterVol, TEXT("Master Mix Volume"), TEXT("SC_Master"), SelectedSetting == 0);
+	DrawAudioSlider(ContentY + 98.0f, SFXVol, TEXT("Sound Effects (SFX)"), TEXT("SC_SFX"), SelectedSetting == 1);
+	DrawAudioSlider(ContentY + 142.0f, FoleyVol, TEXT("Foley & Stealth Footsteps"), TEXT("SC_Foley"), SelectedSetting == 2);
+	DrawAudioSlider(ContentY + 186.0f, VoiceVol, TEXT("Voice & Proclamation"), TEXT("SC_Voice"), SelectedSetting == 3);
+	DrawAudioSlider(ContentY + 230.0f, AmbVol, TEXT("Mohalla Ambience & Night Wind"), TEXT("SC_Ambience"), SelectedSetting == 4);
+
+	// ACCESSIBILITY: Subtitle Scale Toggle Row (Setting 5)
+	float SubY = ContentY + 276.0f;
+	float SubCardW = LeftW - 28.0f;
+	float SubCardH = 46.0f;
+	float SubCardX = BoxX + 14.0f;
+	bool bSubSelected = (SelectedSetting == 5);
+
+	DrawFramedBox(SubCardX, SubY, SubCardW, SubCardH, bSubSelected ? DarkInkColor : FLinearColor(0.93f, 0.90f, 0.82f, 0.85f), bSubSelected ? AntiqueBrassColor : MutedSepiaColor, bSubSelected ? 1.5f : 1.0f);
+
+	FString SubInd = bSubSelected ? TEXT("> ") : TEXT("  ");
+	DrawText(SubInd + TEXT("Accessibility Subtitle Size"), bSubSelected ? AntiqueBrassColor : DarkInkColor, SubCardX + 8.0f, SubY + 4.0f, SmallFont);
+
+	// 3 Size Pills: Small (0.85), Medium (1.0), Large (1.25)
+	const FString SizeLabels[] = { TEXT("SMALL (85%)"), TEXT("MEDIUM (100%)"), TEXT("LARGE (125%)") };
+	const float SizeScales[] = { 0.85f, 1.0f, 1.25f };
+	float PillW = (SubCardW - 24.0f) / 3.0f;
+	float PillH = 18.0f;
+
+	for (int32 s = 0; s < 3; ++s)
+	{
+		float PX = SubCardX + 8.0f + (s * (PillW + 4.0f));
+		float PY = SubY + 22.0f;
+		bool bActiveSize = FMath::IsNearlyEqual(SubScale, SizeScales[s], 0.1f);
+
+		FLinearColor PBg = bActiveSize ? AntiqueBrassColor : FLinearColor(0.85f, 0.81f, 0.72f, 0.85f);
+		FLinearColor PText = bActiveSize ? DarkInkColor : MutedSepiaColor;
+
+		DrawFramedBox(PX, PY, PillW, PillH, PBg, AntiqueBrassColor, 1.0f);
+		float LW = 0.0f, LH = 0.0f;
+		GetTextSize(SizeLabels[s], LW, LH, SmallFont);
+		DrawText(SizeLabels[s], PText, PX + ((PillW - LW) * 0.5f), PY + ((PillH - LH) * 0.5f), SmallFont);
+	}
+
+	// Instructions Footer
+	float FootY = ContentY + ContentH - 32.0f;
+	DrawText(TEXT("[ UP / DOWN ] Select Setting    |    [ LEFT / RIGHT ] Adjust Value"), DarkInkColor, BoxX + 16.0f, FootY, SmallFont);
+
+	// --- RIGHT COLUMN: HISTORICAL SCOUT CONTROLS & KEYBINDING REMAP ---
+	DrawFramedBox(RightX, ContentY + 4.0f, RightW, ContentH - 8.0f, FLinearColor(0.89f, 0.85f, 0.76f, 0.95f), AntiqueBrassColor, 1.5f);
+
+	DrawText(TEXT("HISTORICAL SCOUT CONTROL SCHEMA"), DarkInkColor, RightX + 14.0f, ContentY + 12.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("Fluid Locomotion, Stealth Distraction & Satchel Journal Bindings"), MutedSepiaColor, RightX + 14.0f, ContentY + 30.0f, SmallFont);
+	DrawLine(RightX + 14.0f, ContentY + 46.0f, RightX + RightW - 14.0f, ContentY + 46.0f, AntiqueBrassColor, 1.0f);
+
+	auto DrawControlGroup = [&](float GStart, const FString& GTitle, const TArray<TPair<FString, FString>>& KeyPairs) -> float
+	{
+		DrawText(GTitle, AntiqueBrassColor, RightX + 14.0f, GStart, SmallFont);
+		DrawLine(RightX + 14.0f, GStart + 16.0f, RightX + RightW - 14.0f, GStart + 16.0f, MutedSepiaColor, 0.5f);
+
+		float RowY = GStart + 22.0f;
+		for (const auto& Pair : KeyPairs)
+		{
+			// Key badge
+			float BadgeW = 75.0f;
+			float BadgeH = 16.0f;
+			DrawFramedBox(RightX + 14.0f, RowY, BadgeW, BadgeH, DarkInkColor, AntiqueBrassColor, 1.0f);
+
+			float KW = 0.0f, KH = 0.0f;
+			GetTextSize(Pair.Key, KW, KH, SmallFont);
+			DrawText(Pair.Key, AntiqueBrassColor, RightX + 14.0f + ((BadgeW - KW) * 0.5f), RowY + ((BadgeH - KH) * 0.5f), SmallFont);
+
+			DrawText(Pair.Value, DarkInkColor, RightX + 98.0f, RowY + 1.0f, SmallFont);
+			RowY += 19.0f;
+		}
+		return RowY + 4.0f;
+	};
+
+	TArray<TPair<FString, FString>> LocomotionKeys = {
+		{ TEXT("W / A / S / D"), TEXT("Walk & Steer Kabir across alleys and rooftops") },
+		{ TEXT("LEFT SHIFT"), TEXT("Sprint through open streets (Consumes Stamina)") },
+		{ TEXT("C"), TEXT("Toggle Low Stance / Crouch Creeping") },
+		{ TEXT("SPACE"), TEXT("Vault 1.1m Parapet / Mantle Ledge / Jump") }
+	};
+	float G1End = DrawControlGroup(ContentY + 54.0f, TEXT("1. LOCOMOTION & HISTORICAL PARKOUR"), LocomotionKeys);
+
+	TArray<TPair<FString, FString>> StealthKeys = {
+		{ TEXT("HOLD RMB"), TEXT("Predictive Pebble Trajectory Arc Aim (A Plague Tale)") },
+		{ TEXT("F / G"), TEXT("Throw Tailor's Pebble to Lure Patrol Away") },
+		{ TEXT("T"), TEXT("Inscribe Tailor's Chalk Mark on Surfaces") },
+		{ TEXT("V"), TEXT("Basant Intuition (Keen Senses Tactical Beacon)") },
+		{ TEXT("Q / E"), TEXT("Corner Peeking & Parapet Lean (Dishonored)") },
+		{ TEXT("E / ENTER"), TEXT("Interact with NPCs / Enter Concealment Hiding Spot") }
+	};
+	float G2End = DrawControlGroup(G1End, TEXT("2. STEALTH, DISTRACTION & FIELD TOOLS"), StealthKeys);
+
+	TArray<TPair<FString, FString>> SatchelKeys = {
+		{ TEXT("TAB / J"), TEXT("Open / Close Satchel & Field Journal Modal") },
+		{ TEXT("1 / 2 / 3 / 4"), TEXT("Directly Select Satchel Tabs 1 to 4") },
+		{ TEXT("UP / DOWN"), TEXT("Navigate Historical Codex Entries & Settings") },
+		{ TEXT("LEFT / RIGHT"), TEXT("Adjust Volume Sliders / Toggle Subtitle Scale") }
+	};
+	DrawControlGroup(G2End, TEXT("3. SATCHEL JOURNAL & SETTINGS SHORTCUTS"), SatchelKeys);
 }
 
 void ARevolutionHUD::DrawApprehendedCard(ARevolutionCharacter* Kabir)

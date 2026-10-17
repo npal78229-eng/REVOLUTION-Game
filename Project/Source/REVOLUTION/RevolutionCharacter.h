@@ -402,7 +402,7 @@ public:
 	bool bIsSatchelJournalOpen = false;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Satchel")
-	int32 ActiveSatchelTab = 0; // 0 = Satchel Equipment, 1 = Mohalla Map, 2 = Dispatches & Lore
+	int32 ActiveSatchelTab = 0; // 0 = Satchel Equipment, 1 = Mohalla Map, 2 = Historical Codex, 3 = Settings & Controls
 
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
 	void ToggleSatchelJournal();
@@ -419,11 +419,79 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
 	void SelectSatchelTab3() { SelectSatchelTab(2); }
 
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void SelectSatchelTab4() { SelectSatchelTab(3); }
+
 	UFUNCTION(BlueprintPure, Category = "Revolution|Satchel")
 	bool IsSatchelJournalOpen() const { return bIsSatchelJournalOpen; }
 
 	UFUNCTION(BlueprintPure, Category = "Revolution|Satchel")
 	int32 GetActiveSatchelTab() const { return ActiveSatchelTab; }
+
+	// --- HISTORICAL CODEX ARCHIVAL NAVIGATION ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|Satchel")
+	int32 SelectedCodexIndex = 0;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void SelectNextCodexEntry();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void SelectPrevCodexEntry();
+
+	// --- QUALITY-OF-LIFE, ACCESSIBILITY & AUDIO SETTINGS ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Settings")
+	float SubtitleScaleMultiplier = 1.0f; // 0.85 = Small, 1.0 = Medium, 1.25 = Large
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Settings")
+	float MasterVolume = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Settings")
+	float SFXVolume = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Settings")
+	float FoleyVolume = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Settings")
+	float VoiceVolume = 1.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Settings")
+	float AmbienceVolume = 1.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|Settings")
+	int32 SelectedSettingsIndex = 0; // 0=Master, 1=SFX, 2=Foley, 3=Voice, 4=Ambience, 5=SubtitleSize
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Settings")
+	void AdjustCurrentSetting(float Delta);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Settings")
+	void SelectNextSetting();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Settings")
+	void SelectPrevSetting();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Settings")
+	void SetSubtitleScaleMultiplier(float InScale);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Settings")
+	void CycleSubtitleScale();
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Settings")
+	float GetSubtitleScaleMultiplier() const { return SubtitleScaleMultiplier; }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Settings")
+	void ApplyAudioSettings();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void OnMenuUp();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void OnMenuDown();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void OnMenuLeft();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
+	void OnMenuRight();
 
 private:
 	FVector VaultStartLocation;
