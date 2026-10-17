@@ -508,6 +508,36 @@ void ARevolutionCharacter::SetupPlayerInputComponent(UInputComponent* PlayerInpu
 
 	// AAA Benchmark: Keen Senses / Basant Intuition (Assassin's Creed Eagle Vision / Hitman Instinct)
 	PlayerInputComponent->BindKey(EKeys::V, IE_Pressed, this, &ARevolutionCharacter::ToggleKeenSenses);
+
+	// SteamOS & Handheld Controller Bindings (Steam Deck / Xbox / DualSense layout)
+	PlayerInputComponent->BindAxisKey(EKeys::Gamepad_LeftY, this, &ARevolutionCharacter::GamepadMoveForwardAxis);
+	PlayerInputComponent->BindAxisKey(EKeys::Gamepad_LeftX, this, &ARevolutionCharacter::GamepadMoveRightAxis);
+	PlayerInputComponent->BindAxisKey(EKeys::Gamepad_RightX, this, &ARevolutionCharacter::GamepadTurnAxis);
+	PlayerInputComponent->BindAxisKey(EKeys::Gamepad_RightY, this, &ARevolutionCharacter::GamepadLookUpAxis);
+
+	PlayerInputComponent->BindKey(EKeys::Gamepad_FaceButton_Bottom, IE_Pressed, this, &ARevolutionCharacter::OnJumpPressed);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_FaceButton_Bottom, IE_Released, this, &ARevolutionCharacter::OnJumpReleased);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_FaceButton_Right, IE_Pressed, this, &ARevolutionCharacter::ToggleCrouch);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_FaceButton_Left, IE_Pressed, this, &ARevolutionCharacter::OnInteract);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_FaceButton_Top, IE_Pressed, this, &ARevolutionCharacter::ToggleKeenSenses);
+
+	PlayerInputComponent->BindKey(EKeys::Gamepad_LeftShoulder, IE_Pressed, this, &ARevolutionCharacter::StartSprinting);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_LeftShoulder, IE_Released, this, &ARevolutionCharacter::StopSprinting);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_RightShoulder, IE_Pressed, this, &ARevolutionCharacter::ToggleSatchelJournal);
+
+	PlayerInputComponent->BindKey(EKeys::Gamepad_LeftTrigger, IE_Pressed, this, &ARevolutionCharacter::StartAimingPebble);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_LeftTrigger, IE_Released, this, &ARevolutionCharacter::StopAimingPebble);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_RightTrigger, IE_Pressed, this, &ARevolutionCharacter::ThrowPebble);
+
+	PlayerInputComponent->BindKey(EKeys::Gamepad_RightThumbstick, IE_Pressed, this, &ARevolutionCharacter::DrawChalkMark);
+
+	PlayerInputComponent->BindKey(EKeys::Gamepad_DPad_Up, IE_Pressed, this, &ARevolutionCharacter::OnMenuUp);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_DPad_Down, IE_Pressed, this, &ARevolutionCharacter::OnMenuDown);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_DPad_Left, IE_Pressed, this, &ARevolutionCharacter::OnMenuLeft);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_DPad_Right, IE_Pressed, this, &ARevolutionCharacter::OnMenuRight);
+
+	PlayerInputComponent->BindKey(EKeys::Gamepad_Special_Left, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab3);
+	PlayerInputComponent->BindKey(EKeys::Gamepad_Special_Right, IE_Pressed, this, &ARevolutionCharacter::SelectSatchelTab4);
 }
 
 void ARevolutionCharacter::Move(const FInputActionValue& Value)
@@ -603,6 +633,48 @@ void ARevolutionCharacter::TurnAxis(float Value)
 
 void ARevolutionCharacter::LookUpAxis(float Value)
 {
+	if (!FMath::IsNearlyZero(Value) && Controller != nullptr)
+	{
+		AddControllerPitchInput(-Value);
+	}
+}
+
+void ARevolutionCharacter::GamepadMoveForwardAxis(float Value)
+{
+	if (FMath::Abs(Value) > 0.15f)
+	{
+		bIsUsingGamepad = true;
+	}
+	MoveForwardAxis(Value);
+}
+
+void ARevolutionCharacter::GamepadMoveRightAxis(float Value)
+{
+	if (FMath::Abs(Value) > 0.15f)
+	{
+		bIsUsingGamepad = true;
+	}
+	MoveRightAxis(Value);
+}
+
+void ARevolutionCharacter::GamepadTurnAxis(float Value)
+{
+	if (FMath::Abs(Value) > 0.15f)
+	{
+		bIsUsingGamepad = true;
+	}
+	if (!FMath::IsNearlyZero(Value) && Controller != nullptr)
+	{
+		AddControllerYawInput(Value);
+	}
+}
+
+void ARevolutionCharacter::GamepadLookUpAxis(float Value)
+{
+	if (FMath::Abs(Value) > 0.15f)
+	{
+		bIsUsingGamepad = true;
+	}
 	if (!FMath::IsNearlyZero(Value) && Controller != nullptr)
 	{
 		AddControllerPitchInput(-Value);
@@ -1396,6 +1468,9 @@ void ARevolutionCharacter::AdjustCurrentSetting(float Delta)
 			else if (SubtitleScaleMultiplier > 0.95f) SubtitleScaleMultiplier = 0.85f;
 		}
 		break;
+	case 6:
+		ToggleHandheldMode();
+		break;
 	default:
 		break;
 	}
@@ -1405,14 +1480,49 @@ void ARevolutionCharacter::AdjustCurrentSetting(float Delta)
 
 void ARevolutionCharacter::SelectNextSetting()
 {
-	SelectedSettingsIndex = (SelectedSettingsIndex + 1) % 6;
+	SelectedSettingsIndex = (SelectedSettingsIndex + 1) % 7;
 	PlayInspectAudio(true);
 }
 
 void ARevolutionCharacter::SelectPrevSetting()
 {
-	SelectedSettingsIndex = (SelectedSettingsIndex - 1 + 6) % 6;
+	SelectedSettingsIndex = (SelectedSettingsIndex - 1 + 7) % 7;
 	PlayInspectAudio(true);
+}
+
+void ARevolutionCharacter::ToggleHandheldMode()
+{
+	bHandheldSteamOSMode = !bHandheldSteamOSMode;
+	ApplyHandheldScalability(bHandheldSteamOSMode);
+	PlayInspectAudio(true);
+}
+
+void ARevolutionCharacter::ApplyHandheldScalability(bool bEnable)
+{
+	APlayerController* PC = Cast<APlayerController>(GetController());
+	if (!PC) return;
+
+	if (bEnable)
+	{
+		PC->ConsoleCommand(TEXT("r.ScreenPercentage 75"));
+		PC->ConsoleCommand(TEXT("r.DynamicRes.OperationMode 2"));
+		PC->ConsoleCommand(TEXT("r.DynamicRes.MinScreenPercentage 66.0"));
+		PC->ConsoleCommand(TEXT("r.DynamicRes.MaxScreenPercentage 85.0"));
+		PC->ConsoleCommand(TEXT("r.DynamicRes.FrameTimeBudget 25.0"));
+		PC->ConsoleCommand(TEXT("t.MaxFPS 40"));
+		PC->ConsoleCommand(TEXT("r.Nanite.Streaming.PoolSize 256"));
+		PC->ConsoleCommand(TEXT("r.Streaming.PoolSize 1024"));
+		PC->ConsoleCommand(TEXT("r.Shadow.Virtual.ResolutionLodBiasDirectional 1"));
+	}
+	else
+	{
+		PC->ConsoleCommand(TEXT("r.ScreenPercentage 75"));
+		PC->ConsoleCommand(TEXT("r.DynamicRes.OperationMode 0"));
+		PC->ConsoleCommand(TEXT("t.MaxFPS 60"));
+		PC->ConsoleCommand(TEXT("r.Nanite.Streaming.PoolSize 512"));
+		PC->ConsoleCommand(TEXT("r.Streaming.PoolSize 1800"));
+		PC->ConsoleCommand(TEXT("r.Shadow.Virtual.ResolutionLodBiasDirectional 0"));
+	}
 }
 
 void ARevolutionCharacter::SetSubtitleScaleMultiplier(float InScale)

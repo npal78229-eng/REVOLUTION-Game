@@ -61,6 +61,12 @@ $TestSuites = @(
         Name = 'Pedestrian Reaction, Dynamic Stumble and Curiosity System'
         Script = "$ScriptsDir\verify_pedestrian_reactions.py"
         Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-09'
+        Name = 'SteamOS & Handheld Proton Scalability Profile and Controller Mappings'
+        Script = "$ScriptsDir\verify_steamos_handheld_profile.py"
+        Type = 'Commandlet'
     }
 )
 

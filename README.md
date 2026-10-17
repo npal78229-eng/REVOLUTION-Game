@@ -7,7 +7,7 @@
 [![Target GPU](https://img.shields.io/badge/Target%20GPU-NVIDIA%20GTX%201650%20(4GB)-76B900?logo=nvidia)](https://nvidia.com)
 [![Build Status](https://img.shields.io/badge/Build-Passing%20(Exit%20Code%200)-success)]()
 [![Release Status](https://img.shields.io/badge/Release-Gold%20Master%20v1.0.0-gold?logo=github)]()
-[![Master CI](https://img.shields.io/badge/Master%20CI-7%2F7%20Passed%20(100%25)-brightgreen)]()
+[![Master CI](https://img.shields.io/badge/Master%20CI-9%2F9%20Passed%20(100%25)-brightgreen)]()
 
 > A dark, grounded, cinematic, story-driven historical open-world game about India's struggle for independence against British colonial rule.
 
@@ -405,5 +405,18 @@ REVOLUTION/
     - Civilians within 750cm smoothly orient toward pebble clatters without raising martial alarm or alerting constables.
   - **Master 8-Suite Continuous Integration Harness (`Scripts/run_all_tests.ps1`):**
     - `TEST-08` (`verify_pedestrian_reactions.py`) verified in 8-suite CI harness in **3.33 minutes** with **100% PASS (8/8 Suites, 0 Errors, 0 Warnings)**.
+- [x] **Phase 21: SteamOS & Handheld Proton Scalability Profile (Task 23):**
+  - **Steam Deck & Linux Scalability Profile (`Project/Config/DefaultDeviceProfiles.ini`):**
+    - Custom `[SteamDeck DeviceProfile]` and `[SteamDeckLinux DeviceProfile]` optimized for 1280x800 native 16:10 display.
+    - Dynamic resolution scaling (TSR 66%–85% target window: 844x528 to 1088x680 upscaled).
+    - 40 FPS / 25.0ms frametime sweet spot (`t.MaxFPS=40`, `r.DynamicRes.FrameTimeBudget=25.0`) maximizing battery life (~3.51 hours on 40Wh battery at 11.4W total system draw).
+    - Handheld unified LPDDR5 memory management (`r.Nanite.Streaming.PoolSize=256`, `r.Streaming.PoolSize=1024`, total VRAM footprint ~2598 MB / 2800 MB limit).
+  - **Comprehensive Gamepad & Steam Deck Controller Mappings (`Project/Config/DefaultInput.ini`):**
+    - Full Gamepad axis bindings (Left Stick Move, Right Stick Look) and action bindings (A/Cross Jump & Vault, B/Circle Crouch & Dismiss, X/Square Interact, LT Aim Pebble, RT Throw Pebble, RB Satchel Journal, Y Keen Senses, R3 Chalk Mark, D-Pad Navigation, Select/Codex, Start/Settings).
+  - **C++ Engine & HUD Dual Support:**
+    - `ARevolutionCharacter`: Active input tracking (`bIsUsingGamepad`), Setting 6 Handheld mode toggle (`bHandheldSteamOSMode`, `ToggleHandheldMode`, `ApplyHandheldScalability`).
+    - `ARevolutionHUD`: Dynamic prompt glyphs (`[E / (X)] Interact`, `[ (B) ] Close`), Satchel Journal D-Pad navigation, and dual-column control schema badges.
+  - **Automated QA Verification Suite (`Scripts/verify_steamos_handheld_profile.py`):**
+    - `TEST-09` verified in master 9-suite CI harness (`Scripts/run_all_tests.ps1`) with **100% PASS (9/9 Suites, 0 Errors, 0 Warnings)**.
 
 

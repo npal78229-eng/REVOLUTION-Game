@@ -68,6 +68,12 @@ def main():
             "name": "Pedestrian Reaction, Dynamic Stumble & Curiosity System",
             "script": os.path.join(scripts_dir, "verify_pedestrian_reactions.py"),
             "type": "commandlet"
+        },
+        {
+            "id": "TEST-09",
+            "name": "SteamOS & Handheld Proton Scalability Profile & Controller Mappings",
+            "script": os.path.join(scripts_dir, "verify_steamos_handheld_profile.py"),
+            "type": "commandlet"
         }
     ]
 

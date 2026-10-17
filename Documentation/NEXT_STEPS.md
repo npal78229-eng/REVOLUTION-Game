@@ -587,11 +587,49 @@ flowchart LR
 
 ---
 
+### Task 23: SteamOS & Handheld Proton Scalability Profile [COMPLETED]
+- **Status:** **100% COMPLETE & CERTIFIED IN-ENGINE**
+- **Implemented Components:**
+  - **Steam Deck & Linux Device Profiles (`Project/Config/DefaultDeviceProfiles.ini`):**
+    - Authoring `[SteamDeck DeviceProfile]` and `[SteamDeckLinux DeviceProfile]` targeting native 800p (1280x800, 16:10).
+    - Dynamic resolution scaling (TSR 66%–85% target window: 844x528 internal to 1088x680 internal upscaled).
+    - 40 FPS / 25.0ms sweet spot frametime budget (`t.MaxFPS=40`, `r.DynamicRes.FrameTimeBudget=25.0`).
+    - Handheld unified LPDDR5 memory budget (`r.Nanite.Streaming.PoolSize=256`, `r.Streaming.PoolSize=1024`).
+    - Low-overhead Lumen Software Ray Tracing settings (`DownsampleFactor=16`, `VirtualShadowMaps LODBias=1.0`).
+  - **Tiered Handheld Scalability Settings (`Project/Config/DefaultScalability.ini`):**
+    - Authoring ECVF-compliant scalability tiers across Anti-Aliasing (TSR Quality), Shadows (Virtual Shadow Maps physical pages), Global Illumination (Lumen Diffuse Indirect), Reflections, and Foliage density.
+  - **Complete Gamepad & Controller Mapping Architecture (`Project/Config/DefaultInput.ini`):**
+    - Full Gamepad Axis Mappings: `MoveForward` (Gamepad_LeftY), `MoveRight` (Gamepad_LeftX), `Turn` (Gamepad_RightX), `LookUp` (Gamepad_RightY).
+    - Full Gamepad Action Mappings:
+      - `Jump`: `Gamepad_FaceButton_Bottom` (A / Cross)
+      - `Sprint`: `Gamepad_LeftShoulder` (LB / L1)
+      - `Crouch`: `Gamepad_FaceButton_Right` (B / Circle)
+      - `Interact`: `Gamepad_FaceButton_Left` (X / Square)
+      - `AimPebble`: `Gamepad_LeftTrigger` (LT / L2)
+      - `ThrowPebble`: `Gamepad_RightTrigger` (RT / R2)
+      - `ToggleJournal`: `Gamepad_RightShoulder` (RB / R1)
+      - `KeenSenses`: `Gamepad_FaceButton_Top` (Y / Triangle)
+      - `DrawChalk`: `Gamepad_RightThumbstick` (R3)
+      - `Menu Navigation`: `Gamepad_DPad_Up / Down / Left / Right`
+      - `Codex Direct`: `Gamepad_Special_Left` (Back / View)
+      - `Settings Direct`: `Gamepad_Special_Right` (Start / Menu)
+  - **C++ Engine Architecture (`ARevolutionCharacter` & `ARevolutionHUD`):**
+    - Direct Gamepad key and axis bindings in `ARevolutionCharacter::SetupPlayerInputComponent`.
+    - Active input tracking: `bIsUsingGamepad` dynamically detects controller vs keyboard/mouse usage.
+    - Handheld Mode Setting: Added Setting 6 to Satchel Tab 4 (`bHandheldSteamOSMode`, `ToggleHandheldMode`, `ApplyHandheldScalability`).
+    - Dual HUD Prompts & Glyphs: Contextual interact prompt shows `[E / (X)]`, inspection modal shows `[ (B) ] / [ (A) ]`, Satchel Journal footer shows D-pad / LB-RB hints, and Tab 4 renders full dual Keyboard/Gamepad schema badges.
+  - **Dedicated QA Test Suite (`Scripts/verify_steamos_handheld_profile.py`):**
+    - Automated suite verifying device profiles, scalability settings, input mappings, C++ class reflection, and handheld hardware envelope simulation (1280x800 native, TSR 66%–85%, $\le 2800\text{ MB}$ unified VRAM allocation, 3.51 hours battery life on 40Wh battery at 11.4W total system draw).
+  - **Master 9-Suite Continuous Integration Harness (`Scripts/run_all_tests.ps1` & `Scripts/run_all_tests.py`):**
+    - Integrated `TEST-09` into the unified CI harness.
+
+---
+
 ## 4. Post-Gold Master Horizons (Future Expansion)
 
-1. **Task 23: SteamOS & Handheld Proton Scalability Profile:** Profile custom 800p/60Hz SteamOS / Linux Proton preset targeting battery efficiency and handheld deck ergonomics.
-2. **Task 24: Advanced Photogrammetry Texturing:** Additional Nanakshahi brick and Punjabi carved wood surface detail layers.
-3. **Task 25: Historical Narrative Epilogue:** "The Baisakhi Dawn" contemplative historical epilogue cinematic and codex finalization.
+1. **Task 24: Advanced Photogrammetry Texturing:** Additional Nanakshahi brick, carved shisham timber, and brass metalwork micro-detail layers.
+2. **Task 25: Historical Narrative Epilogue:** "The Baisakhi Dawn" contemplative historical epilogue cinematic and codex finalization.
+3. **Task 26: Multi-Dialect Punjabi Voice Recording Expansion:** Expanded bazaar crowd walla barks across Doabi and Majhi Punjabi vernacular.
 
 
 

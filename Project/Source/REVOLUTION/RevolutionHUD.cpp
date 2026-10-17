@@ -267,7 +267,11 @@ void ARevolutionHUD::DrawInteractionPrompt(ARevolutionCharacter* Kabir)
 	float TextW = 0.0f, TextH = 0.0f;
 	GetTextSize(PromptStr, TextW, TextH, MediumFont);
 
-	const float KeyBadgeW = 34.0f;
+	FString KeyLabel = Kabir->IsUsingGamepad() ? TEXT("(X)") : TEXT("E / (X)");
+	float KeyW = 0.0f, KeyH = 0.0f;
+	GetTextSize(KeyLabel, KeyW, KeyH, SmallFont);
+
+	const float KeyBadgeW = FMath::Max(34.0f, KeyW + 14.0f);
 	const float KeyBadgeH = 26.0f;
 	const float PaddingX = 14.0f;
 	const float Spacing = 10.0f;
@@ -280,15 +284,13 @@ void ARevolutionHUD::DrawInteractionPrompt(ARevolutionCharacter* Kabir)
 	// Dark semi-translucent backdrop with antique brass border
 	DrawFramedBox(BoxX, BoxY, BoxW, BoxH, FLinearColor(0.06f, 0.05f, 0.04f, 0.82f), AntiqueBrassColor, 1.5f);
 
-	// Key badge background [ E ]
+	// Key badge background [ E / (X) ]
 	const float BadgeX = BoxX + PaddingX;
 	const float BadgeY = BoxY + (BoxH - KeyBadgeH) * 0.5f;
 	DrawFramedBox(BadgeX, BadgeY, KeyBadgeW, KeyBadgeH, AntiqueBrassColor, FLinearColor(1.0f, 0.95f, 0.75f, 1.0f), 1.0f);
 
-	// Key badge text "E"
-	float KeyW = 0.0f, KeyH = 0.0f;
-	GetTextSize(TEXT("E"), KeyW, KeyH, SmallFont);
-	DrawText(TEXT("E"), DarkInkColor, BadgeX + (KeyBadgeW - KeyW) * 0.5f, BadgeY + (KeyBadgeH - KeyH) * 0.5f, SmallFont);
+	// Key badge text
+	DrawText(KeyLabel, DarkInkColor, BadgeX + (KeyBadgeW - KeyW) * 0.5f, BadgeY + (KeyBadgeH - KeyH) * 0.5f, SmallFont);
 
 	// Prompt action text
 	const float TextX = BadgeX + KeyBadgeW + Spacing;
@@ -358,7 +360,7 @@ void ARevolutionHUD::DrawInspectionModal(ARevolutionCharacter* Kabir)
 	const float FooterLineY = CardY + CardH - 52.0f;
 	DrawLine(CardX + 32.0f, FooterLineY, CardX + CardW - 32.0f, FooterLineY, AntiqueBrassColor, 1.5f);
 
-	FString DismissPrompt = TEXT("[ E ]  OR  [ SPACE ]  TO CLOSE INSPECTION");
+	FString DismissPrompt = Kabir->IsUsingGamepad() ? TEXT("[ (B) ]  OR  [ (A) ]  TO CLOSE INSPECTION") : TEXT("[ E / (X) ]  OR  [ SPACE / (B) ]  TO CLOSE INSPECTION");
 	float DismissW = 0.0f, DismissH = 0.0f;
 	GetTextSize(DismissPrompt, DismissW, DismissH, SmallFont);
 	DrawText(DismissPrompt, MutedSepiaColor, CardX + (CardW - DismissW) * 0.5f, FooterLineY + 16.0f, SmallFont);
@@ -1423,7 +1425,7 @@ void ARevolutionHUD::DrawSatchelJournalModal(ARevolutionCharacter* Kabir)
 	// Bottom Navigation Footer
 	DrawLine(BoxX + 16.0f, BoxY + BoxH - 32.0f, BoxX + BoxW - 16.0f, BoxY + BoxH - 32.0f, AntiqueBrassColor, 1.0f);
 
-	FString FooterNav = TEXT("[ 1 / 2 / 3 / 4 ] Switch Section   |   [ UP / DOWN / [ / ] ] Browse Entries / Options   |   [ TAB / J / ESC ] Close");
+	FString FooterNav = Kabir->IsUsingGamepad() ? TEXT("[ D-PAD / LB-RB ] Switch Section   |   [ UP / DOWN ] Select Option   |   [ (B) ] Close Journal") : TEXT("[ 1-4 / D-PAD ] Switch Section   |   [ UP / DOWN / [ / ] ] Browse   |   [ TAB / ESC / (B) ] Close");
 	DrawText(FooterNav, MutedSepiaColor, BoxX + 24.0f, BoxY + BoxH - 24.0f, SmallFont);
 }
 
@@ -2025,34 +2027,33 @@ void ARevolutionHUD::DrawSatchelTabSettingsControls(ARevolutionCharacter* Kabir,
 	float AmbVol = Kabir ? Kabir->AmbienceVolume : 1.0f;
 	float SubScale = Kabir ? Kabir->SubtitleScaleMultiplier : 1.0f;
 
-	DrawAudioSlider(ContentY + 54.0f, MasterVol, TEXT("Master Mix Volume"), TEXT("SC_Master"), SelectedSetting == 0);
-	DrawAudioSlider(ContentY + 98.0f, SFXVol, TEXT("Sound Effects (SFX)"), TEXT("SC_SFX"), SelectedSetting == 1);
-	DrawAudioSlider(ContentY + 142.0f, FoleyVol, TEXT("Foley & Stealth Footsteps"), TEXT("SC_Foley"), SelectedSetting == 2);
-	DrawAudioSlider(ContentY + 186.0f, VoiceVol, TEXT("Voice & Proclamation"), TEXT("SC_Voice"), SelectedSetting == 3);
-	DrawAudioSlider(ContentY + 230.0f, AmbVol, TEXT("Mohalla Ambience & Night Wind"), TEXT("SC_Ambience"), SelectedSetting == 4);
+	DrawAudioSlider(ContentY + 48.0f, MasterVol, TEXT("Master Mix Volume"), TEXT("SC_Master"), SelectedSetting == 0);
+	DrawAudioSlider(ContentY + 84.0f, SFXVol, TEXT("Sound Effects (SFX)"), TEXT("SC_SFX"), SelectedSetting == 1);
+	DrawAudioSlider(ContentY + 120.0f, FoleyVol, TEXT("Foley & Stealth Footsteps"), TEXT("SC_Foley"), SelectedSetting == 2);
+	DrawAudioSlider(ContentY + 156.0f, VoiceVol, TEXT("Voice & Proclamation"), TEXT("SC_Voice"), SelectedSetting == 3);
+	DrawAudioSlider(ContentY + 192.0f, AmbVol, TEXT("Mohalla Ambience & Night Wind"), TEXT("SC_Ambience"), SelectedSetting == 4);
 
 	// ACCESSIBILITY: Subtitle Scale Toggle Row (Setting 5)
-	float SubY = ContentY + 276.0f;
+	float SubY = ContentY + 230.0f;
 	float SubCardW = LeftW - 28.0f;
-	float SubCardH = 46.0f;
+	float SubCardH = 40.0f;
 	float SubCardX = BoxX + 14.0f;
 	bool bSubSelected = (SelectedSetting == 5);
 
 	DrawFramedBox(SubCardX, SubY, SubCardW, SubCardH, bSubSelected ? DarkInkColor : FLinearColor(0.93f, 0.90f, 0.82f, 0.85f), bSubSelected ? AntiqueBrassColor : MutedSepiaColor, bSubSelected ? 1.5f : 1.0f);
 
 	FString SubInd = bSubSelected ? TEXT("> ") : TEXT("  ");
-	DrawText(SubInd + TEXT("Accessibility Subtitle Size"), bSubSelected ? AntiqueBrassColor : DarkInkColor, SubCardX + 8.0f, SubY + 4.0f, SmallFont);
+	DrawText(SubInd + TEXT("Accessibility Subtitle Size"), bSubSelected ? AntiqueBrassColor : DarkInkColor, SubCardX + 8.0f, SubY + 3.0f, SmallFont);
 
-	// 3 Size Pills: Small (0.85), Medium (1.0), Large (1.25)
 	const FString SizeLabels[] = { TEXT("SMALL (85%)"), TEXT("MEDIUM (100%)"), TEXT("LARGE (125%)") };
 	const float SizeScales[] = { 0.85f, 1.0f, 1.25f };
 	float PillW = (SubCardW - 24.0f) / 3.0f;
-	float PillH = 18.0f;
+	float PillH = 16.0f;
 
 	for (int32 s = 0; s < 3; ++s)
 	{
 		float PX = SubCardX + 8.0f + (s * (PillW + 4.0f));
-		float PY = SubY + 22.0f;
+		float PY = SubY + 18.0f;
 		bool bActiveSize = FMath::IsNearlyEqual(SubScale, SizeScales[s], 0.1f);
 
 		FLinearColor PBg = bActiveSize ? AntiqueBrassColor : FLinearColor(0.85f, 0.81f, 0.72f, 0.85f);
@@ -2064,63 +2065,95 @@ void ARevolutionHUD::DrawSatchelTabSettingsControls(ARevolutionCharacter* Kabir,
 		DrawText(SizeLabels[s], PText, PX + ((PillW - LW) * 0.5f), PY + ((PillH - LH) * 0.5f), SmallFont);
 	}
 
+	// STEAMOS & HANDHELD SCALABILITY PROFILE (Setting 6)
+	float DeckY = ContentY + 274.0f;
+	float DeckCardW = LeftW - 28.0f;
+	float DeckCardH = 46.0f;
+	float DeckCardX = BoxX + 14.0f;
+	bool bDeckSelected = (SelectedSetting == 6);
+	bool bDeckActive = Kabir ? Kabir->IsHandheldModeEnabled() : false;
+
+	DrawFramedBox(DeckCardX, DeckY, DeckCardW, DeckCardH, bDeckSelected ? DarkInkColor : FLinearColor(0.93f, 0.90f, 0.82f, 0.85f), bDeckSelected ? AntiqueBrassColor : MutedSepiaColor, bDeckSelected ? 1.5f : 1.0f);
+
+	FString DeckInd = bDeckSelected ? TEXT("> ") : TEXT("  ");
+	DrawText(DeckInd + TEXT("SteamOS / Handheld 800p Low-Power Mode"), bDeckSelected ? AntiqueBrassColor : DarkInkColor, DeckCardX + 8.0f, DeckY + 3.0f, SmallFont);
+
+	const FString DeckLabels[] = { TEXT("OFF: DESKTOP 60 FPS"), TEXT("ON: STEAM DECK 40 FPS TSR") };
+	float DeckPillW = (DeckCardW - 20.0f) * 0.5f;
+	float DeckPillH = 18.0f;
+
+	for (int32 d = 0; d < 2; ++d)
+	{
+		float DX = DeckCardX + 8.0f + (d * (DeckPillW + 4.0f));
+		float DY = DeckY + 22.0f;
+		bool bThisActive = (d == 1 && bDeckActive) || (d == 0 && !bDeckActive);
+
+		FLinearColor DBg = bThisActive ? AntiqueBrassColor : FLinearColor(0.85f, 0.81f, 0.72f, 0.85f);
+		FLinearColor DText = bThisActive ? DarkInkColor : MutedSepiaColor;
+
+		DrawFramedBox(DX, DY, DeckPillW, DeckPillH, DBg, AntiqueBrassColor, 1.0f);
+		float DW = 0.0f, DH = 0.0f;
+		GetTextSize(DeckLabels[d], DW, DH, SmallFont);
+		DrawText(DeckLabels[d], DText, DX + ((DeckPillW - DW) * 0.5f), DY + ((DeckPillH - DH) * 0.5f), SmallFont);
+	}
+
 	// Instructions Footer
-	float FootY = ContentY + ContentH - 32.0f;
-	DrawText(TEXT("[ UP / DOWN ] Select Setting    |    [ LEFT / RIGHT ] Adjust Value"), DarkInkColor, BoxX + 16.0f, FootY, SmallFont);
+	float FootY = ContentY + ContentH - 26.0f;
+	DrawText(TEXT("[ UP / DOWN / D-PAD ] Select Setting    |    [ LEFT / RIGHT / (A) ] Adjust / Toggle"), DarkInkColor, BoxX + 16.0f, FootY, SmallFont);
 
 	// --- RIGHT COLUMN: HISTORICAL SCOUT CONTROLS & KEYBINDING REMAP ---
 	DrawFramedBox(RightX, ContentY + 4.0f, RightW, ContentH - 8.0f, FLinearColor(0.89f, 0.85f, 0.76f, 0.95f), AntiqueBrassColor, 1.5f);
 
-	DrawText(TEXT("HISTORICAL SCOUT CONTROL SCHEMA"), DarkInkColor, RightX + 14.0f, ContentY + 12.0f, MediumFont ? MediumFont : SmallFont);
-	DrawText(TEXT("Fluid Locomotion, Stealth Distraction & Satchel Journal Bindings"), MutedSepiaColor, RightX + 14.0f, ContentY + 30.0f, SmallFont);
-	DrawLine(RightX + 14.0f, ContentY + 46.0f, RightX + RightW - 14.0f, ContentY + 46.0f, AntiqueBrassColor, 1.0f);
+	DrawText(TEXT("HISTORICAL SCOUT CONTROL SCHEMA"), DarkInkColor, RightX + 14.0f, ContentY + 10.0f, MediumFont ? MediumFont : SmallFont);
+	DrawText(TEXT("Full Steam Deck Handheld Controller & Keyboard/Mouse Dual Support"), MutedSepiaColor, RightX + 14.0f, ContentY + 28.0f, SmallFont);
+	DrawLine(RightX + 14.0f, ContentY + 44.0f, RightX + RightW - 14.0f, ContentY + 44.0f, AntiqueBrassColor, 1.0f);
 
 	auto DrawControlGroup = [&](float GStart, const FString& GTitle, const TArray<TPair<FString, FString>>& KeyPairs) -> float
 	{
 		DrawText(GTitle, AntiqueBrassColor, RightX + 14.0f, GStart, SmallFont);
-		DrawLine(RightX + 14.0f, GStart + 16.0f, RightX + RightW - 14.0f, GStart + 16.0f, MutedSepiaColor, 0.5f);
+		DrawLine(RightX + 14.0f, GStart + 15.0f, RightX + RightW - 14.0f, GStart + 15.0f, MutedSepiaColor, 0.5f);
 
-		float RowY = GStart + 22.0f;
+		float RowY = GStart + 19.0f;
 		for (const auto& Pair : KeyPairs)
 		{
 			// Key badge
-			float BadgeW = 75.0f;
-			float BadgeH = 16.0f;
+			float BadgeW = 104.0f;
+			float BadgeH = 15.0f;
 			DrawFramedBox(RightX + 14.0f, RowY, BadgeW, BadgeH, DarkInkColor, AntiqueBrassColor, 1.0f);
 
 			float KW = 0.0f, KH = 0.0f;
 			GetTextSize(Pair.Key, KW, KH, SmallFont);
 			DrawText(Pair.Key, AntiqueBrassColor, RightX + 14.0f + ((BadgeW - KW) * 0.5f), RowY + ((BadgeH - KH) * 0.5f), SmallFont);
 
-			DrawText(Pair.Value, DarkInkColor, RightX + 98.0f, RowY + 1.0f, SmallFont);
-			RowY += 19.0f;
+			DrawText(Pair.Value, DarkInkColor, RightX + 124.0f, RowY + 1.0f, SmallFont);
+			RowY += 17.5f;
 		}
-		return RowY + 4.0f;
+		return RowY + 3.0f;
 	};
 
 	TArray<TPair<FString, FString>> LocomotionKeys = {
-		{ TEXT("W / A / S / D"), TEXT("Walk & Steer Kabir across alleys and rooftops") },
-		{ TEXT("LEFT SHIFT"), TEXT("Sprint through open streets (Consumes Stamina)") },
-		{ TEXT("C"), TEXT("Toggle Low Stance / Crouch Creeping") },
-		{ TEXT("SPACE"), TEXT("Vault 1.1m Parapet / Mantle Ledge / Jump") }
+		{ TEXT("WASD | L-Stick"), TEXT("Walk & Steer Kabir across alleys and rooftops") },
+		{ TEXT("L-SHIFT | LB"), TEXT("Sprint through open streets (Consumes Stamina)") },
+		{ TEXT("C | (B)"), TEXT("Toggle Low Stance / Crouch Creeping") },
+		{ TEXT("SPACE | (A)"), TEXT("Vault 1.1m Parapet / Mantle Ledge / Jump") }
 	};
-	float G1End = DrawControlGroup(ContentY + 54.0f, TEXT("1. LOCOMOTION & HISTORICAL PARKOUR"), LocomotionKeys);
+	float G1End = DrawControlGroup(ContentY + 48.0f, TEXT("1. LOCOMOTION & HISTORICAL PARKOUR"), LocomotionKeys);
 
 	TArray<TPair<FString, FString>> StealthKeys = {
-		{ TEXT("HOLD RMB"), TEXT("Predictive Pebble Trajectory Arc Aim (A Plague Tale)") },
-		{ TEXT("F / G"), TEXT("Throw Tailor's Pebble to Lure Patrol Away") },
-		{ TEXT("T"), TEXT("Inscribe Tailor's Chalk Mark on Surfaces") },
-		{ TEXT("V"), TEXT("Basant Intuition (Keen Senses Tactical Beacon)") },
+		{ TEXT("RMB | LT"), TEXT("Hold to Aim Pebble Trajectory Arc (A Plague Tale)") },
+		{ TEXT("F, G | RT"), TEXT("Throw Tailor's Pebble to Lure Patrol Away") },
+		{ TEXT("T | R3 Stick"), TEXT("Inscribe Tailor's Chalk Mark on Surfaces") },
+		{ TEXT("V | (Y)"), TEXT("Basant Intuition (Keen Senses Tactical Beacon)") },
 		{ TEXT("Q / E"), TEXT("Corner Peeking & Parapet Lean (Dishonored)") },
-		{ TEXT("E / ENTER"), TEXT("Interact with NPCs / Enter Concealment Hiding Spot") }
+		{ TEXT("E, RET | (X)"), TEXT("Interact with NPCs / Enter Concealment Hiding Spot") }
 	};
 	float G2End = DrawControlGroup(G1End, TEXT("2. STEALTH, DISTRACTION & FIELD TOOLS"), StealthKeys);
 
 	TArray<TPair<FString, FString>> SatchelKeys = {
-		{ TEXT("TAB / J"), TEXT("Open / Close Satchel & Field Journal Modal") },
-		{ TEXT("1 / 2 / 3 / 4"), TEXT("Directly Select Satchel Tabs 1 to 4") },
-		{ TEXT("UP / DOWN"), TEXT("Navigate Historical Codex Entries & Settings") },
-		{ TEXT("LEFT / RIGHT"), TEXT("Adjust Volume Sliders / Toggle Subtitle Scale") }
+		{ TEXT("TAB, J | RB"), TEXT("Open / Close Satchel & Field Journal Modal") },
+		{ TEXT("1-4 | D-Pad"), TEXT("Directly Select Satchel Tabs 1 to 4") },
+		{ TEXT("UP/DN | D-Pad"), TEXT("Navigate Historical Codex Entries & Settings") },
+		{ TEXT("LT/RT | (A)"), TEXT("Adjust Volume Sliders / Toggle Handheld Mode") }
 	};
 	DrawControlGroup(G2End, TEXT("3. SATCHEL JOURNAL & SETTINGS SHORTCUTS"), SatchelKeys);
 }

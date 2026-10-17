@@ -81,6 +81,12 @@ protected:
 	void TurnAxis(float Value);
 	void LookUpAxis(float Value);
 
+	/** Gamepad specific axis handlers with active input tracking */
+	void GamepadMoveForwardAxis(float Value);
+	void GamepadMoveRightAxis(float Value);
+	void GamepadTurnAxis(float Value);
+	void GamepadLookUpAxis(float Value);
+
 	/** Jump or vault */
 	void OnJumpPressed();
 	void OnJumpReleased();
@@ -458,7 +464,29 @@ public:
 	float AmbienceVolume = 1.0f;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|Settings")
-	int32 SelectedSettingsIndex = 0; // 0=Master, 1=SFX, 2=Foley, 3=Voice, 4=Ambience, 5=SubtitleSize
+	int32 SelectedSettingsIndex = 0; // 0=Master, 1=SFX, 2=Foley, 3=Voice, 4=Ambience, 5=SubtitleSize, 6=HandheldSteamOS
+
+	// --- STEAMOS & HANDHELD PROTON SCALABILITY PROFILE (TASK 23) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|Input")
+	bool bIsUsingGamepad = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Settings")
+	bool bHandheldSteamOSMode = false;
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Input")
+	bool IsUsingGamepad() const { return bIsUsingGamepad; }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Input")
+	void SetUsingGamepad(bool bInUsingGamepad) { bIsUsingGamepad = bInUsingGamepad; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Settings")
+	bool IsHandheldModeEnabled() const { return bHandheldSteamOSMode; }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Settings")
+	void ToggleHandheldMode();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Settings")
+	void ApplyHandheldScalability(bool bEnable);
 
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Settings")
 	void AdjustCurrentSetting(float Delta);
