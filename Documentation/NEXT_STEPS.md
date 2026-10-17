@@ -397,11 +397,34 @@ flowchart LR
     Task17 --> Task18
 ```
 
-### Task 16: Cinematic Camera Sequences & Dynamic Transitions [NEXT]
+### Task 16: Cinematic Camera Sequences & Dynamic Transitions [COMPLETED]
+- **Status:** **100% COMPLETE & VALIDATED IN-ENGINE**
+- **Implemented Components:**
+  - **Level Sequence Cutscenes (`/Game/Cinematics/`):**
+    - `LS_Munadi_Proclamation`: 150 frames (5.0s @ 30 FPS) establishing General Dyer's curfew proclamation across the historic Faseel archway.
+    - `LS_Golden_Sunrise_Finale`: 180 frames (6.0s @ 30 FPS) framing the dawn resolution over the Punjab Mail locomotive depot and Civil Lines bungalow.
+  - **C++ Cinematic Director Actor (`ARevolutionCinematicDirectorActor`):**
+    - `PlayCinematicCutscene(Sequence, ChapterTitle, Subtitle, BlendInTime)`: seamlessly triggers sequence playback with `SetViewTargetWithBlend()`, eases into cinematic camera framing, disables player control inputs, and broadcasts `OnCinematicCompleted`.
+    - `StopCinematicCutscene(BlendOutTime)`: returns view target smoothly back to player pawn and restores gameplay controls.
+    - `UpdateSubtitle(Subtitle)`: dynamically updates lower-third ivory captions mid-cutscene.
+    - Integrated persistently as `CinematicDirector_Master` in `/Game/Maps/L_Validation_Gym` (expanding total level actors to **206**).
+  - **ARevolutionHUD Cinematic Mode:**
+    - `bCinematicSequenceActive`: triggers widescreen anamorphic 2.39:1 letterbox matte.
+    - Upper-third antique brass chapter title cards with gold filigree divider rules (`CinematicChapterTitle`).
+    - Lower-third ivory period subtitles with dark drop shadows (`CinematicSubtitleText`).
+  - **Automated Verification:**
+    - `Scripts/verify_cinematic_sequences.py`: 100% PASS (0 errors).
+    - `Scripts/verify_act1_questline.py`: 100% PASS (0 errors across 206 actors).
+    - `Scripts/verify_pie_master_walkthrough.py`: 100% PASS (0 errors across 206 actors, 27 milestones).
+
+---
+
+### Task 17: Audio Mix & Sound Class Routing [NEXT]
 - **Target Objectives:**
-  1. Author Unreal Engine Level Sequence (`ULevelSequence`) for Act II Munadi drum declaration and Act V Golden Sunrise conclusion.
-  2. Implement camera cutscene director trigger in `RevolutionGameMode` smoothly interpolating between 3rd-person gameplay camera boom and cinematic dolly tracks.
-  3. Integrate cinematic widescreen letterboxing in `RevolutionHUD`.
+  1. Author Sound Class hierarchy: `Master`, `SFX`, `Foley`, `Voice_Punjabi`, `Ambience_Mohalla`.
+  2. Implement dynamic low-pass curfew filter (Section 144 Martial Law nocturnal atmosphere dampens high frequencies, heightening tension).
+  3. Spatialized 3D audio attenuation for Punjabi civilian proximity barks and market streetscapes.
+  4. Build automated test suite `Scripts/verify_audio_mix.py` to validate Sound Class routing and filter modulation.
 
 
 

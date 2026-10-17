@@ -23,7 +23,7 @@ The player steps into the shoes of **Kabir**, a 12-year-old son of a traditional
 
 ---
 
-## 2. Playable Vertical Slice (205 Actors across 8 Contiguous Zones, Outskirts, Railway Cutting & Civil Lines Cantonment)
+## 2. Playable Vertical Slice (206 Actors across 8 Contiguous Zones, Outskirts, Railway Cutting, Civil Lines Cantonment & Cinematic Director)
 
 The project currently features a contiguous, high-fidelity historical environment assembled in `Project/Content/Maps/L_Validation_Gym.umap`:
 
@@ -315,6 +315,13 @@ REVOLUTION/
   - **Automated Win64 Release Packaging (`Scripts/package_windows_release.ps1`):**
     - Automated `RunUAT.bat BuildCookRun` pipeline compiling `REVOLUTION.exe`, cooking 638 packages with Zen/IoStore compression, staging, and archiving.
     - Output archived cleanly to `Build/Development/Windows/` (`REVOLUTION.exe`, `REVOLUTION-Windows.ucas`, `REVOLUTION-Windows.utoc`, `REVOLUTION-Windows.pak`) with `ExitCode=0 (Success)`.
-
-
-
+- [x] **Phase 14: Cinematic Camera Sequences & Dynamic Transitions (Task 16):**
+  - **Level Sequence Cutscenes (`/Game/Cinematics/`):**
+    - `LS_Munadi_Proclamation` (150 frames, 5.0s @ 30 FPS) capturing General Dyer's proclamation across the historic Faseel archway.
+    - `LS_Golden_Sunrise_Finale` (180 frames, 6.0s @ 30 FPS) establishing the 2850K dawn conclusion over the Punjab Mail locomotive depot and Civil Lines cantonment.
+  - **C++ Cinematic Director Actor (`ARevolutionCinematicDirectorActor`):**
+    - Orchestrates camera view transitions (`SetViewTargetWithBlend`), input suppression during cutscenes, dynamic subtitle broadcasts, and `OnCinematicCompleted` event delegation.
+    - Placed persistently as `CinematicDirector_Master` in `L_Validation_Gym.umap`, expanding level actors to **206**.
+  - **ARevolutionHUD Anamorphic Letterbox & Ivory Captions:**
+    - Anamorphic 2.39:1 widescreen matte, antique brass chapter header cards, and drop-shadowed ivory subtitles.
+  - **Automated QA Suites:** `Scripts/verify_cinematic_sequences.py` (100% PASS), `Scripts/verify_act1_questline.py` (100% PASS), and `Scripts/verify_pie_master_walkthrough.py` (100% PASS across 206 actors).

@@ -83,6 +83,9 @@ protected:
 	/** Draw the stylized Censor Window & Veil of Memory archival presentation */
 	void DrawCensorWindowVeilOfMemory(ARevolutionCharacter* Kabir, float DeltaTime);
 
+	/** Draw cinematic cutscene chapter titles and subtitle captions */
+	void DrawCinematicCaptions(float DeltaTime);
+
 	/** Helper to draw a framed card with outer/inner borders */
 	void DrawFramedBox(float X, float Y, float Width, float Height, const FLinearColor& FillColor, const FLinearColor& BorderColor, float BorderThickness = 2.0f);
 
@@ -90,6 +93,20 @@ protected:
 	TArray<FString> WrapText(const FString& Text, UFont* InFont, float MaxWidth);
 
 public:
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")
+	bool bCinematicSequenceActive = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")
+	FText CinematicSubtitleText;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")
+	FText CinematicChapterTitle;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Cinematic")
+	void SetCinematicSequenceActive(bool bActive, const FText& InChapterTitle = FText::GetEmpty(), const FText& InSubtitleText = FText::GetEmpty());
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Cinematic")
+	void SetCinematicSubtitle(const FText& InSubtitle);
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
 	bool bShowReticle = true;
 

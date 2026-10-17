@@ -18,7 +18,10 @@ public class REVOLUTION : ModuleRules
 			"Slate",
 			"SlateCore",
 			"AIModule",
-			"NavigationSystem"
+			"NavigationSystem",
+			"LevelSequence",
+			"MovieScene",
+			"CinematicCamera"
 		});
 
 		PrivateDependencyModuleNames.AddRange(new string[] { });

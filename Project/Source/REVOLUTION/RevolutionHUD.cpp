@@ -1,6 +1,7 @@
 // Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RevolutionHUD.h"
+#include "REVOLUTION.h"
 #include "RevolutionCharacter.h"
 #include "RevolutionHUDWidget.h"
 #include "InteractableInterface.h"
@@ -101,7 +102,11 @@ void ARevolutionHUD::DrawHUD()
 	const bool bApprehended = GM && GM->IsPlayerApprehended();
 	const bool bMissionComplete = Subsystem && Subsystem->IsMissionComplete();
 
-	if (bApprehended)
+	if (bCinematicSequenceActive)
+	{
+		DrawCinematicCaptions(DeltaTime);
+	}
+	else if (bApprehended)
 	{
 		DrawApprehendedCard(Kabir);
 	}
@@ -130,7 +135,7 @@ void ARevolutionHUD::DrawHUD()
 		DrawPebbleAimTrajectory(Kabir);
 	}
 
-	bool bForceLetterbox = (OpeningPrologueTimer < 7.5f) || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen() || bApprehended || bMissionComplete || (CensorWindowBlurAlpha > 0.1f);
+	bool bForceLetterbox = bCinematicSequenceActive || (OpeningPrologueTimer < 7.5f) || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen() || bApprehended || bMissionComplete || (CensorWindowBlurAlpha > 0.1f);
 	DrawCinematicLetterbox(DeltaTime, bForceLetterbox);
 
 	DrawCensorWindowVeilOfMemory(Kabir, DeltaTime);
@@ -1189,6 +1194,68 @@ void ARevolutionHUD::DrawCinematicLetterbox(float DeltaTime, bool bForceActive)
 		DrawRect(MatteColor, 0.0f, 0.0f, Canvas->ClipX, CurrentBarHeight);
 		// Bottom Bar
 		DrawRect(MatteColor, 0.0f, Canvas->ClipY - CurrentBarHeight, Canvas->ClipX, CurrentBarHeight);
+	}
+}
+
+void ARevolutionHUD::SetCinematicSequenceActive(bool bActive, const FText& InChapterTitle, const FText& InSubtitleText)
+{
+	bCinematicSequenceActive = bActive;
+	CinematicChapterTitle = InChapterTitle;
+	CinematicSubtitleText = InSubtitleText;
+	UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionHUD Cinematic Mode %s: Title='%s', Subtitle='%s'"),
+		bActive ? TEXT("ACTIVATED") : TEXT("DEACTIVATED"),
+		*InChapterTitle.ToString(), *InSubtitleText.ToString());
+}
+
+void ARevolutionHUD::SetCinematicSubtitle(const FText& InSubtitle)
+{
+	CinematicSubtitleText = InSubtitle;
+}
+
+void ARevolutionHUD::DrawCinematicCaptions(float DeltaTime)
+{
+	if (!Canvas) return;
+
+	UFont* LargeFont = GEngine ? GEngine->GetLargeFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	if (!MediumFont) return;
+
+	float CinematicHeight = Canvas->ClipX / 2.39f;
+	float FullBarHeight = FMath::Max(0.0f, (Canvas->ClipY - CinematicHeight) * 0.5f);
+
+	// 1. Draw Chapter Title in upper third with gold filigree line
+	if (!CinematicChapterTitle.IsEmpty() && LargeFont)
+	{
+		FString TitleStr = CinematicChapterTitle.ToString().ToUpper();
+		float TitleW, TitleH;
+		GetTextSize(TitleStr, TitleW, TitleH, LargeFont);
+		float TitleX = (Canvas->ClipX - TitleW) * 0.5f;
+		float TitleY = FullBarHeight + 35.0f;
+
+		// Subtle drop shadow
+		DrawText(TitleStr, FLinearColor(0.02f, 0.02f, 0.02f, 0.85f), TitleX + 2.0f, TitleY + 2.0f, LargeFont);
+		DrawText(TitleStr, AntiqueBrassColor, TitleX, TitleY, LargeFont);
+
+		// Gold filigree rule line
+		float RuleW = FMath::Min(TitleW * 1.25f, Canvas->ClipX * 0.4f);
+		float RuleX = (Canvas->ClipX - RuleW) * 0.5f;
+		float RuleY = TitleY + TitleH + 8.0f;
+		DrawRect(FLinearColor(AntiqueBrassColor.R, AntiqueBrassColor.G, AntiqueBrassColor.B, 0.65f), RuleX, RuleY, RuleW, 1.5f);
+	}
+
+	// 2. Draw Subtitle Caption in lower letterbox bar
+	if (!CinematicSubtitleText.IsEmpty())
+	{
+		FString SubtitleStr = CinematicSubtitleText.ToString();
+		float SubW, SubH;
+		GetTextSize(SubtitleStr, SubW, SubH, MediumFont);
+
+		float SubX = (Canvas->ClipX - SubW) * 0.5f;
+		float SubY = Canvas->ClipY - (FullBarHeight * 0.65f) - (SubH * 0.5f);
+
+		// Drop shadow
+		DrawText(SubtitleStr, FLinearColor(0.0f, 0.0f, 0.0f, 0.9f), SubX + 1.5f, SubY + 1.5f, MediumFont);
+		DrawText(SubtitleStr, FLinearColor(0.96f, 0.94f, 0.88f, 1.0f), SubX, SubY, MediumFont);
 	}
 }
 

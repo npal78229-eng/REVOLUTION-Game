@@ -114,7 +114,8 @@ required_landmarks = [
     "Cantonment_Guardhouse_Picket_NorthGate",
     "Civil_Lines_Clubhouse_Bungalow_HQ",
     "Prop_Cantonment_Archive_Cabinet_Veranda",
-    "Locomotive_Steam_Pressure_Relief_Valve"
+    "Locomotive_Steam_Pressure_Relief_Valve",
+    "CinematicDirector_Master"
 ]
 
 all_landmarks_found = True
@@ -184,7 +185,12 @@ assert char_class is not None, "RevolutionCharacter class missing!"
 has_steam_prop = hasattr(char_class, "b_is_steam_obscured") or hasattr(char_class, "is_steam_obscured")
 log_warn(f"[PASS] RevolutionCharacter Steam Obscurity Mechanism verified: {has_steam_prop}")
 
-log_warn(f"[PASS] Total Level Actors in L_Validation_Gym: {len(all_actors)} (Expected >= 205)")
-assert len(all_actors) >= 205, f"Actor count {len(all_actors)} is less than expected 205!"
+# 7. Verify Task 16 Cinematic Sequences & Director Actor
+director_class = unreal.load_class(None, "/Script/REVOLUTION.RevolutionCinematicDirectorActor")
+log_warn(f"[PASS] RevolutionCinematicDirectorActor Class loaded: {director_class is not None}")
+assert director_class is not None, "RevolutionCinematicDirectorActor class missing from REVOLUTION module!"
+
+log_warn(f"[PASS] Total Level Actors in L_Validation_Gym: {len(all_actors)} (Expected >= 206)")
+assert len(all_actors) >= 206, f"Actor count {len(all_actors)} is less than expected 206!"
 
 log_warn("================ ALL MASTER SYSTEM VERIFICATION CHECKS PASSED: 100% COMPLETE ================")
