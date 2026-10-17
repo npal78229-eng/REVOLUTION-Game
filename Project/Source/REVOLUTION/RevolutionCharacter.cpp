@@ -25,6 +25,7 @@
 #include "ChalkMarkActor.h"
 #include "HidingSpotActor.h"
 #include "CurfewPatrolAI.h"
+#include "CivilianNPCActor.h"
 #include "RevolutionGameMode.h"
 #include "GameFramework/ProjectileMovementComponent.h"
 #include "EngineUtils.h"
@@ -1502,6 +1503,41 @@ void ARevolutionCharacter::OnMenuRight()
 	if (ActiveSatchelTab == 3)
 	{
 		AdjustCurrentSetting(0.05f);
+	}
+}
+
+void ARevolutionCharacter::HandleCivilianCollision(ACivilianNPCActor* HitCivilian)
+{
+	if (!HitCivilian) return;
+
+	const float Speed = GetVelocity().Size();
+	if (bIsSprinting || Speed >= 400.0f)
+	{
+		FVector ImpactDir = GetVelocity().GetSafeNormal();
+		if (ImpactDir.IsNearlyZero())
+		{
+			ImpactDir = GetActorForwardVector();
+		}
+
+		HitCivilian->TriggerStumble(ImpactDir, Speed);
+
+		// Non-violent physical resistance: damp sprint velocity upon colliding with an adult pedestrian in crowded bazaar
+		if (UCharacterMovementComponent* MoveComp = GetCharacterMovement())
+		{
+			MoveComp->Velocity *= 0.45f;
+		}
+
+		UE_LOG(LogREVOLUTION, Log, TEXT("Kabir collided with civilian %s (Speed: %.1f) - triggered stumble recovery"), *HitCivilian->GetName(), Speed);
+	}
+}
+
+void ARevolutionCharacter::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+
+	if (ACivilianNPCActor* HitCivilian = Cast<ACivilianNPCActor>(Other))
+	{
+		HandleCivilianCollision(HitCivilian);
 	}
 }
 

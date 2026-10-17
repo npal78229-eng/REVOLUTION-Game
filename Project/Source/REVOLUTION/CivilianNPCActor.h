@@ -24,6 +24,15 @@ enum class ECivilianOccupation : uint8
 	SchoolFriendKartar UMETA(DisplayName = "Kartar Singh (Schoolmate & Friend)")
 };
 
+UENUM(BlueprintType)
+enum class ECivilianReactionState : uint8
+{
+	Idle UMETA(DisplayName = "Idle / Working"),
+	FacingPlayer UMETA(DisplayName = "Facing Player"),
+	Stumbling UMETA(DisplayName = "Stumbling / Balance Recovery"),
+	CuriousInvestigating UMETA(DisplayName = "Curious / Investigating Noise")
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_ThreeParams(FOnCivilianDialogueSpoken, ACivilianNPCActor*, NPC, const FText&, SpeakerName, const FText&, DialogueText);
 
 /**
@@ -98,6 +107,72 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
 	USoundAttenuation* VoiceAttenuation = nullptr;
 
+	// --- DYNAMIC PEDESTRIAN REACTION & STUMBLE SYSTEM (TASK 22) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Reaction")
+	ECivilianReactionState ReactionState = ECivilianReactionState::Idle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Reaction")
+	bool bIsStumbled = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Reaction")
+	float StumbleDuration = 1.25f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Reaction")
+	float StumbleTimer = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Reaction")
+	FVector StumbleDirection = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Reaction")
+	float StumbleIntensity = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Reaction")
+	float StumbleCooldown = 1.5f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Reaction")
+	FVector CuriosityLookTarget = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Reaction")
+	float CuriosityTimer = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Reaction")
+	float CuriosityDuration = 3.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Reaction")
+	float CuriosityHearingRadius = 750.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Reaction")
+	float CuriosityCooldown = 5.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Dialogue")
+	TArray<FText> StumbleBarks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Dialogue")
+	TArray<FText> CuriosityBarks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* StumbleVoiceSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* CuriosityVoiceSound = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Reaction")
+	void TriggerStumble(const FVector& ImpactDirection, float ImpactForce);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Reaction")
+	void InvestigateCuriosity(const FVector& NoiseLocation);
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Reaction")
+	ECivilianReactionState GetReactionState() const { return ReactionState; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Reaction")
+	bool IsStumbling() const { return bIsStumbled; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Reaction")
+	bool IsCuriousInvestigating() const { return ReactionState == ECivilianReactionState::CuriousInvestigating; }
+
+	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Mission")
 	bool bCanAdvanceMission = true;
 
@@ -119,9 +194,13 @@ public:
 
 private:
 	float LastBarkTime = -100.0f;
+	float LastStumbleTime = -100.0f;
+	float LastCuriosityTime = -100.0f;
 	FRotator DefaultRotation;
 	bool bPlayerInProximity = false;
 	TWeakObjectPtr<ARevolutionCharacter> NearbyPlayer;
+	FVector MeshInitialRelativeLocation;
+	FRotator MeshInitialRelativeRotation;
 
 	UFUNCTION()
 	void OnProximityBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

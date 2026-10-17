@@ -493,6 +493,12 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
 	void OnMenuRight();
 
+	// --- PEDESTRIAN CROWD COLLISION & STUMBLE REACTION (TASK 22) ---
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Locomotion")
+	void HandleCivilianCollision(class ACivilianNPCActor* HitCivilian);
+
+	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
+
 private:
 	FVector VaultStartLocation;
 	FVector VaultTargetLocation;

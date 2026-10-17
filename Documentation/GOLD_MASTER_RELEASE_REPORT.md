@@ -59,9 +59,9 @@ The game faithfully recreates the historical atmosphere of **Kot Gurdarshan, Cen
 | **Interactive NPCs** | Multi-District Punjabi Cast | **7 Fully Scripted NPCs** | **CERTIFIED** |
 | **Story Progression** | Full Narrative Arc | **27 Stages** across Acts I through V | **CERTIFIED** |
 | **Atmospheric Lighting** | 5 Historical Lighting Phases | **Morning Dawn to Golden Sunrise** | **CERTIFIED** |
-| **Audio Coverage** | 100% Routed to SoundClasses | **56 Period SoundWaves / 5 Classes / 3 Mixes** | **CERTIFIED** |
+| **Audio Coverage** | 100% Routed to SoundClasses | **61 Period SoundWaves / 5 Classes / 3 Mixes** | **CERTIFIED** |
 | **Standalone Distribution Size**| $\le 20.0\text{ GB}$ ceiling | **$885.5\text{ MB}$** ($171.1\text{ MB}$ IoStore) | **CERTIFIED** |
-| **Automated CI Regression** | 100% Pass Rate across Suites | **7/7 Suites Passed (0 Errors, 0 Warnings)** | **CERTIFIED** |
+| **Automated CI Regression** | 100% Pass Rate across Suites | **8/8 Suites Passed (0 Errors, 0 Warnings)** | **CERTIFIED** |
 
 ---
 
@@ -75,7 +75,7 @@ The gameplay layer is built entirely in high-performance C++20 within the `Sourc
 - **`ARevolutionAtmosphereController`:** Dynamic celestial driver continuously interpolating Sun/Moon pitch, yaw, color temperature (2850K–8500K), lux intensity, SkyLight cubemap inscattering, Exponential Height Fog density, and audio SoundMix transitions across all 5 chronological acts.
 - **`ARevolutionCinematicDirectorActor`:** Sequencer cutscene orchestrator providing smooth `SetViewTargetWithBlend()` transitions, input suppression, lower-third ivory subtitles, antique brass chapter cards, and `OnCinematicCompleted` event delegation.
 - **`ALocomotiveSteamValveActor`:** Interactive broad-gauge steam locomotive relief valve triggering acoustic distractions ($28\text{m}$ radius) and cloaking Kabir with steam obscurity for 14.0 seconds.
-- **`ACivilianNPCActor`:** Interactive Punjabi civilian archetypes implementing `IInteractableInterface`, look-at tracking, proximity barks, and dialogue lore inspection.
+- **`ACivilianNPCActor`:** Interactive Punjabi civilian archetypes implementing `IInteractableInterface`, look-at tracking, proximity barks, dialogue lore inspection, `ECivilianReactionState` dynamic state machine (`Idle`, `FacingPlayer`, `Stumbling`, `CuriousInvestigating`), procedural spring-damped balance recovery, non-violent momentum damping (`ARevolutionCharacter::HandleCivilianCollision`), and acoustic distraction curiosity responses (`CuriosityHearingRadius` 750cm) with zero curfew alarm escalation.
 
 ### Content Creation & Modeling Pipeline (Blender 5.2.1 LTS)
 All architectural kits, character meshes, monumental structures, and period storytelling props were authored natively in Blender 5.2.1 LTS and exported via automated Python batch scripts:
@@ -307,17 +307,18 @@ The standalone Windows release was built, cooked, and packaged via `Scripts/pack
 
 ## 10. Master Continuous Integration (CI) Test Harness Audit Results
 
-All seven automated QA verification suites were executed through the unified CI test harness (`Scripts/run_all_tests.ps1` / `Scripts/run_all_tests.py`):
+All eight automated QA verification suites were executed through the unified CI test harness (`Scripts/run_all_tests.ps1` / `Scripts/run_all_tests.py`):
 
 | Test Suite ID | Test Suite Name | Execution Mode | Scope & Coverage | Result | Duration |
 | :--- | :--- | :--- | :--- | :--- | :--- |
-| **TEST-01** | Quality-of-Life, Satchel Modal & Historical Codex | UE Commandlet | 4-Tab Journal, 17 Codex records, volume sliders, subtitle scaling | **PASS** | 22.30s |
-| **TEST-02** | Audio Mix, SoundClass Hierarchy & Dynamic Curfew Filter | UE Commandlet | 5 SoundClasses, 3 Mixes, 800Hz LPF curfew filter, 56 SoundWaves | **PASS** | 23.24s |
-| **TEST-03** | Cinematic Camera Sequences & C++ Director Actor | UE Commandlet | Sequencer cutscenes, director actor, anamorphic letterbox | **PASS** | 23.18s |
-| **TEST-04** | Act I Narrative Story Questline & Landmarks | UE Commandlet | 206 Level actors, 7 NPCs, 69 historic landmarks, Act I–V triggers | **PASS** | 23.20s |
-| **TEST-05** | Master PIE & Story Simulation | UE Commandlet | 27 Story milestones, 5 atmosphere phases, stealth mechanics | **PASS** | 23.15s |
+| **TEST-01** | Quality-of-Life, Satchel Modal & Historical Codex | UE Commandlet | 4-Tab Journal, 17 Codex records, volume sliders, subtitle scaling | **PASS** | 26.33s |
+| **TEST-02** | Audio Mix, SoundClass Hierarchy & Dynamic Curfew Filter | UE Commandlet | 5 SoundClasses, 3 Mixes, 800Hz LPF curfew filter, 61 SoundWaves | **PASS** | 29.25s |
+| **TEST-03** | Cinematic Camera Sequences & C++ Director Actor | UE Commandlet | Sequencer cutscenes, director actor, anamorphic letterbox | **PASS** | 28.21s |
+| **TEST-04** | Act I Narrative Story Questline & Landmarks | UE Commandlet | 206 Level actors, 7 NPCs, 69 historic landmarks, Act I–V triggers | **PASS** | 28.21s |
+| **TEST-05** | Master PIE & Story Simulation | UE Commandlet | 27 Story milestones, 5 atmosphere phases, stealth mechanics | **PASS** | 32.34s |
 | **TEST-06** | Standalone Build Cook, IoStore Packaging & GTX 1650 Budget | Python Native | Executables, IoStore containers, manifests, VRAM/frame budget | **PASS** | 1.03s |
-| **TEST-07** | Civilian Dialogue Voice Localization & Ambient Proximity Audio | UE Commandlet | 14 Voice tracks, 6 Civilian NPCs, curfew patrol sentries, ATT spatialization | **PASS** | 23.20s |
+| **TEST-07** | Civilian Dialogue Voice Localization & Ambient Proximity Audio | UE Commandlet | 14 Voice tracks, 6 Civilian NPCs, curfew patrol sentries, ATT spatialization | **PASS** | 28.23s |
+| **TEST-08** | Pedestrian Reaction, Dynamic Stumble & Curiosity System | UE Commandlet | Procedural stumble recovery, non-violent collision damping, acoustic curiosity, 0 alarm escalation | **PASS** | 26.19s |
 
 ```text
 ================================================================================
@@ -325,16 +326,17 @@ All seven automated QA verification suites were executed through the unified CI 
 ================================================================================
 ID         STATUS   DURATION   TEST SUITE NAME
 --------------------------------------------------------------------------------
-TEST-01    PASS     22.30s     Quality-of-Life, Satchel Modal and Historical Codex
-TEST-02    PASS     23.24s     Audio Mix, SoundClass Hierarchy and Dynamic Curfew Filter
-TEST-03    PASS     23.18s     Cinematic Camera Sequences and C++ Director Actor
-TEST-04    PASS     23.20s     Act I Narrative Story Questline and Landmarks [206 Actors]
-TEST-05    PASS     23.15s     Master PIE and Story Simulation [27 Milestones across Acts I-V]
+TEST-01    PASS     26.33s     Quality-of-Life, Satchel Modal and Historical Codex
+TEST-02    PASS     29.25s     Audio Mix, SoundClass Hierarchy and Dynamic Curfew Filter
+TEST-03    PASS     28.21s     Cinematic Camera Sequences and C++ Director Actor
+TEST-04    PASS     28.21s     Act I Narrative Story Questline and Landmarks [206 Actors]
+TEST-05    PASS     32.34s     Master PIE and Story Simulation [27 Milestones across Acts I-V]
 TEST-06    PASS      1.03s     Standalone Build Cook, IoStore Packaging and GTX 1650 Budget
-TEST-07    PASS     23.20s     Civilian Dialogue Voice Localization and Ambient Proximity Audio
+TEST-07    PASS     28.23s     Civilian Dialogue Voice Localization and Ambient Proximity Audio
+TEST-08    PASS     26.19s     Pedestrian Reaction, Dynamic Stumble and Curiosity System
 --------------------------------------------------------------------------------
 ================================================================================
-  OVERALL RESULT: 100% PASS (7/7 SUITES PASSED) in 2.32 minutes!
+  OVERALL RESULT: 100% PASS (8/8 SUITES PASSED) in 3.33 minutes!
   PROJECT REVOLUTION IS CERTIFIED GOLD MASTER READY!
 ================================================================================
 ```

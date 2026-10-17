@@ -29,27 +29,39 @@ def main():
     voice_map = {
         0: { # FatherTailor
             "dialogue": "/Game/Audio/Voice/SFX_Voice_RamLubhaya_Dialogue",
-            "bark": "/Game/Audio/Voice/SFX_Voice_RamLubhaya_Bark"
+            "bark": "/Game/Audio/Voice/SFX_Voice_RamLubhaya_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
         },
         1: { # HalwaiChaiVendor
             "dialogue": "/Game/Audio/Voice/SFX_Voice_HiraHalwai_Dialogue",
-            "bark": "/Game/Audio/Voice/SFX_Voice_HiraHalwai_Bark"
+            "bark": "/Game/Audio/Voice/SFX_Voice_HiraHalwai_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_02",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_02"
         },
         2: { # BhishtiWaterCarrier
             "dialogue": "/Game/Audio/Voice/SFX_Voice_Ghasita_Dialogue",
-            "bark": "/Game/Audio/Voice/SFX_Voice_Ghasita_Bark"
+            "bark": "/Game/Audio/Voice/SFX_Voice_Ghasita_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
         },
         3: { # SchoolHeadmaster
             "dialogue": "/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Dialogue",
-            "bark": "/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Bark"
+            "bark": "/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
         },
         4: { # ClothMerchant
             "dialogue": "/Game/Audio/Voice/SFX_Voice_LalaKaramChand_Dialogue",
-            "bark": "/Game/Audio/Voice/SFX_Voice_LalaKaramChand_Bark"
+            "bark": "/Game/Audio/Voice/SFX_Voice_LalaKaramChand_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
         },
         5: { # SchoolFriendKartar
             "dialogue": "/Game/Audio/Voice/SFX_Voice_KartarSingh_Dialogue",
-            "bark": "/Game/Audio/Voice/SFX_Voice_KartarSingh_Bark"
+            "bark": "/Game/Audio/Voice/SFX_Voice_KartarSingh_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_03",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
         }
     }
 
@@ -70,16 +82,21 @@ def main():
             
             cfg = voice_map.get(occ_idx)
             if cfg:
+                actor.configure_occupation(occ)
                 dlg_asset = editor_asset_lib.load_asset(cfg["dialogue"])
                 bark_asset = editor_asset_lib.load_asset(cfg["bark"])
+                stumble_asset = editor_asset_lib.load_asset(cfg["stumble"])
+                curiosity_asset = editor_asset_lib.load_asset(cfg["curiosity"])
                 
                 actor.set_editor_property("interaction_voice_sound", dlg_asset)
                 actor.set_editor_property("ambient_bark_voice_sound", bark_asset)
+                actor.set_editor_property("stumble_voice_sound", stumble_asset)
+                actor.set_editor_property("curiosity_voice_sound", curiosity_asset)
                 actor.set_editor_property("voice_attenuation", att_voice)
                 
                 actor_label = actor.get_actor_label()
                 civilian_name = str(actor.get_editor_property("civilian_name"))
-                log_warn(f"[BOUND CIVILIAN] '{actor_label}' ({civilian_name}) -> Dialogue: {cfg['dialogue']}, Bark: {cfg['bark']}")
+                log_warn(f"[BOUND CIVILIAN] '{actor_label}' ({civilian_name}) -> Dialogue: {cfg['dialogue']}, Bark: {cfg['bark']}, Stumble: {cfg['stumble']}, Curiosity: {cfg['curiosity']}")
                 civilian_count += 1
 
         elif cname == "CurfewPatrolAI":

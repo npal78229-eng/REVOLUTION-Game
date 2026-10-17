@@ -5,6 +5,7 @@
 #include "PigeonFlockActor.h"
 #include "PariahDogActor.h"
 #include "ChaffDustDecoyActor.h"
+#include "CivilianNPCActor.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -123,6 +124,19 @@ void APebbleProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 					if (DistToChaff <= 180.0f)
 					{
 						Chaff->TriggerChaffDust();
+					}
+				}
+			}
+
+			for (TActorIterator<ACivilianNPCActor> CivIt(World); CivIt; ++CivIt)
+			{
+				ACivilianNPCActor* Civilian = *CivIt;
+				if (Civilian)
+				{
+					float DistToCiv = FVector::Dist(Civilian->GetActorLocation(), Hit.ImpactPoint);
+					if (DistToCiv <= Civilian->CuriosityHearingRadius)
+					{
+						Civilian->InvestigateCuriosity(Hit.ImpactPoint);
 					}
 				}
 			}

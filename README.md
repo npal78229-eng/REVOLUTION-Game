@@ -393,4 +393,17 @@ REVOLUTION/
   - **Master Level Scene Integration & QA Verification:**
     - Bound all 6 civilian NPCs and curfew patrol sentries in `/Game/Maps/L_Validation_Gym`.
     - Automated test suite `Scripts/verify_civilian_voice_localization.py` passed with **100% SUCCESS (0 errors)**.
+- [x] **Phase 20: Dynamic Non-Lethal Pedestrian Reaction & Crowd Stumble System (Task 22):**
+  - **C++ Reaction State Machine & Procedural Stumble Balance Recovery:**
+    - `ECivilianReactionState` enum (`Idle`, `FacingPlayer`, `Stumbling`, `CuriousInvestigating`).
+    - Non-violent procedural spring-damped pitch/roll lean, translation offset, and collision sweep pushback when sprinting into civilians.
+    - Grounded tactile player collision resistance via `ARevolutionCharacter::HandleCivilianCollision` dampening sprint momentum.
+  - **5 Authentic Punjabi Reaction Audio Tracks:**
+    - Synthesized 5 vocal reaction tracks: `SFX_Voice_Civilian_Stumble_01` ("Ohe! Sambhal ke!"), `SFX_Voice_Civilian_Stumble_02` ("Arrey dhyan naal!"), `SFX_Voice_Civilian_Stumble_03` ("Oye Kabir!"), `SFX_Voice_Civilian_Curiosity_01` ("Ki diggeya uthe?"), `SFX_Voice_Civilian_Curiosity_02` ("Aawaz kithon aayi?").
+    - Total project audio expanded to **61 SoundWaves**, 100% routed across 5 SoundClasses.
+  - **Acoustic Distraction Dispatch (`PebbleProjectile.cpp`):**
+    - Civilians within 750cm smoothly orient toward pebble clatters without raising martial alarm or alerting constables.
+  - **Master 8-Suite Continuous Integration Harness (`Scripts/run_all_tests.ps1`):**
+    - `TEST-08` (`verify_pedestrian_reactions.py`) verified in 8-suite CI harness in **3.33 minutes** with **100% PASS (8/8 Suites, 0 Errors, 0 Warnings)**.
+
 

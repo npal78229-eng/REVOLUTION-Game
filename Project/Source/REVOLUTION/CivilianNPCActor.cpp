@@ -73,6 +73,12 @@ void ACivilianNPCActor::BeginPlay()
 
 	DefaultRotation = GetActorRotation();
 
+	if (GetMesh())
+	{
+		MeshInitialRelativeLocation = GetMesh()->GetRelativeLocation();
+		MeshInitialRelativeRotation = GetMesh()->GetRelativeRotation();
+	}
+
 	ProximitySphere->OnComponentBeginOverlap.AddDynamic(this, &ACivilianNPCActor::OnProximityBeginOverlap);
 	ProximitySphere->OnComponentEndOverlap.AddDynamic(this, &ACivilianNPCActor::OnProximityEndOverlap);
 
@@ -83,25 +89,100 @@ void ACivilianNPCActor::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	// Smoothly orient toward Kabir when player is in close proximity
-	if (bPlayerInProximity && NearbyPlayer.IsValid())
+	// State 1: Active Stumble Balance Recovery
+	if (bIsStumbled)
 	{
-		FVector PlayerLoc = NearbyPlayer->GetActorLocation();
-		FVector MyLoc = GetActorLocation();
+		StumbleTimer -= DeltaTime;
+		if (StumbleTimer <= 0.0f)
+		{
+			bIsStumbled = false;
+			StumbleTimer = 0.0f;
+			ReactionState = ECivilianReactionState::Idle;
+			if (GetMesh())
+			{
+				GetMesh()->SetRelativeLocation(MeshInitialRelativeLocation);
+				GetMesh()->SetRelativeRotation(MeshInitialRelativeRotation);
+			}
+		}
+		else
+		{
+			ReactionState = ECivilianReactionState::Stumbling;
+			const float Progress = 1.0f - (StumbleTimer / FMath::Max(0.01f, StumbleDuration));
+
+			// Non-violent procedural balance recovery animation (stagger and spring-back)
+			// Progress 0.0 -> 0.35: sudden tilt and offset backwards away from impact
+			// Progress 0.35 -> 1.0: spring-damped recovery back to stable upright pose
+			float StaggerIntensity;
+			if (Progress < 0.35f)
+			{
+				StaggerIntensity = Progress / 0.35f;
+			}
+			else
+			{
+				const float SettleT = (Progress - 0.35f) / 0.65f;
+				StaggerIntensity = FMath::Cos(SettleT * UE_HALF_PI);
+			}
+
+			if (GetMesh())
+			{
+				const FVector LocalImpact = GetActorTransform().InverseTransformVectorNoScale(StumbleDirection);
+				const FRotator TiltOffset = FRotator(-LocalImpact.X * 14.0f * StaggerIntensity, 0.0f, LocalImpact.Y * 12.0f * StaggerIntensity);
+				const FVector PosOffset = -LocalImpact * (28.0f * StaggerIntensity);
+
+				GetMesh()->SetRelativeLocation(MeshInitialRelativeLocation + PosOffset);
+				GetMesh()->SetRelativeRotation(MeshInitialRelativeRotation + TiltOffset);
+			}
+
+			// Apply gentle world pushback with collision sweep (prevents wall clipping)
+			if (Progress < 0.3f)
+			{
+				const FVector Pushback = StumbleDirection * (StumbleIntensity * 0.25f * DeltaTime);
+				AddActorWorldOffset(Pushback, true);
+			}
+		}
+	}
+	// State 2: Curious Distraction Investigation (Pebble noise / disturbance)
+	else if (ReactionState == ECivilianReactionState::CuriousInvestigating)
+	{
+		CuriosityTimer -= DeltaTime;
+		if (CuriosityTimer <= 0.0f)
+		{
+			CuriosityTimer = 0.0f;
+			ReactionState = ECivilianReactionState::Idle;
+		}
+		else
+		{
+			// Smoothly orient head/body toward disturbance location
+			const FVector MyLoc = GetActorLocation();
+			FRotator TargetRot = UKismetMathLibrary::FindLookAtRotation(MyLoc, CuriosityLookTarget);
+			TargetRot.Pitch = 0.0f;
+			TargetRot.Roll = 0.0f;
+			const FRotator NewRot = FMath::RInterpTo(GetActorRotation(), TargetRot, DeltaTime, 5.0f);
+			SetActorRotation(NewRot);
+		}
+	}
+	// State 3: Smoothly orient toward Kabir when player is in close proximity
+	else if (bPlayerInProximity && NearbyPlayer.IsValid())
+	{
+		ReactionState = ECivilianReactionState::FacingPlayer;
+		const FVector PlayerLoc = NearbyPlayer->GetActorLocation();
+		const FVector MyLoc = GetActorLocation();
 		FRotator TargetRot = UKismetMathLibrary::FindLookAtRotation(MyLoc, PlayerLoc);
 		TargetRot.Pitch = 0.0f;
 		TargetRot.Roll = 0.0f;
 
-		FRotator NewRot = FMath::RInterpTo(GetActorRotation(), TargetRot, DeltaTime, 4.0f);
+		const FRotator NewRot = FMath::RInterpTo(GetActorRotation(), TargetRot, DeltaTime, 4.0f);
 		SetActorRotation(NewRot);
 	}
+	// State 4: Default Idle
 	else
 	{
+		ReactionState = ECivilianReactionState::Idle;
 		// Smoothly return to default idle facing
-		FRotator CurrentRot = GetActorRotation();
+		const FRotator CurrentRot = GetActorRotation();
 		if (!CurrentRot.Equals(DefaultRotation, 1.0f))
 		{
-			FRotator RestRot = FMath::RInterpTo(CurrentRot, DefaultRotation, DeltaTime, 2.0f);
+			const FRotator RestRot = FMath::RInterpTo(CurrentRot, DefaultRotation, DeltaTime, 2.0f);
 			SetActorRotation(RestRot);
 		}
 	}
@@ -112,6 +193,8 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 	Occupation = NewOccupation;
 	AmbientBarks.Empty();
 	ConversationDialogues.Empty();
+	StumbleBarks.Empty();
+	CuriosityBarks.Empty();
 	CurrentDialogueIndex = 0;
 
 	if (!VoiceAttenuation)
@@ -141,8 +224,15 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 			TEXT("Ram Lubhaya: 'Your mother left warm ginger-cardamom chai by the courtyard stove. Drink a kulhad before going to school.'")
 		));
 
+		StumbleBarks.Add(FText::FromString(TEXT("Dhyan naal, Kabir! Look where you're running, son!")));
+		StumbleBarks.Add(FText::FromString(TEXT("Arrey puttar, do not rush heedlessly into the veranda!")));
+		CuriosityBarks.Add(FText::FromString(TEXT("What made that sharp clatter out in the lane?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Did something drop against the courtyard wall?")));
+
 		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_RamLubhaya_Dialogue.SFX_Voice_RamLubhaya_Dialogue"));
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_RamLubhaya_Bark.SFX_Voice_RamLubhaya_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
 		break;
 
 	case ECivilianOccupation::HalwaiChaiVendor:
@@ -165,8 +255,15 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 			TEXT("Hira Halwai: 'Remember, boy: once you finish your chai, shatter the clay kulhad upon the street. From earth it came, to earth it returns; no colonial taxman can assess the dust of Punjab.'")
 		));
 
+		StumbleBarks.Add(FText::FromString(TEXT("Arrey bachke chalo, chhotey! You'll tip over the boiling chai pot!")));
+		StumbleBarks.Add(FText::FromString(TEXT("Ohe! This is a bazaar lane, not a racetrack!")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Did something fall behind the sweet counter?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Aawaz kithon aayi? What's causing a racket near the street?")));
+
 		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_HiraHalwai_Dialogue.SFX_Voice_HiraHalwai_Dialogue"));
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_HiraHalwai_Bark.SFX_Voice_HiraHalwai_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_02.SFX_Voice_Civilian_Stumble_02"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_02.SFX_Voice_Civilian_Curiosity_02"));
 		break;
 
 	case ECivilianOccupation::BhishtiWaterCarrier:
@@ -189,8 +286,15 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 			TEXT("Ghasita Bhishti: 'The community elders have gathered under the ancient Peepal tree right now, discussing the colonial curfew proclamations.'")
 		));
 
+		StumbleBarks.Add(FText::FromString(TEXT("Sambhal ke, beta! Don't puncture the goatskin mashk or slip on the wet flagstones!")));
+		StumbleBarks.Add(FText::FromString(TEXT("Ya Allah, watch your footing, Kabir!")));
+		CuriosityBarks.Add(FText::FromString(TEXT("A stone rattled against the well curb...")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Did something drop from the parapet?")));
+
 		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Ghasita_Dialogue.SFX_Voice_Ghasita_Dialogue"));
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Ghasita_Bark.SFX_Voice_Ghasita_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
 		break;
 
 	case ECivilianOccupation::ClothMerchant:
@@ -213,8 +317,15 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 			TEXT("Lala Karam Chand: 'Take this payment for your father, and deliver my deepest respects. Tell him to keep the haveli deorhi barred tonight; rumors say the police intend to conduct midnight searches.'")
 		));
 
+		StumbleBarks.Add(FText::FromString(TEXT("Watch out, boy! You'll knock over the Swadeshi cloth bolts!")));
+		StumbleBarks.Add(FText::FromString(TEXT("Arrey dhyan se! Freshly dyed muslin cannot bear street dust!")));
+		CuriosityBarks.Add(FText::FromString(TEXT("What was that clatter near the shop threshold?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Is someone loitering by the cloth bales?")));
+
 		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_LalaKaramChand_Dialogue.SFX_Voice_LalaKaramChand_Dialogue"));
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_LalaKaramChand_Bark.SFX_Voice_LalaKaramChand_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
 		break;
 
 	case ECivilianOccupation::SchoolHeadmaster:
@@ -237,8 +348,15 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 			TEXT("Pandit Kashi Ram: 'Examine the new decree posted on the municipal board carefully, Kabir. A scholar must always learn to read between the lines that the authorities write.'")
 		));
 
+		StumbleBarks.Add(FText::FromString(TEXT("Composure, Kabir! Haste and heedless charging are not the marks of a scholar!")));
+		StumbleBarks.Add(FText::FromString(TEXT("Patience, boy! Why run through the courtyard like a stray calf?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Listen... what fell from the schoolhouse eaves?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Was that an impact near the bell tower?")));
+
 		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Dialogue.SFX_Voice_PanditKashiRam_Dialogue"));
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Bark.SFX_Voice_PanditKashiRam_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
 		break;
 
 	case ECivilianOccupation::SchoolFriendKartar:
@@ -261,8 +379,15 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 			TEXT("Kartar: 'Pandit Ji has already entered the classroom. If we don't ring the bell soon, he'll make us write our Gurmukhi alphabet ten times on our slates! Let's race to the school tower!'")
 		));
 
+		StumbleBarks.Add(FText::FromString(TEXT("Oye Kabir! Slow down, are the constables chasing you?!")));
+		StumbleBarks.Add(FText::FromString(TEXT("Arrey yaar, you almost knocked my kite spool into the mud!")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Did you hear that stone clatter? Did someone toss a pebble?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Look over there! Something just hit the brick wall!")));
+
 		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_KartarSingh_Dialogue.SFX_Voice_KartarSingh_Dialogue"));
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_KartarSingh_Bark.SFX_Voice_KartarSingh_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_03.SFX_Voice_Civilian_Stumble_03"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
 		break;
 	}
 
@@ -334,6 +459,12 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 	if (PropMesh && PropAccessoryMesh)
 	{
 		PropAccessoryMesh->SetStaticMesh(PropMesh);
+	}
+
+	if (GetMesh())
+	{
+		MeshInitialRelativeLocation = GetMesh()->GetRelativeLocation();
+		MeshInitialRelativeRotation = GetMesh()->GetRelativeRotation();
 	}
 }
 
@@ -463,5 +594,106 @@ void ACivilianNPCActor::OnProximityEndOverlap(UPrimitiveComponent* OverlappedCom
 	{
 		bPlayerInProximity = false;
 		NearbyPlayer = nullptr;
+	}
+}
+
+void ACivilianNPCActor::TriggerStumble(const FVector& ImpactDirection, float ImpactForce)
+{
+	UWorld* World = GetWorld();
+	const float CurrentTime = World ? World->GetTimeSeconds() : 0.0f;
+	if (CurrentTime - LastStumbleTime < StumbleCooldown && bIsStumbled)
+	{
+		return;
+	}
+
+	LastStumbleTime = CurrentTime;
+	bIsStumbled = true;
+	StumbleTimer = StumbleDuration;
+	ReactionState = ECivilianReactionState::Stumbling;
+	StumbleDirection = ImpactDirection.GetSafeNormal2D();
+	if (StumbleDirection.IsNearlyZero())
+	{
+		StumbleDirection = -GetActorForwardVector();
+	}
+	StumbleIntensity = FMath::Clamp(ImpactForce, 250.0f, 800.0f);
+
+	// Contextual stumble vocalization
+	if (StumbleBarks.Num() > 0)
+	{
+		const int32 BarkIdx = FMath::RandRange(0, StumbleBarks.Num() - 1);
+		const FText BarkText = StumbleBarks[BarkIdx];
+		UE_LOG(LogREVOLUTION, Log, TEXT("[%s Stumble Reaction]: %s"), *CivilianName.ToString(), *BarkText.ToString());
+		OnDialogueSpoken.Broadcast(this, CivilianName, BarkText);
+	}
+
+	// Play stumble audio reaction
+	if (StumbleVoiceSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, StumbleVoiceSound, GetActorLocation(), 1.0f, FMath::RandRange(0.96f, 1.04f), 0.0f, VoiceAttenuation);
+	}
+	else if (AmbientBarkVoiceSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, AmbientBarkVoiceSound, GetActorLocation(), 1.0f, 1.15f, 0.0f, VoiceAttenuation);
+	}
+}
+
+void ACivilianNPCActor::InvestigateCuriosity(const FVector& NoiseLocation)
+{
+	// Stumble takes precedence over sound curiosity
+	if (bIsStumbled)
+	{
+		return;
+	}
+
+	UWorld* World = GetWorld();
+	const float CurrentTime = World ? World->GetTimeSeconds() : 0.0f;
+	if (CurrentTime - LastCuriosityTime < CuriosityCooldown)
+	{
+		return;
+	}
+
+	LastCuriosityTime = CurrentTime;
+	ReactionState = ECivilianReactionState::CuriousInvestigating;
+	CuriosityLookTarget = NoiseLocation;
+	CuriosityTimer = CuriosityDuration;
+
+	// Contextual curiosity whisper / mutter
+	if (CuriosityBarks.Num() > 0)
+	{
+		const int32 BarkIdx = FMath::RandRange(0, CuriosityBarks.Num() - 1);
+		const FText BarkText = CuriosityBarks[BarkIdx];
+		UE_LOG(LogREVOLUTION, Log, TEXT("[%s Curiosity Inquiry]: %s"), *CivilianName.ToString(), *BarkText.ToString());
+		OnDialogueSpoken.Broadcast(this, CivilianName, BarkText);
+	}
+
+	// Play curiosity audio reaction
+	if (CuriosityVoiceSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, CuriosityVoiceSound, GetActorLocation(), 0.9f, FMath::RandRange(0.96f, 1.04f), 0.0f, VoiceAttenuation);
+	}
+	else if (AmbientBarkVoiceSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, AmbientBarkVoiceSound, GetActorLocation(), 0.85f, 0.92f, 0.0f, VoiceAttenuation);
+	}
+}
+
+void ACivilianNPCActor::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit)
+{
+	Super::NotifyHit(MyComp, Other, OtherComp, bSelfMoved, HitLocation, HitNormal, NormalImpulse, Hit);
+
+	ARevolutionCharacter* Player = Cast<ARevolutionCharacter>(Other);
+	if (Player)
+	{
+		const float Speed = Player->GetVelocity().Size();
+		if (Player->bIsSprinting || Speed >= 400.0f)
+		{
+			FVector ImpactDir = Player->GetVelocity().GetSafeNormal();
+			if (ImpactDir.IsNearlyZero())
+			{
+				ImpactDir = (GetActorLocation() - Player->GetActorLocation()).GetSafeNormal();
+			}
+			TriggerStumble(ImpactDir, Speed);
+			Player->HandleCivilianCollision(this);
+		}
 	}
 }

@@ -55,6 +55,12 @@ $TestSuites = @(
         Name = 'Civilian Dialogue Voice Localization and Ambient Proximity Audio'
         Script = "$ScriptsDir\verify_civilian_voice_localization.py"
         Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-08'
+        Name = 'Pedestrian Reaction, Dynamic Stumble and Curiosity System'
+        Script = "$ScriptsDir\verify_pedestrian_reactions.py"
+        Type = 'Commandlet'
     }
 )
 
@@ -116,8 +122,9 @@ Write-Host '====================================================================
 $Results | Format-Table -AutoSize -Property Id, Status, Duration, Name
 
 if ($AllPassed) {
+    $PassCount = ($Results | Where-Object { $_.Status -eq 'PASS' }).Count
     Write-Host "================================================================================" -ForegroundColor Green
-    Write-Host "  OVERALL RESULT: 100% PASS (7/7 SUITES PASSED) in $TotalMinutes minutes!" -ForegroundColor Green
+    Write-Host "  OVERALL RESULT: 100% PASS ($PassCount/$($TestSuites.Count) SUITES PASSED) in $TotalMinutes minutes!" -ForegroundColor Green
     Write-Host "  PROJECT REVOLUTION IS CERTIFIED GOLD MASTER READY!" -ForegroundColor Green
     Write-Host "================================================================================" -ForegroundColor Green
     exit 0

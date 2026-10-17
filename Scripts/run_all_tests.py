@@ -62,6 +62,12 @@ def main():
             "name": "Civilian Dialogue Voice Localization & Ambient Proximity Audio",
             "script": os.path.join(scripts_dir, "verify_civilian_voice_localization.py"),
             "type": "commandlet"
+        },
+        {
+            "id": "TEST-08",
+            "name": "Pedestrian Reaction, Dynamic Stumble & Curiosity System",
+            "script": os.path.join(scripts_dir, "verify_pedestrian_reactions.py"),
+            "type": "commandlet"
         }
     ]
 
@@ -125,8 +131,9 @@ def main():
     print("-" * 80)
 
     if all_passed:
+        pass_count = len([r for r in results if r['status'] == 'PASS'])
         print("================================================================================")
-        print(f"  OVERALL RESULT: 100% PASS (7/7 SUITES PASSED) in {total_elapsed_min} minutes!")
+        print(f"  OVERALL RESULT: 100% PASS ({pass_count}/{len(test_suites)} SUITES PASSED) in {total_elapsed_min} minutes!")
         print("  PROJECT REVOLUTION IS CERTIFIED GOLD MASTER READY!")
         print("================================================================================")
         return 0
