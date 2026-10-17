@@ -56,6 +56,12 @@ def main():
             "name": "Standalone Build Cook, IoStore Packaging & GTX 1650 Budget",
             "script": os.path.join(scripts_dir, "verify_standalone_package.py"),
             "type": "python"
+        },
+        {
+            "id": "TEST-07",
+            "name": "Civilian Dialogue Voice Localization & Ambient Proximity Audio",
+            "script": os.path.join(scripts_dir, "verify_civilian_voice_localization.py"),
+            "type": "commandlet"
         }
     ]
 
@@ -120,7 +126,7 @@ def main():
 
     if all_passed:
         print("================================================================================")
-        print(f"  OVERALL RESULT: 100% PASS (6/6 SUITES PASSED) in {total_elapsed_min} minutes!")
+        print(f"  OVERALL RESULT: 100% PASS (7/7 SUITES PASSED) in {total_elapsed_min} minutes!")
         print("  PROJECT REVOLUTION IS CERTIFIED GOLD MASTER READY!")
         print("================================================================================")
         return 0

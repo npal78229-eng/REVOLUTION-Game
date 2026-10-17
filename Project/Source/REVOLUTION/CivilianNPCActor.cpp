@@ -12,6 +12,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "RevolutionMissionSubsystem.h"
+#include "Sound/SoundBase.h"
+#include "Sound/SoundAttenuation.h"
 #include "REVOLUTION.h"
 
 ACivilianNPCActor::ACivilianNPCActor()
@@ -112,6 +114,11 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 	ConversationDialogues.Empty();
 	CurrentDialogueIndex = 0;
 
+	if (!VoiceAttenuation)
+	{
+		VoiceAttenuation = LoadObject<USoundAttenuation>(nullptr, TEXT("/Game/Audio/Attenuation/ATT_Voice_Proximity.ATT_Voice_Proximity"));
+	}
+
 	switch (Occupation)
 	{
 	case ECivilianOccupation::FatherTailor:
@@ -133,6 +140,9 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		ConversationDialogues.Add(FText::FromString(
 			TEXT("Ram Lubhaya: 'Your mother left warm ginger-cardamom chai by the courtyard stove. Drink a kulhad before going to school.'")
 		));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_RamLubhaya_Dialogue.SFX_Voice_RamLubhaya_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_RamLubhaya_Bark.SFX_Voice_RamLubhaya_Bark"));
 		break;
 
 	case ECivilianOccupation::HalwaiChaiVendor:
@@ -154,6 +164,9 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		ConversationDialogues.Add(FText::FromString(
 			TEXT("Hira Halwai: 'Remember, boy: once you finish your chai, shatter the clay kulhad upon the street. From earth it came, to earth it returns; no colonial taxman can assess the dust of Punjab.'")
 		));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_HiraHalwai_Dialogue.SFX_Voice_HiraHalwai_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_HiraHalwai_Bark.SFX_Voice_HiraHalwai_Bark"));
 		break;
 
 	case ECivilianOccupation::BhishtiWaterCarrier:
@@ -175,6 +188,9 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		ConversationDialogues.Add(FText::FromString(
 			TEXT("Ghasita Bhishti: 'The community elders have gathered under the ancient Peepal tree right now, discussing the colonial curfew proclamations.'")
 		));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Ghasita_Dialogue.SFX_Voice_Ghasita_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Ghasita_Bark.SFX_Voice_Ghasita_Bark"));
 		break;
 
 	case ECivilianOccupation::ClothMerchant:
@@ -196,6 +212,9 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		ConversationDialogues.Add(FText::FromString(
 			TEXT("Lala Karam Chand: 'Take this payment for your father, and deliver my deepest respects. Tell him to keep the haveli deorhi barred tonight; rumors say the police intend to conduct midnight searches.'")
 		));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_LalaKaramChand_Dialogue.SFX_Voice_LalaKaramChand_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_LalaKaramChand_Bark.SFX_Voice_LalaKaramChand_Bark"));
 		break;
 
 	case ECivilianOccupation::SchoolHeadmaster:
@@ -217,6 +236,9 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		ConversationDialogues.Add(FText::FromString(
 			TEXT("Pandit Kashi Ram: 'Examine the new decree posted on the municipal board carefully, Kabir. A scholar must always learn to read between the lines that the authorities write.'")
 		));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Dialogue.SFX_Voice_PanditKashiRam_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Bark.SFX_Voice_PanditKashiRam_Bark"));
 		break;
 
 	case ECivilianOccupation::SchoolFriendKartar:
@@ -238,6 +260,9 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		ConversationDialogues.Add(FText::FromString(
 			TEXT("Kartar: 'Pandit Ji has already entered the classroom. If we don't ring the bell soon, he'll make us write our Gurmukhi alphabet ten times on our slates! Let's race to the school tower!'")
 		));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_KartarSingh_Dialogue.SFX_Voice_KartarSingh_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_KartarSingh_Bark.SFX_Voice_KartarSingh_Bark"));
 		break;
 	}
 
@@ -322,6 +347,12 @@ void ACivilianNPCActor::OnInteract_Implementation(ARevolutionCharacter* Interact
 
 	// Display via Kabir's inspection lore modal with authentic parchment styling
 	Interactor->StartInspection(CivilianName, CurrentText);
+
+	// Play localized authentic voice dialogue
+	if (InteractionVoiceSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, InteractionVoiceSound, GetActorLocation(), 1.0f, 1.0f, 0.0f, VoiceAttenuation);
+	}
 
 	// Broadcast dialogue event
 	OnDialogueSpoken.Broadcast(this, CivilianName, CurrentText);
@@ -417,6 +448,12 @@ void ACivilianNPCActor::OnProximityBeginOverlap(UPrimitiveComponent* OverlappedC
 
 		UE_LOG(LogREVOLUTION, Log, TEXT("[%s Ambient Bark]: %s"), *CivilianName.ToString(), *BarkText.ToString());
 		OnDialogueSpoken.Broadcast(this, CivilianName, BarkText);
+
+		// Play localized ambient voice bark
+		if (AmbientBarkVoiceSound)
+		{
+			UGameplayStatics::PlaySoundAtLocation(this, AmbientBarkVoiceSound, GetActorLocation(), 0.95f, 1.0f, 0.0f, VoiceAttenuation);
+		}
 	}
 }
 

@@ -49,6 +49,12 @@ $TestSuites = @(
         Name = 'Standalone Build Cook, IoStore Packaging and GTX 1650 Budget'
         Script = "$ScriptsDir\verify_standalone_package.py"
         Type = 'Python'
+    },
+    @{
+        Id = 'TEST-07'
+        Name = 'Civilian Dialogue Voice Localization and Ambient Proximity Audio'
+        Script = "$ScriptsDir\verify_civilian_voice_localization.py"
+        Type = 'Commandlet'
     }
 )
 
@@ -111,7 +117,7 @@ $Results | Format-Table -AutoSize -Property Id, Status, Duration, Name
 
 if ($AllPassed) {
     Write-Host "================================================================================" -ForegroundColor Green
-    Write-Host "  OVERALL RESULT: 100% PASS (6/6 SUITES PASSED) in $TotalMinutes minutes!" -ForegroundColor Green
+    Write-Host "  OVERALL RESULT: 100% PASS (7/7 SUITES PASSED) in $TotalMinutes minutes!" -ForegroundColor Green
     Write-Host "  PROJECT REVOLUTION IS CERTIFIED GOLD MASTER READY!" -ForegroundColor Green
     Write-Host "================================================================================" -ForegroundColor Green
     exit 0

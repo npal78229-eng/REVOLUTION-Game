@@ -7,7 +7,7 @@
 [![Target GPU](https://img.shields.io/badge/Target%20GPU-NVIDIA%20GTX%201650%20(4GB)-76B900?logo=nvidia)](https://nvidia.com)
 [![Build Status](https://img.shields.io/badge/Build-Passing%20(Exit%20Code%200)-success)]()
 [![Release Status](https://img.shields.io/badge/Release-Gold%20Master%20v1.0.0-gold?logo=github)]()
-[![Master CI](https://img.shields.io/badge/Master%20CI-6%2F6%20Passed%20(100%25)-brightgreen)]()
+[![Master CI](https://img.shields.io/badge/Master%20CI-7%2F7%20Passed%20(100%25)-brightgreen)]()
 
 > A dark, grounded, cinematic, story-driven historical open-world game about India's struggle for independence against British colonial rule.
 
@@ -382,3 +382,15 @@ REVOLUTION/
   - **Gold Master Release Report (`Documentation/GOLD_MASTER_RELEASE_REPORT.md`):**
     - Certified production readiness across C++20 architecture, Blender 5.2.1 assets, 27-stage story loop, AAA benchmark stealth synthesis, 5-phase atmosphere, 5 SoundClasses, GTX 1650 hardware profiling, and 885.5 MB standalone IoStore package.
   - **PROJECT REVOLUTION IS OFFICIALLY CERTIFIED GOLD MASTER READY!**
+- [x] **Phase 19: Authentic Punjabi Civilian Dialogue Localization & Ambient Proximity Voice System (Task 21):**
+  - **14 Procedural Acoustic Formant Voice Tracks (`Scripts/generate_civilian_voice_audio.py`):**
+    - Character-specific formant resonators (F1, F2, F3) and pitch contours synthesized in 16-bit 44.1kHz audio: Ram Lubhaya (~114 Hz fatherly guidance), Ghasita Bhishti (~132 Hz melodic street cry), Hira Halwai (~152 Hz tea vendor shout), Lala Karam Chand (~122 Hz merchant tone), Pandit Kashi Ram (~138 Hz headmaster call), Kartar Singh (~228 Hz 12yo friend), and Constable Gurdial Singh (~102 Hz martial curfew command & ~110 Hz suspicious query).
+  - **Audio Routing & Ingestion (`Scripts/import_civilian_voice_audio.py`):**
+    - Ingested 14 `SoundWave` assets into `/Game/Audio/Voice/` and `/Game/Audio/SFX/`, 100% routed to `SC_Voice_Punjabi` with 3D spatialized `ATT_Voice_Proximity` attenuation.
+  - **C++ Gameplay Audio Architecture:**
+    - `ACivilianNPCActor`: Integrated `InteractionVoiceSound`, `AmbientBarkVoiceSound`, and `VoiceAttenuation` with automated archetype loading in `ConfigureOccupation()`, dynamic playback on interaction, and proximity overlap triggers.
+    - `ACurfewPatrolAI`: Integrated `CurfewVoiceProclamationSound`, `SuspiciousVoiceSound`, and `VoiceAttenuation` triggering police commands on patrol alert states.
+  - **Master Level Scene Integration & QA Verification:**
+    - Bound all 6 civilian NPCs and curfew patrol sentries in `/Game/Maps/L_Validation_Gym`.
+    - Automated test suite `Scripts/verify_civilian_voice_localization.py` passed with **100% SUCCESS (0 errors)**.
+

@@ -10,6 +10,8 @@
 class USphereComponent;
 class UStaticMeshComponent;
 class ARevolutionCharacter;
+class USoundBase;
+class USoundAttenuation;
 
 UENUM(BlueprintType)
 enum class ECivilianOccupation : uint8
@@ -85,6 +87,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Dialogue")
 	float ProximityBarkCooldown = 15.0f;
+
+	// --- AUDIO & VOICE LOCALIZATION ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* InteractionVoiceSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* AmbientBarkVoiceSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundAttenuation* VoiceAttenuation = nullptr;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Mission")
 	bool bCanAdvanceMission = true;

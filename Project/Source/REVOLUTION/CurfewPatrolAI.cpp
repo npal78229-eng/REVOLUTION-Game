@@ -12,6 +12,7 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
+#include "Sound/SoundAttenuation.h"
 #include "RevolutionAtmosphereController.h"
 #include "RevolutionGameMode.h"
 #include "DoorDeorhiActor.h"
@@ -99,11 +100,28 @@ ACurfewPatrolAI::ACurfewPatrolAI()
 	{
 		WatchmanWhistleSound = WhistleSoundFinder.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> CurfewVoiceFinder(TEXT("/Game/Audio/Voice/SFX_Voice_ConstableGurdial_Curfew.SFX_Voice_ConstableGurdial_Curfew"));
+	if (CurfewVoiceFinder.Succeeded())
+	{
+		CurfewVoiceProclamationSound = CurfewVoiceFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> SuspicionVoiceFinder(TEXT("/Game/Audio/Voice/SFX_Voice_ConstableGurdial_Suspicion.SFX_Voice_ConstableGurdial_Suspicion"));
+	if (SuspicionVoiceFinder.Succeeded())
+	{
+		SuspiciousVoiceSound = SuspicionVoiceFinder.Object;
+	}
 }
 
 void ACurfewPatrolAI::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (!VoiceAttenuation)
+	{
+		VoiceAttenuation = LoadObject<USoundAttenuation>(nullptr, TEXT("/Game/Audio/Attenuation/ATT_Voice_Proximity.ATT_Voice_Proximity"));
+	}
 
 	if (PatrolWaypoints.IsEmpty())
 	{
@@ -566,13 +584,27 @@ void ACurfewPatrolAI::SetAlertState(ECurfewAlertState NewState)
 		AlertState = NewState;
 		OnWatchmanAlertChanged.Broadcast(AlertState, DetectionMeter);
 
-		if (AlertState == ECurfewAlertState::Suspicious && WatchmanCalloutSound)
+		if (AlertState == ECurfewAlertState::Suspicious)
 		{
-			UGameplayStatics::PlaySoundAtLocation(this, WatchmanCalloutSound, GetActorLocation(), 1.0f);
+			if (SuspiciousVoiceSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, SuspiciousVoiceSound, GetActorLocation(), 1.0f, 1.0f, 0.0f, VoiceAttenuation);
+			}
+			else if (WatchmanCalloutSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, WatchmanCalloutSound, GetActorLocation(), 1.0f);
+			}
 		}
-		else if (AlertState == ECurfewAlertState::Alerted && WatchmanWhistleSound)
+		else if (AlertState == ECurfewAlertState::Alerted)
 		{
-			UGameplayStatics::PlaySoundAtLocation(this, WatchmanWhistleSound, GetActorLocation(), 1.15f);
+			if (CurfewVoiceProclamationSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, CurfewVoiceProclamationSound, GetActorLocation(), 1.15f, 1.0f, 0.0f, VoiceAttenuation);
+			}
+			if (WatchmanWhistleSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, WatchmanWhistleSound, GetActorLocation(), 1.15f);
+			}
 		}
 
 		FString StateStr;
