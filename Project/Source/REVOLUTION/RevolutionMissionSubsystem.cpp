@@ -5,6 +5,9 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "REVOLUTION.h"
+#include "EngineUtils.h"
+#include "CivilianNPCActor.h"
+#include "ObjectiveTriggerActor.h"
 
 URevolutionMissionSubsystem::URevolutionMissionSubsystem()
 {
@@ -161,6 +164,10 @@ void URevolutionMissionSubsystem::AdvanceMissionStage()
 		if (DawnGongCompleteSound && World)
 		{
 			UGameplayStatics::PlaySound2D(World, DawnGongCompleteSound, 1.0f);
+		}
+		if (SchoolBellSound && World)
+		{
+			UGameplayStatics::PlaySound2D(World, SchoolBellSound, 0.9f);
 		}
 		CurrentStage = ECourierMissionStage::Stage_Afternoon_MunadiProclamation;
 		break;
@@ -324,6 +331,14 @@ void URevolutionMissionSubsystem::AdvanceMissionStage()
 	UE_LOG(LogREVOLUTION, Log, TEXT("Mission Stage Advanced to: %s"), *CachedTitle.ToString());
 }
 
+void URevolutionMissionSubsystem::SetMissionStage(ECourierMissionStage NewStage)
+{
+	CurrentStage = NewStage;
+	UpdateDirectiveStrings();
+	OnMissionDirectiveChanged.Broadcast(CurrentStage, CachedTitle, CachedDirective);
+	UE_LOG(LogREVOLUTION, Log, TEXT("Mission Stage Set Directly to: %s"), *CachedTitle.ToString());
+}
+
 void URevolutionMissionSubsystem::UpdateDirectiveStrings()
 {
 	switch (CurrentStage)
@@ -472,4 +487,260 @@ FText URevolutionMissionSubsystem::GetCurrentStageTitle() const
 FText URevolutionMissionSubsystem::GetCurrentStageDirective() const
 {
 	return CachedDirective;
+}
+
+bool URevolutionMissionSubsystem::GetActiveObjectiveLocation(FVector& OutLocation, FText& OutObjectiveName) const
+{
+	if (CurrentStage == ECourierMissionStage::Stage_Completed)
+	{
+		OutLocation = FVector::ZeroVector;
+		OutObjectiveName = FText::FromString(TEXT("Journey Complete"));
+		return false;
+	}
+
+	UWorld* World = GetWorld();
+
+	// 1. Check if an active AObjectiveTriggerActor matches CurrentStage in the world
+	if (World)
+	{
+		for (TActorIterator<AObjectiveTriggerActor> It(World); It; ++It)
+		{
+			AObjectiveTriggerActor* Trigger = *It;
+			if (Trigger && Trigger->RequiredMissionStage == CurrentStage && !Trigger->bHasBeenTriggered)
+			{
+				OutLocation = Trigger->GetActorLocation();
+				OutObjectiveName = Trigger->ItemTitle;
+				return true;
+			}
+		}
+	}
+
+	// 2. Check civilian NPCs for narrative stages involving specific characters
+	if (World)
+	{
+		ECivilianOccupation TargetOccupation = ECivilianOccupation::FatherTailor;
+		bool bSearchCivilian = false;
+
+		switch (CurrentStage)
+		{
+		case ECourierMissionStage::Stage_Morning_FatherTailor:
+			TargetOccupation = ECivilianOccupation::FatherTailor;
+			bSearchCivilian = true;
+			break;
+		case ECourierMissionStage::Stage_Morning_WellBhishti:
+			TargetOccupation = ECivilianOccupation::BhishtiWaterCarrier;
+			bSearchCivilian = true;
+			break;
+		case ECourierMissionStage::Stage_Morning_DeliverCloth:
+			TargetOccupation = ECivilianOccupation::ClothMerchant;
+			bSearchCivilian = true;
+			break;
+		case ECourierMissionStage::Stage_Morning_ChaiHalwai:
+			TargetOccupation = ECivilianOccupation::HalwaiChaiVendor;
+			bSearchCivilian = true;
+			break;
+		case ECourierMissionStage::Stage_Afternoon_MunadiProclamation:
+			TargetOccupation = ECivilianOccupation::MunadiTownCrier;
+			bSearchCivilian = true;
+			break;
+		default:
+			break;
+		}
+
+		if (bSearchCivilian)
+		{
+			for (TActorIterator<ACivilianNPCActor> It(World); It; ++It)
+			{
+				ACivilianNPCActor* Civ = *It;
+				if (Civ && Civ->Occupation == TargetOccupation)
+				{
+					OutLocation = Civ->GetActorLocation() + FVector(0.0f, 0.0f, 90.0f);
+					OutObjectiveName = !Civ->CivilianName.IsEmpty() ? Civ->CivilianName : Civ->ProfessionTitle;
+					return true;
+				}
+			}
+		}
+
+		// 3. Check for specific named actors in the level
+		if (CurrentStage == ECourierMissionStage::Stage_Morning_RooftopKite)
+		{
+			for (TActorIterator<AActor> It(World); It; ++It)
+			{
+				AActor* Act = *It;
+				if (Act && (Act->GetActorLabel() == TEXT("Haveli_Rooftop_Basant_Kite") || Act->GetActorLabel() == TEXT("Story_Rooftop_Patang_Charkhi")))
+				{
+					OutLocation = Act->GetActorLocation();
+					OutObjectiveName = FText::FromString(TEXT("Haveli Rooftop Basant Kite"));
+					return true;
+				}
+			}
+		}
+		else if (CurrentStage == ECourierMissionStage::Stage_Morning_ProclamationBoard)
+		{
+			for (TActorIterator<AActor> It(World); It; ++It)
+			{
+				AActor* Act = *It;
+				if (Act && Act->GetActorLabel() == TEXT("Story_Curfew_Notice_Martial_Law_Chowk"))
+				{
+					OutLocation = Act->GetActorLocation() + FVector(0.0f, 0.0f, 50.0f);
+					OutObjectiveName = FText::FromString(TEXT("Section 144 Proclamation Board"));
+					return true;
+				}
+			}
+		}
+		else if (CurrentStage == ECourierMissionStage::Stage_Morning_SchoolBell)
+		{
+			for (TActorIterator<AActor> It(World); It; ++It)
+			{
+				AActor* Act = *It;
+				if (Act && Act->GetActorLabel() == TEXT("School_Bell_Tower"))
+				{
+					OutLocation = Act->GetActorLocation() + FVector(0.0f, 0.0f, 60.0f);
+					OutObjectiveName = FText::FromString(TEXT("Vernacular Middle School Bell"));
+					return true;
+				}
+			}
+		}
+		else if (CurrentStage == ECourierMissionStage::Stage_Morning_ClassroomDesk)
+		{
+			for (TActorIterator<AActor> It(World); It; ++It)
+			{
+				AActor* Act = *It;
+				if (Act && Act->GetActorLabel() == TEXT("Story_School_Takhti_Slate"))
+				{
+					OutLocation = Act->GetActorLocation() + FVector(0.0f, 0.0f, 20.0f);
+					OutObjectiveName = FText::FromString(TEXT("Classroom 4B Student Desk"));
+					return true;
+				}
+			}
+		}
+	}
+
+	// 4. Canonical fallback locations and landmark titles for all Act I-V stages
+	switch (CurrentStage)
+	{
+	case ECourierMissionStage::Stage_Morning_FatherTailor:
+		OutLocation = FVector(480.0f, 500.0f, 88.0f);
+		OutObjectiveName = FText::FromString(TEXT("Ram Lubhaya's Tailor Shop"));
+		return true;
+
+	case ECourierMissionStage::Stage_Morning_RooftopKite:
+		OutLocation = FVector(380.0f, 200.0f, 480.0f);
+		OutObjectiveName = FText::FromString(TEXT("Haveli Rooftop Basant Kite"));
+		return true;
+
+	case ECourierMissionStage::Stage_Morning_WellBhishti:
+		OutLocation = FVector(-80.0f, 1320.0f, 88.0f);
+		OutObjectiveName = FText::FromString(TEXT("Ghasita Bhishti (Mohalla Well)"));
+		return true;
+
+	case ECourierMissionStage::Stage_Morning_DeliverCloth:
+		OutLocation = FVector(200.0f, 1980.0f, 88.0f);
+		OutObjectiveName = FText::FromString(TEXT("Lala Karam Chand (Cloth Merchant)"));
+		return true;
+
+	case ECourierMissionStage::Stage_Morning_ChaiHalwai:
+		OutLocation = FVector(-200.0f, 1680.0f, 88.0f);
+		OutObjectiveName = FText::FromString(TEXT("Hira Halwai's Tea Stall"));
+		return true;
+
+	case ECourierMissionStage::Stage_Morning_ProclamationBoard:
+		OutLocation = FVector(-80.0f, 1850.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Section 144 Proclamation Board"));
+		return true;
+
+	case ECourierMissionStage::Stage_Morning_SchoolBell:
+		OutLocation = FVector(1350.0f, 1350.0f, 60.0f);
+		OutObjectiveName = FText::FromString(TEXT("Vernacular Middle School Bell"));
+		return true;
+
+	case ECourierMissionStage::Stage_Morning_ClassroomDesk:
+		OutLocation = FVector(1150.0f, 1850.0f, 35.0f);
+		OutObjectiveName = FText::FromString(TEXT("Classroom 4B Student Desk"));
+		return true;
+
+	case ECourierMissionStage::Stage_Afternoon_MunadiProclamation:
+		OutLocation = FVector(80.0f, 1920.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Munadi Proclamation Drum"));
+		return true;
+
+	case ECourierMissionStage::Stage_Afternoon_BaghNarrowEntry:
+		OutLocation = FVector(900.0f, 2250.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Jallianwala Bagh Choke-Point"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActII_BaisakhiGathering:
+		OutLocation = FVector(1450.0f, 3100.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Baisakhi Assembly Pandal"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActII_TheFiring:
+		OutLocation = FVector(1250.0f, 2800.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("The Firing Line"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActII_FindEscapeRoute:
+		OutLocation = FVector(950.0f, 3100.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Escape Route in Enclosure"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActII_VaultWallBreach:
+	case ECourierMissionStage::Stage_ActII_Completed:
+		OutLocation = FVector(680.0f, 3320.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Crumbling Wall Breach"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActIII_NightCurfewFall:
+		OutLocation = FVector(-80.0f, 1850.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Central Chowk Curfew Notice"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActIII_EvadeSearchlightPicket:
+		OutLocation = FVector(0.0f, 2260.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Imperial Searchlight Picket"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActIII_AidWoundedSurvivors:
+	case ECourierMissionStage::Stage_ActIII_Completed:
+		OutLocation = FVector(-120.0f, 950.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Alley Makeshift Stretcher"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActIV_ReachCanalDistributary:
+		OutLocation = FVector(-950.0f, 2200.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Canal Sluice Regulator"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActIV_PersianWheelContact:
+		OutLocation = FVector(-1150.0f, 2050.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Persian Wheel (Rahat) Well"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActIV_BrickKilnSafehouse:
+	case ECourierMissionStage::Stage_ActIV_Completed:
+		OutLocation = FVector(-1180.0f, 2520.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Brick Kiln Resistance Stash"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActV_ReachRailwayCutting:
+		OutLocation = FVector(900.0f, 3900.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("North Western Railway Cutting"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActV_ClimbSignalGantry:
+		OutLocation = FVector(1160.0f, 3960.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Semaphore Signal Gantry"));
+		return true;
+
+	case ECourierMissionStage::Stage_ActV_CrossCivilLinesPalisade:
+		OutLocation = FVector(900.0f, 4200.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Civil Lines Palisade Perimeter"));
+		return true;
+
+	case ECourierMissionStage::Stage_Completed:
+	default:
+		OutLocation = FVector::ZeroVector;
+		OutObjectiveName = FText::GetEmpty();
+		return false;
+	}
 }

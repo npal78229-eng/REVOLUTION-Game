@@ -23,6 +23,9 @@ protected:
 	/** Ensures interactive period artifacts and traversal obstacles exist in the courtyard */
 	void SpawnDefaultMohallaProps();
 
+	virtual AActor* ChoosePlayerStart_Implementation(AController* Player) override;
+	virtual APawn* SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform) override;
+
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Curfew")
 	bool bIsPlayerApprehended = false;
@@ -50,4 +53,29 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Revolution|Curfew")
 	bool IsPlayerApprehended() const { return bIsPlayerApprehended; }
+
+	// --- TASK 30: PERSISTENT SAVE / LOAD SYSTEM ---
+	/** Saves complete player and mission state to disk slot */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|SaveGame")
+	bool SaveGameToSlot(const FString& SlotName = TEXT("RevolutionSave_Slot0"), int32 UserIndex = 0);
+
+	/** Loads complete player and mission state from disk slot */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|SaveGame")
+	bool LoadGameFromSlot(const FString& SlotName = TEXT("RevolutionSave_Slot0"), int32 UserIndex = 0);
+
+	/** Checks whether a save file exists in the specified slot */
+	UFUNCTION(BlueprintPure, Category = "Revolution|SaveGame")
+	bool DoesSaveGameExist(const FString& SlotName = TEXT("RevolutionSave_Slot0"), int32 UserIndex = 0) const;
+
+	/** Deletes a save game file from disk */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|SaveGame")
+	bool DeleteSaveSlot(const FString& SlotName = TEXT("RevolutionSave_Slot0"), int32 UserIndex = 0);
+
+	/** Timestamp of last saved game */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|SaveGame")
+	FDateTime LastSaveTimestamp;
+
+	/** Utility to repair BlendSpace sample data using native C++ API */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Animation")
+	static bool FixKabirBlendSpace();
 };

@@ -50,6 +50,19 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
 	class USoundBase* TriggerSound = nullptr;
 
+	// --- TASK 35: ACT I FINALE CINEMATIC HANDOFF ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")
+	bool bTriggerCinematicSequence = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")
+	class ULevelSequence* CinematicSequence = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")
+	FText CinematicChapterTitle;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")
+	FText CinematicSubtitle;
+
 	// IInteractableInterface Implementation
 	virtual void OnInteract_Implementation(ARevolutionCharacter* Interactor) override;
 	virtual FText GetInteractionPrompt_Implementation() const override;

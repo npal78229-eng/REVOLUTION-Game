@@ -34,7 +34,7 @@ $TestSuites = @(
     },
     @{
         Id = 'TEST-04'
-        Name = 'Act I Narrative Story Questline and Landmarks [206 Actors]'
+        Name = 'Act I Narrative Story Questline and Landmarks [205 Actors]'
         Script = "$ScriptsDir\verify_act1_questline.py"
         Type = 'Commandlet'
     },
@@ -72,6 +72,72 @@ $TestSuites = @(
         Id = 'TEST-10'
         Name = 'Advanced Photogrammetry Texturing & Material Architecture'
         Script = "$ScriptsDir\verify_photogrammetry_materials.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-11'
+        Name = 'Historical Narrative Epilogue, Codex 18th Record and Cinematic Director'
+        Script = "$ScriptsDir\verify_task25_epilogue.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-12'
+        Name = 'Multi-Dialect Punjabi Voice Recording Expansion and Bazaar Walla System'
+        Script = "$ScriptsDir\verify_task26_multidialect_walla.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-13'
+        Name = 'Dynamic Time-of-Day Weather States, Andhi Dust Storm and Volumetric Fog'
+        Script = "$ScriptsDir\verify_task27_weather_states.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-14'
+        Name = 'Curfew Sentry AI Collision Resolution and 3-Waypoint Patrol Routine'
+        Script = "$ScriptsDir\verify_curfew_patrol.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-15'
+        Name = 'Frontend Title Screen, Pause Menu System and Checkpoint Restart Loop'
+        Script = "$ScriptsDir\verify_frontend_menus.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-16'
+        Name = 'Persistent Disk Save/Load System (USaveGame) and Continue Journey Loop'
+        Script = "$ScriptsDir\verify_save_load_system.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-17'
+        Name = 'Procedural Skeletal Idle Animations, Occupational Routine Life and Heritage Attire'
+        Script = "$ScriptsDir\verify_civilian_routines.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-18'
+        Name = 'Haveli Ground Floor Domestic Dressing and Village Exploration Boundaries'
+        Script = "$ScriptsDir\verify_haveli_boundaries.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-19'
+        Name = 'Rooftop Traversal, Vertical Ladder Traversal and Mantling Feedback'
+        Script = "$ScriptsDir\verify_rooftop_traversal.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-20'
+        Name = 'Seamless Act I In-World Objective Beacons & Mohalla Compass Waypoints'
+        Script = "$ScriptsDir\verify_objective_beacons.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-21'
+        Name = 'Act I Finale to Act II Cinematic Handoff & Munadi Proclamation Sequence'
+        Script = "$ScriptsDir\verify_act1_to_act2_handoff.py"
         Type = 'Commandlet'
     }
 )

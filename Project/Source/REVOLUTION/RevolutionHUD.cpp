@@ -26,11 +26,16 @@
 #include "ProclamationBoardActor.h"
 #include "Sound/SoundBase.h"
 #include "RevolutionGameMode.h"
+#include "RevolutionSaveGame.h"
 #include "Kismet/GameplayStatics.h"
+#include "Kismet/KismetSystemLibrary.h"
 #include "UObject/ConstructorHelpers.h"
 
 ARevolutionHUD::ARevolutionHUD()
 {
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bTickEvenWhenPaused = true;
+
 	// Default historical palette
 	ParchmentColor = FLinearColor(0.93f, 0.89f, 0.80f, 0.96f);
 	AntiqueBrassColor = FLinearColor(0.82f, 0.65f, 0.28f, 1.0f);
@@ -41,6 +46,11 @@ ARevolutionHUD::ARevolutionHUD()
 	ReticleFocusPulse = 0.0f;
 	LetterboxAlpha = 0.0f;
 	OpeningPrologueTimer = 0.0f;
+
+	bTitleMenuVisible = false;
+	bPauseMenuVisible = false;
+	TitleMenuIndex = 0;
+	PauseMenuIndex = 0;
 
 	static ConstructorHelpers::FObjectFinder<USoundBase> BellFinder(TEXT("/Game/Audio/SFX/SFX_Curfew_Bell_Toll.SFX_Curfew_Bell_Toll"));
 	if (BellFinder.Succeeded())
@@ -94,6 +104,21 @@ void ARevolutionHUD::DrawHUD()
 	if (!Kabir) return;
 
 	float DeltaTime = GetWorld()->GetDeltaSeconds();
+
+	if (bTitleMenuVisible)
+	{
+		DrawTitleMenu(DeltaTime);
+		DrawCinematicLetterbox(DeltaTime, true);
+		return;
+	}
+
+	if (bPauseMenuVisible)
+	{
+		DrawPauseMenu(DeltaTime);
+		DrawCinematicLetterbox(DeltaTime, true);
+		return;
+	}
+
 	OpeningPrologueTimer += DeltaTime;
 
 	ARevolutionGameMode* GM = Cast<ARevolutionGameMode>(GetWorld()->GetAuthGameMode());
@@ -131,6 +156,7 @@ void ARevolutionHUD::DrawHUD()
 		DrawStealthAndDetection(Kabir);
 		DrawConcealmentMeter(Kabir);
 		DrawKeenSensesBeacons(Kabir);
+		DrawInWorldObjectiveBeacon(Kabir);
 		DrawMissionDirectiveBanner(Kabir);
 		DrawPebbleAimTrajectory(Kabir);
 	}
@@ -258,6 +284,36 @@ void ARevolutionHUD::DrawInteractionPrompt(ARevolutionCharacter* Kabir)
 	{
 		PromptText = IInteractableInterface::Execute_GetInteractionPrompt(Kabir->CurrentInteractableActor);
 	}
+	else
+	{
+		FString Label = TEXT("");
+#if WITH_EDITOR
+		Label = Kabir->CurrentInteractableActor->GetActorLabel();
+#endif
+		FString Name = Kabir->CurrentInteractableActor->GetName();
+		FString MeshName = TEXT("");
+		if (UStaticMeshComponent* SMC = Cast<UStaticMeshComponent>(Kabir->CurrentInteractableActor->GetComponentByClass(UStaticMeshComponent::StaticClass())))
+		{
+			if (SMC->GetStaticMesh())
+			{
+				MeshName = SMC->GetStaticMesh()->GetName();
+			}
+		}
+
+		if (Label.Contains(TEXT("Kite")) || Name.Contains(TEXT("Kite")) || MeshName.Contains(TEXT("Kite")))
+		{
+			PromptText = FText::FromString(TEXT("Inspect Abandoned Basant Paper Kite"));
+		}
+		else if (Label.Contains(TEXT("Stairs")) || Label.Contains(TEXT("Steps")) || Name.Contains(TEXT("Stairs")) || Name.Contains(TEXT("Steps")) || MeshName.Contains(TEXT("Stairs")) || MeshName.Contains(TEXT("Steps")))
+		{
+			PromptText = FText::FromString(TEXT("Inspect Steps Masonry Rooftop Steps"));
+		}
+		else if (Label.Contains(TEXT("Charkhi")) || Name.Contains(TEXT("Charkhi")) || MeshName.Contains(TEXT("Charkhi")))
+		{
+			PromptText = FText::FromString(TEXT("Inspect Patang & Charkhi Spool"));
+		}
+	}
+
 	if (PromptText.IsEmpty())
 	{
 		PromptText = FText::FromString(TEXT("Interact"));
@@ -506,6 +562,42 @@ void ARevolutionHUD::DrawCompass(ARevolutionCharacter* Kabir)
 			}
 		}
 	}
+
+	// Draw Active Mission Objective Waypoint on Compass Tape
+	if (bShowObjectiveBeacons)
+	{
+		if (URevolutionMissionSubsystem* Subsystem = GetWorld()->GetSubsystem<URevolutionMissionSubsystem>())
+		{
+			FVector ObjectiveLoc = FVector::ZeroVector;
+			FText ObjectiveName = FText::GetEmpty();
+			if (Subsystem->GetActiveObjectiveLocation(ObjectiveLoc, ObjectiveName))
+			{
+				FVector DirToObj = (ObjectiveLoc - Kabir->GetActorLocation()).GetSafeNormal2D();
+				float ObjAngle = FMath::RadiansToDegrees(FMath::Atan2(DirToObj.Y, DirToObj.X));
+				float Diff = ObjAngle - PlayerYaw;
+				while (Diff > 180.0f) Diff -= 360.0f;
+				while (Diff < -180.0f) Diff += 360.0f;
+
+				if (FMath::Abs(Diff) <= VisibleAngleHalfRange)
+				{
+					float ScreenX = CenterX + (Diff * PixelsPerDegree);
+					float Pulse = 0.80f + 0.20f * FMath::Sin(GetWorld()->GetTimeSeconds() * 4.0f);
+					FLinearColor ObjWayColor = FLinearColor(1.0f, 0.82f, 0.25f, Pulse);
+
+					// Outer diamond
+					const float HalfW = 5.0f;
+					const float CenterY = TapeY + TapeHeight * 0.5f;
+					DrawLine(ScreenX - HalfW, CenterY, ScreenX, CenterY - HalfW, ObjWayColor, 1.8f);
+					DrawLine(ScreenX, CenterY - HalfW, ScreenX + HalfW, CenterY, ObjWayColor, 1.8f);
+					DrawLine(ScreenX + HalfW, CenterY, ScreenX, CenterY + HalfW, ObjWayColor, 1.8f);
+					DrawLine(ScreenX, CenterY + HalfW, ScreenX - HalfW, CenterY, ObjWayColor, 1.8f);
+
+					// Center gold pip
+					DrawRect(ObjWayColor, ScreenX - 1.5f, CenterY - 1.5f, 3.0f, 3.0f);
+				}
+			}
+		}
+	}
 }
 
 void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
@@ -718,6 +810,29 @@ void ARevolutionHUD::DrawStealthAndDetection(ARevolutionCharacter* Kabir)
 		DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.04f, 0.08f, 0.12f, 0.82f), TrainCol, 1.2f);
 		DrawText(TrainText, TrainCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
 		TopNotificationY += BoxH + 6.0f;
+	}
+
+	// Task 27: Dynamic Weather State Indicator (Andhi Dust Storm)
+	for (TActorIterator<ARevolutionAtmosphereController> AtmoIt(GetWorld()); AtmoIt; ++AtmoIt)
+	{
+		if (AtmoIt->GetCurrentWeatherState() == EHistoricalWeatherState::DustStormAndhi && SmallFont)
+		{
+			FString WeatherText = TEXT("~  WEATHER: ANDHI DUST STORM — SENTRY VISIBILITY REDUCED (35%)  ~");
+			float WTextW = 0.0f, WTextH = 0.0f;
+			GetTextSize(WeatherText, WTextW, WTextH, SmallFont);
+
+			float WPulse = 0.80f + 0.20f * FMath::Sin(GetWorld()->GetTimeSeconds() * 5.0f);
+			FLinearColor OchreCol = FLinearColor(0.96f, 0.68f, 0.26f, WPulse);
+
+			float BoxW = WTextW + 28.0f;
+			float BoxH = WTextH + 10.0f;
+			float BoxX = (Canvas->ClipX - BoxW) * 0.5f;
+
+			DrawFramedBox(BoxX, TopNotificationY, BoxW, BoxH, FLinearColor(0.14f, 0.08f, 0.02f, 0.85f), OchreCol, 1.2f);
+			DrawText(WeatherText, OchreCol, BoxX + 14.0f, TopNotificationY + 5.0f, SmallFont);
+			TopNotificationY += BoxH + 6.0f;
+			break;
+		}
 	}
 
 	// 5. Brittle Terracotta Roof Shingles Hazard Caution
@@ -1103,6 +1218,113 @@ void ARevolutionHUD::DrawKeenSensesBeacons(ARevolutionCharacter* Kabir)
 				}
 			}
 		}
+	}
+}
+
+void ARevolutionHUD::DrawInWorldObjectiveBeacon(ARevolutionCharacter* Kabir)
+{
+	if (!bShowObjectiveBeacons || !Canvas || !Kabir || Kabir->IsInspecting() || Kabir->IsSatchelJournalOpen()) return;
+
+	APlayerController* PC = Cast<APlayerController>(Kabir->GetController());
+	if (!PC) return;
+
+	UWorld* World = GetWorld();
+	if (!World) return;
+
+	URevolutionMissionSubsystem* Subsystem = World->GetSubsystem<URevolutionMissionSubsystem>();
+	if (!Subsystem) return;
+
+	FVector ObjectivePos = FVector::ZeroVector;
+	FText ObjectiveName = FText::GetEmpty();
+	if (!Subsystem->GetActiveObjectiveLocation(ObjectivePos, ObjectiveName))
+	{
+		return;
+	}
+
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	FVector KabirPos = Kabir->GetActorLocation();
+	float DistMeters = FVector::Dist(KabirPos, ObjectivePos) * 0.01f;
+
+	// Maximum visible range: 40m in normal exploration, 80m when Basant Intuition is active
+	const float MaxRangeMeters = Kabir->IsKeenSensesActive() ? 80.0f : 40.0f;
+	if (DistMeters > MaxRangeMeters) return;
+
+	// Calculate smooth distance alpha:
+	// Full opacity between 3m and (MaxRangeMeters * 0.75f)
+	// Smoothly fades in from MaxRangeMeters down to (MaxRangeMeters * 0.75f)
+	// Smoothly fades out from 3m down to 1.2m so it does not obstruct close-up inspection or dialogue
+	float Alpha = 1.0f;
+	if (DistMeters > (MaxRangeMeters * 0.75f))
+	{
+		Alpha = FMath::Clamp(1.0f - ((DistMeters - (MaxRangeMeters * 0.75f)) / (MaxRangeMeters * 0.25f)), 0.0f, 1.0f);
+	}
+	else if (DistMeters < 3.0f)
+	{
+		Alpha = FMath::Clamp((DistMeters - 1.2f) / 1.8f, 0.0f, 1.0f);
+	}
+
+	if (Alpha <= 0.01f) return;
+
+	// Project target position into screen space (with vertical offset for beacon height)
+	FVector BeaconWorldPos = ObjectivePos + FVector(0.0f, 0.0f, 35.0f);
+	FVector2D ScreenPos;
+	if (!PC->ProjectWorldLocationToScreen(BeaconWorldPos, ScreenPos, true))
+	{
+		return;
+	}
+
+	// Breathing pulse
+	float Pulse = 0.85f + 0.15f * FMath::Sin(World->GetTimeSeconds() * 3.5f);
+	FLinearColor BeaconCol = FLinearColor(1.0f, 0.82f, 0.28f, Alpha * Pulse);
+	FLinearColor InnerCol = FLinearColor(0.12f, 0.08f, 0.02f, Alpha * 0.85f);
+	FLinearColor TextCol = FLinearColor(0.96f, 0.93f, 0.86f, Alpha);
+
+	// Scale marker slightly by distance (subtle perspective scaling)
+	float DiamondRadius = FMath::Clamp(12.0f - (DistMeters * 0.1f), 7.0f, 12.0f);
+
+	// Draw outer diamond
+	DrawLine(ScreenPos.X, ScreenPos.Y - DiamondRadius, ScreenPos.X + DiamondRadius, ScreenPos.Y, BeaconCol, 1.8f);
+	DrawLine(ScreenPos.X + DiamondRadius, ScreenPos.Y, ScreenPos.X, ScreenPos.Y + DiamondRadius, BeaconCol, 1.8f);
+	DrawLine(ScreenPos.X, ScreenPos.Y + DiamondRadius, ScreenPos.X - DiamondRadius, ScreenPos.Y, BeaconCol, 1.8f);
+	DrawLine(ScreenPos.X - DiamondRadius, ScreenPos.Y, ScreenPos.X, ScreenPos.Y - DiamondRadius, BeaconCol, 1.8f);
+
+	// Draw inner diamond
+	float InnerRadius = DiamondRadius * 0.5f;
+	DrawLine(ScreenPos.X, ScreenPos.Y - InnerRadius, ScreenPos.X + InnerRadius, ScreenPos.Y, BeaconCol, 1.2f);
+	DrawLine(ScreenPos.X + InnerRadius, ScreenPos.Y, ScreenPos.X, ScreenPos.Y + InnerRadius, BeaconCol, 1.2f);
+	DrawLine(ScreenPos.X, ScreenPos.Y + InnerRadius, ScreenPos.X - InnerRadius, ScreenPos.Y, BeaconCol, 1.2f);
+	DrawLine(ScreenPos.X - InnerRadius, ScreenPos.Y, ScreenPos.X, ScreenPos.Y - InnerRadius, BeaconCol, 1.2f);
+
+	// Center gold pip
+	DrawRect(BeaconCol, ScreenPos.X - 1.5f, ScreenPos.Y - 1.5f, 3.0f, 3.0f);
+
+	// Vertical anchor stem pointing down toward the actual object
+	DrawLine(ScreenPos.X, ScreenPos.Y + DiamondRadius + 2.0f, ScreenPos.X, ScreenPos.Y + DiamondRadius + 12.0f, BeaconCol, 1.2f);
+
+	// Distance badge
+	FString DistBadge = FString::Printf(TEXT("[ OBJECTIVE — %.0fm ]"), DistMeters);
+	float DW = 0.0f, DH = 0.0f;
+	GetTextSize(DistBadge, DW, DH, SmallFont);
+	float BadgeX = ScreenPos.X - (DW * 0.5f);
+	float BadgeY = ScreenPos.Y - DiamondRadius - DH - 6.0f;
+
+	// Framed background for badge
+	DrawFramedBox(BadgeX - 6.0f, BadgeY - 2.0f, DW + 12.0f, DH + 4.0f, InnerCol, BeaconCol, 1.0f);
+	DrawText(DistBadge, BeaconCol, BadgeX, BadgeY, SmallFont);
+
+	// If within 25m or Basant Intuition active, also draw landmark/objective title
+	if (DistMeters <= 25.0f || Kabir->IsKeenSensesActive())
+	{
+		FString ObjTitle = ObjectiveName.ToString();
+		float TW = 0.0f, TH = 0.0f;
+		GetTextSize(ObjTitle, TW, TH, SmallFont);
+		float TitleX = ScreenPos.X - (TW * 0.5f);
+		float TitleY = BadgeY - TH - 3.0f;
+
+		DrawFramedBox(TitleX - 6.0f, TitleY - 2.0f, TW + 12.0f, TH + 4.0f, InnerCol, FLinearColor(0.82f, 0.65f, 0.28f, Alpha * 0.65f), 1.0f);
+		DrawText(ObjTitle, TextCol, TitleX, TitleY, SmallFont);
 	}
 }
 
@@ -1888,10 +2110,19 @@ void ARevolutionHUD::DrawSatchelTabHistoricalCodex(ARevolutionCharacter* Kabir, 
 			TEXT("\"Land of Five Rivers  •  The Grand Trunk Corridor.\""),
 			TEXT("Hand-drafted classroom easel displaying the 1919 British administrative map of Punjab Province, demarcating Amritsar, Lahore, Jalandhar, and Rawalpindi."),
 			TEXT("Studying the map allows Kabir to visualize the wider provincial scale of the Satyagraha network and track historical landmarks across Kot Gurdarshan.")
+		},
+		// 18. The Baisakhi Dawn & National Awakening (1919)
+		{
+			TEXT("THE BAISAKHI DAWN & AWAKENING"),
+			TEXT("Historical Epilogue  •  The Moral Turning Point"),
+			TEXT("April 14, 1919  •  Punjab & The National Awakening"),
+			TEXT("\"The time has come when badges of honour make our shame glaring in their incongruous context of humiliation...\" — Rabindranath Tagore"),
+			TEXT("In the golden morning light following April 13, 1919, Punjab and India awoke to an irrevocable moral turning point. Rabindranath Tagore renounced his British knighthood in solemn protest, Mahatma Gandhi returned his Kaiser-i-Hind medal and launched the historic Non-Cooperation Movement, and the moral authority of colonial subjugation collapsed permanently across the subcontinent."),
+			TEXT("The culminating historical record of Kabir's courier journey. Unlocked at the dawn of April 14 as the golden sunrise crests the baked terracotta rooftops of Kot Gurdarshan, commemorating the sacrifices of the martyrs and marking the dawn of the national freedom movement.")
 		}
 	};
 
-	const int32 TotalEntries = 17;
+	const int32 TotalEntries = 18;
 	const int32 CurrentIdx = Kabir ? FMath::Clamp(Kabir->SelectedCodexIndex, 0, TotalEntries - 1) : 0;
 
 	// Layout dimensions
@@ -2430,6 +2661,453 @@ void ARevolutionHUD::DrawCensorWindowVeilOfMemory(ARevolutionCharacter* Kabir, f
 	GetTextSize(PromptText, PW, PH, SmallFont);
 	DrawText(PromptText, AntiqueBrassColor, CardX + (CardW - PW) * 0.5f, CardY + CardH - 22.0f, SmallFont);
 }
+
+// ============================================================================
+// TASK 29: TITLE & PAUSE MENUS IMPLEMENTATION
+// ============================================================================
+
+void ARevolutionHUD::SetTitleMenuVisible(bool bVisible)
+{
+	bTitleMenuVisible = bVisible;
+	if (bTitleMenuVisible)
+	{
+		bPauseMenuVisible = false;
+		TitleMenuIndex = 0;
+		if (APlayerController* PC = GetOwningPlayerController())
+		{
+			FInputModeGameAndUI InputMode;
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			InputMode.SetHideCursorDuringCapture(false);
+			PC->SetInputMode(InputMode);
+			PC->SetShowMouseCursor(true);
+		}
+	}
+	else
+	{
+		if (APlayerController* PC = GetOwningPlayerController())
+		{
+			FInputModeGameOnly InputMode;
+			InputMode.SetConsumeCaptureMouseDown(false);
+			PC->SetInputMode(InputMode);
+			PC->SetShowMouseCursor(false);
+		}
+	}
+}
+
+void ARevolutionHUD::SetPauseMenuVisible(bool bVisible)
+{
+	bPauseMenuVisible = bVisible;
+	if (bPauseMenuVisible)
+	{
+		bTitleMenuVisible = false;
+		PauseMenuIndex = 0;
+		if (APlayerController* PC = GetOwningPlayerController())
+		{
+			FInputModeGameAndUI InputMode;
+			InputMode.SetLockMouseToViewportBehavior(EMouseLockMode::DoNotLock);
+			InputMode.SetHideCursorDuringCapture(false);
+			PC->SetInputMode(InputMode);
+			PC->SetShowMouseCursor(true);
+		}
+	}
+	else
+	{
+		if (APlayerController* PC = GetOwningPlayerController())
+		{
+			FInputModeGameOnly InputMode;
+			InputMode.SetConsumeCaptureMouseDown(false);
+			PC->SetInputMode(InputMode);
+			PC->SetShowMouseCursor(false);
+		}
+	}
+}
+
+void ARevolutionHUD::NavigateTitleMenu(int32 Direction)
+{
+	const bool bHasSave = UGameplayStatics::DoesSaveGameExist(TEXT("RevolutionSave_Slot0"), 0);
+	const int32 NumItems = bHasSave ? 5 : 4;
+	TitleMenuIndex = (TitleMenuIndex + Direction + NumItems) % NumItems;
+	if (CurfewBellTollSound && GetWorld())
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), CurfewBellTollSound, 0.4f);
+	}
+}
+
+void ARevolutionHUD::NavigatePauseMenu(int32 Direction)
+{
+	const int32 NumItems = 7;
+	PauseMenuIndex = (PauseMenuIndex + Direction + NumItems) % NumItems;
+	if (CurfewBellTollSound && GetWorld())
+	{
+		UGameplayStatics::PlaySound2D(GetWorld(), CurfewBellTollSound, 0.4f);
+	}
+}
+
+void ARevolutionHUD::ConfirmMenuSelection()
+{
+	ARevolutionCharacter* Kabir = Cast<ARevolutionCharacter>(GetOwningPawn());
+	APlayerController* PC = GetOwningPlayerController();
+	ARevolutionGameMode* GM = Cast<ARevolutionGameMode>(GetWorld() ? GetWorld()->GetAuthGameMode() : nullptr);
+
+	if (bTitleMenuVisible)
+	{
+		const bool bHasSave = UGameplayStatics::DoesSaveGameExist(TEXT("RevolutionSave_Slot0"), 0);
+		if (bHasSave)
+		{
+			switch (TitleMenuIndex)
+			{
+			case 0: // Continue Journey
+				SetTitleMenuVisible(false);
+				if (GM)
+				{
+					GM->LoadGameFromSlot(TEXT("RevolutionSave_Slot0"), 0);
+				}
+				if (Kabir)
+				{
+					Kabir->ResumeGame();
+				}
+				else
+				{
+					UGameplayStatics::SetGamePaused(GetWorld(), false);
+				}
+				break;
+			case 1: // Begin New Journey
+				SetTitleMenuVisible(false);
+				if (Kabir)
+				{
+					Kabir->ResumeGame();
+				}
+				else
+				{
+					UGameplayStatics::SetGamePaused(GetWorld(), false);
+				}
+				break;
+			case 2: // Historical Codex
+				SetTitleMenuVisible(false);
+				UGameplayStatics::SetGamePaused(GetWorld(), false);
+				if (Kabir)
+				{
+					Kabir->bIsSatchelJournalOpen = true;
+					Kabir->ActiveSatchelTab = 2; // Codex tab
+					Kabir->PlayInspectAudio(true);
+				}
+				break;
+			case 3: // Settings
+				SetTitleMenuVisible(false);
+				UGameplayStatics::SetGamePaused(GetWorld(), false);
+				if (Kabir)
+				{
+					Kabir->bIsSatchelJournalOpen = true;
+					Kabir->ActiveSatchelTab = 3; // Settings tab
+					Kabir->PlayInspectAudio(true);
+				}
+				break;
+			case 4: // Quit
+				UKismetSystemLibrary::QuitGame(GetWorld(), PC, EQuitPreference::Quit, false);
+				break;
+			}
+		}
+		else
+		{
+			switch (TitleMenuIndex)
+			{
+			case 0: // Begin Journey
+				SetTitleMenuVisible(false);
+				if (Kabir)
+				{
+					Kabir->ResumeGame();
+				}
+				else
+				{
+					UGameplayStatics::SetGamePaused(GetWorld(), false);
+				}
+				break;
+			case 1: // Historical Codex
+				SetTitleMenuVisible(false);
+				UGameplayStatics::SetGamePaused(GetWorld(), false);
+				if (Kabir)
+				{
+					Kabir->bIsSatchelJournalOpen = true;
+					Kabir->ActiveSatchelTab = 2; // Codex tab
+					Kabir->PlayInspectAudio(true);
+				}
+				break;
+			case 2: // Settings
+				SetTitleMenuVisible(false);
+				UGameplayStatics::SetGamePaused(GetWorld(), false);
+				if (Kabir)
+				{
+					Kabir->bIsSatchelJournalOpen = true;
+					Kabir->ActiveSatchelTab = 3; // Settings tab
+					Kabir->PlayInspectAudio(true);
+				}
+				break;
+			case 3: // Quit
+				UKismetSystemLibrary::QuitGame(GetWorld(), PC, EQuitPreference::Quit, false);
+				break;
+			}
+		}
+		return;
+	}
+
+	if (bPauseMenuVisible)
+	{
+		switch (PauseMenuIndex)
+		{
+		case 0: // Resume
+			if (Kabir)
+			{
+				Kabir->ResumeGame();
+			}
+			else
+			{
+				SetPauseMenuVisible(false);
+				UGameplayStatics::SetGamePaused(GetWorld(), false);
+			}
+			break;
+		case 1: // Save Journey Progress
+			if (GM)
+			{
+				GM->SaveGameToSlot(TEXT("RevolutionSave_Slot0"), 0);
+				if (Kabir)
+				{
+					Kabir->PlayInspectAudio(true);
+				}
+			}
+			break;
+		case 2: // Restart from Checkpoint
+			if (Kabir)
+			{
+				Kabir->RestartFromCheckpoint();
+			}
+			break;
+		case 3: // Satchel Journal & Codex
+			SetPauseMenuVisible(false);
+			UGameplayStatics::SetGamePaused(GetWorld(), false);
+			if (Kabir)
+			{
+				Kabir->bIsSatchelJournalOpen = true;
+				Kabir->ActiveSatchelTab = 0;
+				Kabir->PlayInspectAudio(true);
+			}
+			break;
+		case 4: // Settings
+			SetPauseMenuVisible(false);
+			UGameplayStatics::SetGamePaused(GetWorld(), false);
+			if (Kabir)
+			{
+				Kabir->bIsSatchelJournalOpen = true;
+				Kabir->ActiveSatchelTab = 3;
+				Kabir->PlayInspectAudio(true);
+			}
+			break;
+		case 5: // Return to Title Menu
+			if (Kabir)
+			{
+				Kabir->ReturnToTitleMenu();
+			}
+			else
+			{
+				SetPauseMenuVisible(false);
+				SetTitleMenuVisible(true);
+			}
+			break;
+		case 6: // Quit to Desktop
+			UKismetSystemLibrary::QuitGame(GetWorld(), PC, EQuitPreference::Quit, false);
+			break;
+		}
+		return;
+	}
+}
+
+void ARevolutionHUD::DrawTitleMenu(float DeltaTime)
+{
+	if (!Canvas) return;
+
+	UFont* LargeFont = GEngine ? GEngine->GetLargeFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	const float ScreenW = Canvas->ClipX;
+	const float ScreenH = Canvas->ClipY;
+	const float CenterX = ScreenW * 0.5f;
+
+	// 1. Dark antique sepia background
+	DrawRect(FLinearColor(0.04f, 0.03f, 0.02f, 0.95f), 0.0f, 0.0f, ScreenW, ScreenH);
+
+	// 2. Ornate outer border
+	DrawFramedBox(32.0f, 24.0f, ScreenW - 64.0f, ScreenH - 48.0f, FLinearColor::Transparent, AntiqueBrassColor, 1.5f);
+	DrawFramedBox(36.0f, 28.0f, ScreenW - 72.0f, ScreenH - 56.0f, FLinearColor::Transparent, MutedSepiaColor, 0.75f);
+
+	// 3. Title Header Banner
+	float HeaderY = ScreenH * 0.12f;
+	FString MainTitle = TEXT("R E V O L U T I O N   (क्रांति / ਕ੍ਰਾਂਤੀ)");
+	float TitleW = 0.0f, TitleH = 0.0f;
+	GetTextSize(MainTitle, TitleW, TitleH, LargeFont ? LargeFont : MediumFont);
+	DrawText(MainTitle, FLinearColor(0.92f, 0.74f, 0.28f, 1.0f), CenterX - TitleW * 0.5f, HeaderY, LargeFont ? LargeFont : MediumFont);
+
+	float SubY = HeaderY + TitleH + 8.0f;
+	FString SubTitle = TEXT("AMRITSAR, APRIL 1919 — THE DAWN OF FREEDOM");
+	float SubW = 0.0f, SubH = 0.0f;
+	GetTextSize(SubTitle, SubW, SubH, MediumFont ? MediumFont : SmallFont);
+	DrawText(SubTitle, FLinearColor(0.85f, 0.80f, 0.70f, 0.95f), CenterX - SubW * 0.5f, SubY, MediumFont ? MediumFont : SmallFont);
+
+	// Decorative divider
+	DrawLine(CenterX - 220.0f, SubY + SubH + 12.0f, CenterX + 220.0f, SubY + SubH + 12.0f, AntiqueBrassColor, 1.0f);
+
+	// Narrative tagline
+	float TaglineY = SubY + SubH + 20.0f;
+	FString Tagline = TEXT("\"In the labyrinth of narrow mohalla alleys, one young courier carries the spark of a nation.\"");
+	float TagW = 0.0f, TagH = 0.0f;
+	GetTextSize(Tagline, TagW, TagH, SmallFont);
+	DrawText(Tagline, MutedSepiaColor, CenterX - TagW * 0.5f, TaglineY, SmallFont);
+
+	// 4. Menu Options
+	const bool bHasSave = UGameplayStatics::DoesSaveGameExist(TEXT("RevolutionSave_Slot0"), 0);
+	TArray<FString> MenuItems;
+	if (bHasSave)
+	{
+		MenuItems = {
+			TEXT("1. CONTINUE JOURNEY (यात्रा जारी रखें)"),
+			TEXT("2. BEGIN NEW JOURNEY (नई यात्रा शुरू करें)"),
+			TEXT("3. HISTORICAL CODEX (18 ARCHIVAL RECORDS)"),
+			TEXT("4. AUDIO MIX & ACCESSIBILITY SETTINGS"),
+			TEXT("5. QUIT TO DESKTOP")
+		};
+	}
+	else
+	{
+		MenuItems = {
+			TEXT("1. BEGIN JOURNEY (यात्रा शुरू करें)"),
+			TEXT("2. HISTORICAL CODEX (18 ARCHIVAL RECORDS)"),
+			TEXT("3. AUDIO MIX & ACCESSIBILITY SETTINGS"),
+			TEXT("4. QUIT TO DESKTOP")
+		};
+	}
+
+	float MenuStartY = ScreenH * 0.38f;
+	float CardW = 540.0f;
+	float CardH = 42.0f;
+	float Spacing = 12.0f;
+
+	for (int32 i = 0; i < MenuItems.Num(); ++i)
+	{
+		float ItemY = MenuStartY + i * (CardH + Spacing);
+		float ItemX = CenterX - CardW * 0.5f;
+		const bool bSelected = (i == TitleMenuIndex);
+
+		if (bSelected)
+		{
+			DrawFramedBox(ItemX, ItemY, CardW, CardH, FLinearColor(0.88f, 0.72f, 0.30f, 0.95f), FLinearColor(1.0f, 0.92f, 0.60f, 1.0f), 2.5f);
+			FString DisplayStr = FString::Printf(TEXT("►   %s   ◄"), *MenuItems[i]);
+			float TextW = 0.0f, TextH = 0.0f;
+			GetTextSize(DisplayStr, TextW, TextH, MediumFont ? MediumFont : SmallFont);
+			DrawText(DisplayStr, DarkInkColor, CenterX - TextW * 0.5f, ItemY + (CardH - TextH) * 0.5f, MediumFont ? MediumFont : SmallFont);
+		}
+		else
+		{
+			DrawFramedBox(ItemX, ItemY, CardW, CardH, FLinearColor(0.08f, 0.06f, 0.04f, 0.75f), MutedSepiaColor, 1.0f);
+			float TextW = 0.0f, TextH = 0.0f;
+			GetTextSize(MenuItems[i], TextW, TextH, SmallFont);
+			DrawText(MenuItems[i], FLinearColor(0.78f, 0.74f, 0.66f, 0.85f), CenterX - TextW * 0.5f, ItemY + (CardH - TextH) * 0.5f, SmallFont);
+		}
+	}
+
+	// 5. Navigation Footer Hint
+	float FooterY = ScreenH - 64.0f;
+	FString FooterText = TEXT("[ W / S or ARROW KEYS ] Navigate    |    [ ENTER / SPACE / (A) ] Select    |    [ ESC ] Close");
+	float FootW = 0.0f, FootH = 0.0f;
+	GetTextSize(FooterText, FootW, FootH, SmallFont);
+	DrawText(FooterText, MutedSepiaColor, CenterX - FootW * 0.5f, FooterY, SmallFont);
+}
+
+void ARevolutionHUD::DrawPauseMenu(float DeltaTime)
+{
+	if (!Canvas) return;
+
+	UFont* LargeFont = GEngine ? GEngine->GetLargeFont() : nullptr;
+	UFont* MediumFont = GEngine ? GEngine->GetMediumFont() : nullptr;
+	UFont* SmallFont = GEngine ? GEngine->GetSmallFont() : nullptr;
+	if (!SmallFont) return;
+
+	const float ScreenW = Canvas->ClipX;
+	const float ScreenH = Canvas->ClipY;
+	const float CenterX = ScreenW * 0.5f;
+	const float CenterY = ScreenH * 0.5f;
+
+	// 1. Dark semi-translucent backdrop
+	DrawRect(FLinearColor(0.02f, 0.02f, 0.02f, 0.82f), 0.0f, 0.0f, ScreenW, ScreenH);
+
+	// 2. Centered Framed Modal Card
+	const float ModalW = 580.0f;
+	const float ModalH = 550.0f;
+	const float ModalX = CenterX - ModalW * 0.5f;
+	const float ModalY = CenterY - ModalH * 0.5f;
+
+	DrawFramedBox(ModalX, ModalY, ModalW, ModalH, FLinearColor(0.07f, 0.05f, 0.04f, 0.94f), AntiqueBrassColor, 2.0f);
+	DrawFramedBox(ModalX + 5.0f, ModalY + 5.0f, ModalW - 10.0f, ModalH - 10.0f, FLinearColor::Transparent, MutedSepiaColor, 0.75f);
+
+	// 3. Header
+	FString HeaderText = TEXT("— GAME PAUSED (विराम) —");
+	float HeadW = 0.0f, HeadH = 0.0f;
+	GetTextSize(HeaderText, HeadW, HeadH, MediumFont ? MediumFont : SmallFont);
+	DrawText(HeaderText, FLinearColor(0.92f, 0.74f, 0.28f, 1.0f), CenterX - HeadW * 0.5f, ModalY + 22.0f, MediumFont ? MediumFont : SmallFont);
+
+	FString SubText = TEXT("Sector 4: Amritsar Walled City • Curfew Active");
+	float SubW = 0.0f, SubH = 0.0f;
+	GetTextSize(SubText, SubW, SubH, SmallFont);
+	DrawText(SubText, MutedSepiaColor, CenterX - SubW * 0.5f, ModalY + 24.0f + HeadH, SmallFont);
+
+	DrawLine(ModalX + 30.0f, ModalY + 68.0f, ModalX + ModalW - 30.0f, ModalY + 68.0f, AntiqueBrassColor, 1.0f);
+
+	// 4. Pause Menu Items
+	TArray<FString> PauseItems = {
+		TEXT("1. RESUME GAME (खेल जारी रखें)"),
+		TEXT("2. SAVE JOURNEY PROGRESS (प्रगति सहेजें)"),
+		TEXT("3. RESTART FROM LAST SAFE CHECKPOINT"),
+		TEXT("4. COURIER SATCHEL & HISTORICAL CODEX"),
+		TEXT("5. AUDIO MIX & ACCESSIBILITY SETTINGS"),
+		TEXT("6. RETURN TO MAIN MENU"),
+		TEXT("7. QUIT TO DESKTOP")
+	};
+
+	float ItemStartY = ModalY + 80.0f;
+	float CardW = ModalW - 56.0f;
+	float CardH = 40.0f;
+	float Spacing = 8.0f;
+
+	for (int32 i = 0; i < PauseItems.Num(); ++i)
+	{
+		float ItemY = ItemStartY + i * (CardH + Spacing);
+		float ItemX = CenterX - CardW * 0.5f;
+		const bool bSelected = (i == PauseMenuIndex);
+
+		if (bSelected)
+		{
+			DrawFramedBox(ItemX, ItemY, CardW, CardH, FLinearColor(0.85f, 0.65f, 0.22f, 0.95f), FLinearColor(1.0f, 0.92f, 0.55f, 1.0f), 2.0f);
+			FString DisplayStr = FString::Printf(TEXT("►  %s"), *PauseItems[i]);
+			float TextW = 0.0f, TextH = 0.0f;
+			GetTextSize(DisplayStr, TextW, TextH, SmallFont);
+			DrawText(DisplayStr, DarkInkColor, ItemX + 18.0f, ItemY + (CardH - TextH) * 0.5f, SmallFont);
+		}
+		else
+		{
+			DrawFramedBox(ItemX, ItemY, CardW, CardH, FLinearColor(0.09f, 0.07f, 0.05f, 0.70f), MutedSepiaColor, 1.0f);
+			float TextW = 0.0f, TextH = 0.0f;
+			GetTextSize(PauseItems[i], TextW, TextH, SmallFont);
+			DrawText(PauseItems[i], FLinearColor(0.80f, 0.76f, 0.68f, 0.85f), ItemX + 18.0f, ItemY + (CardH - TextH) * 0.5f, SmallFont);
+		}
+	}
+
+	// 5. Controls Hint Footer
+	DrawLine(ModalX + 30.0f, ModalY + ModalH - 42.0f, ModalX + ModalW - 30.0f, ModalY + ModalH - 42.0f, MutedSepiaColor, 0.75f);
+	FString FootHint = TEXT("[ W / S ] Navigate    |    [ ENTER ] Select    |    [ ESC ] Resume");
+	float FootW = 0.0f, FootH = 0.0f;
+	GetTextSize(FootHint, FootW, FootH, SmallFont);
+	DrawText(FootHint, MutedSepiaColor, CenterX - FootW * 0.5f, ModalY + ModalH - 30.0f, SmallFont);
+}
+
 
 
 

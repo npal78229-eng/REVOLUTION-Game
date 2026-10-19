@@ -118,6 +118,13 @@ void ACurfewPatrolAI::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Enforce upright yaw-only rotation for character capsule
+	const FRotator CurrentRot = GetActorRotation();
+	if (FMath::Abs(CurrentRot.Pitch) > 0.01f || FMath::Abs(CurrentRot.Roll) > 0.01f)
+	{
+		SetActorRotation(FRotator(0.0f, CurrentRot.Yaw, 0.0f));
+	}
+
 	if (!VoiceAttenuation)
 	{
 		VoiceAttenuation = LoadObject<USoundAttenuation>(nullptr, TEXT("/Game/Audio/Attenuation/ATT_Voice_Proximity.ATT_Voice_Proximity"));
@@ -220,7 +227,7 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 		bool bSoundMasked = false;
 		for (TActorIterator<ARevolutionAtmosphereController> It(GetWorld()); It; ++It)
 		{
-			if (It->IsSoundMasked())
+			if (It->IsSoundMasked() || It->IsWeatherSoundMasked())
 			{
 				bSoundMasked = true;
 				break;
@@ -318,6 +325,13 @@ bool ACurfewPatrolAI::CanSeePlayer(ARevolutionCharacter* TargetPlayer, float& Ou
 	// In deep shadow (high concealment), sentry perception fill rate is dampened up to 75%
 	float ShadowDampening = FMath::Clamp(1.0f - (0.75f * TargetPlayer->GetConcealmentScore()), 0.25f, 1.0f);
 	StanceMultiplier *= ShadowDampening;
+
+	// Task 27: Dynamic Weather Dampening (Andhi Dust Storm reduces visibility by 35%)
+	for (TActorIterator<ARevolutionAtmosphereController> AtmoIt(GetWorld()); AtmoIt; ++AtmoIt)
+	{
+		StanceMultiplier *= AtmoIt->GetWeatherVisibilityMultiplier();
+		break;
+	}
 
 	if (bAudibleHearing)
 	{

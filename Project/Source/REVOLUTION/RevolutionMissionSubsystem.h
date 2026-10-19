@@ -120,6 +120,9 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Mission")
 	void AdvanceMissionStage();
 
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Mission")
+	void SetMissionStage(ECourierMissionStage NewStage);
+
 	UFUNCTION(BlueprintPure, Category = "Revolution|Mission")
 	ECourierMissionStage GetCurrentStage() const { return CurrentStage; }
 
@@ -131,6 +134,9 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Revolution|Mission")
 	bool IsMissionComplete() const { return CurrentStage == ECourierMissionStage::Stage_Completed; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Mission")
+	bool GetActiveObjectiveLocation(FVector& OutLocation, FText& OutObjectiveName) const;
 
 private:
 	void UpdateDirectiveStrings();

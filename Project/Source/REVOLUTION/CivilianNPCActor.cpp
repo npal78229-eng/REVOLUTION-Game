@@ -14,6 +14,8 @@
 #include "RevolutionMissionSubsystem.h"
 #include "Sound/SoundBase.h"
 #include "Sound/SoundAttenuation.h"
+#include "Components/AudioComponent.h"
+#include "Materials/MaterialInterface.h"
 #include "REVOLUTION.h"
 
 ACivilianNPCActor::ACivilianNPCActor()
@@ -79,10 +81,57 @@ void ACivilianNPCActor::BeginPlay()
 		MeshInitialRelativeRotation = GetMesh()->GetRelativeRotation();
 	}
 
+	if (PropAccessoryMesh)
+	{
+		PropInitialRelativeLocation = PropAccessoryMesh->GetRelativeLocation();
+		PropInitialRelativeRotation = PropAccessoryMesh->GetRelativeRotation();
+	}
+
 	ProximitySphere->OnComponentBeginOverlap.AddDynamic(this, &ACivilianNPCActor::OnProximityBeginOverlap);
 	ProximitySphere->OnComponentEndOverlap.AddDynamic(this, &ACivilianNPCActor::OnProximityEndOverlap);
 
 	ConfigureOccupation(Occupation);
+
+	if (UWorld* World = GetWorld())
+	{
+		if (URevolutionMissionSubsystem* Subsystem = World->GetSubsystem<URevolutionMissionSubsystem>())
+		{
+			Subsystem->OnMissionDirectiveChanged.AddDynamic(this, &ACivilianNPCActor::HandleMissionDirectiveChanged);
+			SetDialogueModeForStage(Subsystem->GetCurrentStage());
+		}
+	}
+
+	if (OccupationRoutineSound && !RoutineAudioComp && GetWorld() && GetWorld()->IsGameWorld())
+	{
+		RoutineAudioComp = UGameplayStatics::SpawnSoundAttached(
+			OccupationRoutineSound,
+			RootComponent,
+			NAME_None,
+			FVector::ZeroVector,
+			EAttachLocation::KeepRelativeOffset,
+			false,
+			0.75f,
+			1.0f,
+			0.0f,
+			VoiceAttenuation
+		);
+	}
+}
+
+void ACivilianNPCActor::HandleMissionDirectiveChanged(ECourierMissionStage NewStage, FText Title, FText Directive)
+{
+	SetDialogueModeForStage(NewStage);
+}
+
+void ACivilianNPCActor::SetDialogueModeForStage(ECourierMissionStage NewStage)
+{
+	const bool bShouldBeActII = (NewStage >= ECourierMissionStage::Stage_Afternoon_MunadiProclamation && NewStage <= ECourierMissionStage::Stage_ActII_Completed);
+	if (bShouldBeActII != bIsInActIIMode)
+	{
+		bIsInActIIMode = bShouldBeActII;
+		CurrentDialogueIndex = 0;
+		UE_LOG(LogREVOLUTION, Log, TEXT("[%s] Switched dialogue mode: Act II Mode = %s"), *CivilianName.ToString(), bIsInActIIMode ? TEXT("TRUE") : TEXT("FALSE"));
+	}
 }
 
 void ACivilianNPCActor::Tick(float DeltaTime)
@@ -102,6 +151,11 @@ void ACivilianNPCActor::Tick(float DeltaTime)
 			{
 				GetMesh()->SetRelativeLocation(MeshInitialRelativeLocation);
 				GetMesh()->SetRelativeRotation(MeshInitialRelativeRotation);
+			}
+			if (PropAccessoryMesh)
+			{
+				PropAccessoryMesh->SetRelativeLocation(PropInitialRelativeLocation);
+				PropAccessoryMesh->SetRelativeRotation(PropInitialRelativeRotation);
 			}
 		}
 		else
@@ -186,6 +240,139 @@ void ACivilianNPCActor::Tick(float DeltaTime)
 			SetActorRotation(RestRot);
 		}
 	}
+
+	// Task 31: Procedural Idle Breathing & Occupational Routine Micro-Gestures
+	if (!bIsStumbled && bEnableRoutineAnimations)
+	{
+		BreathingCycleTime += DeltaTime;
+		RoutineCycleTime += DeltaTime;
+
+		// Breathing sinusoidal calculations (15 breaths per minute, 4s cycle)
+		const float BreathPhase = BreathingCycleTime * IdleBreathingRate * TWO_PI;
+		const float BreathSin = FMath::Sin(BreathPhase);
+		const float BreathCos = FMath::Cos(BreathPhase * 0.5f);
+
+		// Idle vertical heave (chest/shoulder breathing)
+		const FVector BreathingOffset = FVector(0.0f, 0.0f, BreathSin * IdleBreathingAmplitude);
+		// Gentle breathing pitch and roll oscillation
+		const FRotator BreathingRotOffset = FRotator(BreathSin * 0.35f, 0.0f, BreathCos * 0.20f);
+
+		// Occupation-specific procedural micro-gestures and prop movement
+		FVector RoutineMeshOffset = FVector::ZeroVector;
+		FRotator RoutineMeshRot = FRotator::ZeroRotator;
+		FVector RoutinePropOffset = FVector::ZeroVector;
+		FRotator RoutinePropRot = FRotator::ZeroRotator;
+
+		switch (Occupation)
+		{
+		case ECivilianOccupation::FatherTailor:
+		{
+			// 5.0 Hz sewing machine treadle vibration & needle sync
+			const float TreadlePhase = RoutineCycleTime * 5.0f * TWO_PI;
+			const float TreadleVibe = FMath::Sin(TreadlePhase) * 0.35f;
+			RoutinePropOffset.Z += TreadleVibe;
+
+			// Seam inspection forward lean every ~9 seconds
+			const float SeamCycle = FMath::Fmod(RoutineCycleTime, 9.0f) / 9.0f;
+			if (SeamCycle > 0.65f && SeamCycle < 0.90f)
+			{
+				const float LeanFactor = FMath::Sin((SeamCycle - 0.65f) / 0.25f * PI);
+				RoutineMeshRot.Pitch -= LeanFactor * 3.2f;
+				RoutineMeshOffset.X += LeanFactor * 1.5f;
+			}
+			break;
+		}
+		case ECivilianOccupation::HalwaiChaiVendor:
+		{
+			// Ladle / cup circular stirring motion at 0.8 Hz
+			const float StirPhase = RoutineCycleTime * 0.8f * TWO_PI;
+			RoutinePropOffset.X += FMath::Cos(StirPhase) * 1.2f;
+			RoutinePropOffset.Y += FMath::Sin(StirPhase) * 1.2f;
+
+			// Halwai rhythmic upper-body stirring sway
+			RoutineMeshRot.Roll += FMath::Sin(StirPhase) * 0.85f;
+			break;
+		}
+		case ECivilianOccupation::BhishtiWaterCarrier:
+		{
+			// Load-bearing posture with water-carrier shoulder tilt
+			RoutineMeshRot.Roll += 1.8f;
+			const float MashkPhase = RoutineCycleTime * 0.35f * TWO_PI;
+			RoutineMeshRot.Roll += FMath::Sin(MashkPhase) * 0.6f;
+			// Goatskin mashk slosh roll
+			RoutinePropRot.Roll += FMath::Sin(MashkPhase) * 1.5f;
+			break;
+		}
+		case ECivilianOccupation::ClothMerchant:
+		{
+			// Fabric examination scan: periodic slow yaw scan & pitch inspection
+			const float ScanPhase = RoutineCycleTime * 0.3f * TWO_PI;
+			RoutineMeshRot.Yaw += FMath::Sin(ScanPhase) * 2.5f;
+			const float InspectCycle = FMath::Fmod(RoutineCycleTime, 8.0f) / 8.0f;
+			if (InspectCycle > 0.60f && InspectCycle < 0.88f)
+			{
+				const float DipFactor = FMath::Sin((InspectCycle - 0.60f) / 0.28f * PI);
+				RoutineMeshRot.Pitch -= DipFactor * 2.2f;
+			}
+			break;
+		}
+		case ECivilianOccupation::SchoolHeadmaster:
+		{
+			// Scholarly upright posture with thoughtful nods
+			const float NodCycle = FMath::Fmod(RoutineCycleTime, 7.0f) / 7.0f;
+			if (NodCycle > 0.70f && NodCycle < 0.92f)
+			{
+				const float NodFactor = FMath::Sin((NodCycle - 0.70f) / 0.22f * TWO_PI);
+				RoutineMeshRot.Pitch -= NodFactor * 1.8f;
+			}
+			break;
+		}
+		case ECivilianOccupation::SchoolFriendKartar:
+		{
+			// Looking up at kites high in the Punjab sky
+			const float KiteSkyPhase = RoutineCycleTime * 0.18f * TWO_PI;
+			const float LookUpPitch = 12.0f + FMath::Sin(KiteSkyPhase) * 4.0f;
+			RoutineMeshRot.Pitch += LookUpPitch;
+
+			// Charkhi kite spool twirling in hand
+			RoutinePropRot.Yaw = FMath::Fmod(RoutineCycleTime * 120.0f, 360.0f);
+			break;
+		}
+		case ECivilianOccupation::MunadiTownCrier:
+		{
+			// Periodic arm/prop rhythm mimicking drumstick striking the dafli drum
+			const float DrumBeatPhase = RoutineCycleTime * 4.0f * TWO_PI;
+			RoutinePropRot.Pitch += FMath::Sin(DrumBeatPhase) * 12.0f;
+			RoutineMeshRot.Pitch += FMath::Sin(RoutineCycleTime * 2.0f * TWO_PI) * 1.5f;
+			break;
+		}
+		case ECivilianOccupation::ProtestElder:
+		{
+			// Calm elder posture with gentle head sway and dignified nods
+			const float ElderPhase = RoutineCycleTime * 0.25f * TWO_PI;
+			RoutineMeshRot.Yaw += FMath::Sin(ElderPhase) * 1.8f;
+			const float ElderNodCycle = FMath::Fmod(RoutineCycleTime, 6.0f) / 6.0f;
+			if (ElderNodCycle > 0.65f && ElderNodCycle < 0.85f)
+			{
+				const float NodFactor = FMath::Sin((ElderNodCycle - 0.65f) / 0.20f * PI);
+				RoutineMeshRot.Pitch -= NodFactor * 2.0f;
+			}
+			break;
+		}
+		}
+
+		if (GetMesh())
+		{
+			GetMesh()->SetRelativeLocation(MeshInitialRelativeLocation + BreathingOffset + RoutineMeshOffset);
+			GetMesh()->SetRelativeRotation(MeshInitialRelativeRotation + BreathingRotOffset + RoutineMeshRot);
+		}
+
+		if (PropAccessoryMesh)
+		{
+			PropAccessoryMesh->SetRelativeLocation(PropInitialRelativeLocation + RoutinePropOffset);
+			PropAccessoryMesh->SetRelativeRotation(PropInitialRelativeRotation + RoutinePropRot);
+		}
+	}
 }
 
 void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
@@ -193,6 +380,8 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 	Occupation = NewOccupation;
 	AmbientBarks.Empty();
 	ConversationDialogues.Empty();
+	ActIIBarks.Empty();
+	ActIIDialogues.Empty();
 	StumbleBarks.Empty();
 	CuriosityBarks.Empty();
 	CurrentDialogueIndex = 0;
@@ -233,6 +422,7 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_RamLubhaya_Bark.SFX_Voice_RamLubhaya_Bark"));
 		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
 		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Routine_SewingMachine_Loop.SFX_Routine_SewingMachine_Loop"));
 		break;
 
 	case ECivilianOccupation::HalwaiChaiVendor:
@@ -264,6 +454,7 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_HiraHalwai_Bark.SFX_Voice_HiraHalwai_Bark"));
 		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_02.SFX_Voice_Civilian_Stumble_02"));
 		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_02.SFX_Voice_Civilian_Curiosity_02"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Routine_ChaiStir_Loop.SFX_Routine_ChaiStir_Loop"));
 		break;
 
 	case ECivilianOccupation::BhishtiWaterCarrier:
@@ -295,6 +486,7 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Ghasita_Bark.SFX_Voice_Ghasita_Bark"));
 		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
 		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Routine_MashkWater_Loop.SFX_Routine_MashkWater_Loop"));
 		break;
 
 	case ECivilianOccupation::ClothMerchant:
@@ -326,6 +518,7 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_LalaKaramChand_Bark.SFX_Voice_LalaKaramChand_Bark"));
 		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
 		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Routine_ClothMerchant_Loop.SFX_Routine_ClothMerchant_Loop"));
 		break;
 
 	case ECivilianOccupation::SchoolHeadmaster:
@@ -357,6 +550,7 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Bark.SFX_Voice_PanditKashiRam_Bark"));
 		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
 		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Routine_Schoolmaster_Loop.SFX_Routine_Schoolmaster_Loop"));
 		break;
 
 	case ECivilianOccupation::SchoolFriendKartar:
@@ -388,6 +582,91 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_KartarSingh_Bark.SFX_Voice_KartarSingh_Bark"));
 		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_03.SFX_Voice_Civilian_Stumble_03"));
 		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Routine_KartarKite_Loop.SFX_Routine_KartarKite_Loop"));
+		break;
+
+	case ECivilianOccupation::MunadiTownCrier:
+		CivilianName = FText::FromString(TEXT("Nikka Ram"));
+		ProfessionTitle = FText::FromString(TEXT("Town Crier (Munadi-chi)"));
+		HistoricalLore = FText::FromString(
+			TEXT("A municipal herald contracted to beat the dafli drum and recite official proclamations across the chowks of Amritsar. Bound by duty yet heartbroken, he delivers General Dyer's draconian order banning all peaceful assemblies on the sacred day of Baisakhi.")
+		);
+		AmbientBarks.Add(FText::FromString(TEXT("Hukm-e-Sarkar! Suno, suno, aiy ahl-e-shahar! Hear the martial decree!")));
+		AmbientBarks.Add(FText::FromString(TEXT("By order of Brigadier-General Dyer, all gatherings are forbidden under martial command!")));
+		AmbientBarks.Add(FText::FromString(TEXT("Do not assemble in groups of more than four! Disperse to your homes immediately!")));
+
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Nikka Ram: 'Hukm-e-Sarkar! Suno, suno! By decree of the General Officer Commanding: any procession or gathering of more than four persons is declared an unlawful assembly and will be dispersed by fire!'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Nikka Ram: 'Kabir, tell your father Ram Lubhaya to keep inside the haveli. British riflemen have picketed the main gates and they are arresting anyone who questions the proclamation.'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Nikka Ram: 'Thousands of pilgrims from the Majha villages know nothing of this decree... God protect our people today.'")
+		));
+
+		ActIIBarks.Add(FText::FromString(TEXT("The proclamation has been drummed at nineteen points across the city! No one can plead ignorance!")));
+		ActIIBarks.Add(FText::FromString(TEXT("Stay clear of the Hall Gate pickets! The soldiers are locking the city down!")));
+
+		ActIIDialogues.Add(FText::FromString(
+			TEXT("Nikka Ram: 'The meeting at Jallianwala Bagh has already started, Kabir! Thousands are flowing through the narrow passage. But General Dyer's column is mobilizing at the Ram Bagh headquarters right now!'")
+		));
+		ActIIDialogues.Add(FText::FromString(
+			TEXT("Nikka Ram: 'Run, Kabir! Warn whoever you can! Dyer has vowed to crush the assembly!'")
+		));
+
+		StumbleBarks.Add(FText::FromString(TEXT("Sambhal ke! Don't damage the town crier's drum!")));
+		StumbleBarks.Add(FText::FromString(TEXT("Watch your step, boy! The chowk is packed with anxious people!")));
+		CuriosityBarks.Add(FText::FromString(TEXT("What was that sharp disturbance in the alley?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Who is running behind the proclamation board?")));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_RamLubhaya_Dialogue.SFX_Voice_RamLubhaya_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_RamLubhaya_Bark.SFX_Voice_RamLubhaya_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Munadi_Drum.SFX_Munadi_Drum"));
+		break;
+
+	case ECivilianOccupation::ProtestElder:
+		CivilianName = FText::FromString(TEXT("Bhai Sant Singh"));
+		ProfessionTitle = FText::FromString(TEXT("Mohalla Elder & Shopkeeper"));
+		HistoricalLore = FText::FromString(
+			TEXT("A revered elder citizen of Kot Gurdarshan who witnessed the Rowlatt Satyagraha. He counsels courage, dignified restraint, and inter-communal unity as imperial martial law threatens the peaceful citizens of Amritsar.")
+		);
+		AmbientBarks.Add(FText::FromString(TEXT("Baisakhi cannot be erased by an imperial decree.")));
+		AmbientBarks.Add(FText::FromString(TEXT("Keep the peace, brothers. Do not give them an excuse for violence.")));
+		AmbientBarks.Add(FText::FromString(TEXT("Dr. Kitchlew and Dr. Satyapal taught us non-violence. We will not falter.")));
+
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Bhai Sant Singh: 'Kabir, son of Ram Lubhaya. You walk with your father's steady step. Be vigilant; the constables are watching every street corner.'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Bhai Sant Singh: 'The leaders were deported to Dharamsala without trial. But our voice is not silenced. Truth cannot be arrested.'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Bhai Sant Singh: 'The community elders have called for a peaceful protest at Jallianwala Bagh at four-thirty. We shall gather with empty hands and pray for freedom.'")
+		));
+
+		ActIIBarks.Add(FText::FromString(TEXT("The town crier's drum cannot drown the righteous prayer of Punjab!")));
+		ActIIBarks.Add(FText::FromString(TEXT("They have surrounded the city gates with armored pickets!")));
+
+		ActIIDialogues.Add(FText::FromString(
+			TEXT("Bhai Sant Singh: 'Kabir, the assembly at the Bagh is peaceful—mothers, children, elders from the villages listening to Hans Raj. But General Dyer has prohibited all gatherings. If you go near the Bagh passage, stay in the alleys!'")
+		));
+		ActIIDialogues.Add(FText::FromString(
+			TEXT("Bhai Sant Singh: 'Take these strike handbills if you must, but never run into their rifle sights. Preserve your life for the freedom that will surely come.'")
+		));
+
+		StumbleBarks.Add(FText::FromString(TEXT("Steady, young Kabir! Keep your composure.")));
+		StumbleBarks.Add(FText::FromString(TEXT("Patience, child. Hasty rushing leads to stumbles.")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Did something fall near the street corner?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("I heard footsteps rushing through the lane...")));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Dialogue.SFX_Voice_PanditKashiRam_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Bark.SFX_Voice_PanditKashiRam_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_02.SFX_Voice_Civilian_Stumble_02"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_02.SFX_Voice_Civilian_Curiosity_02"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Routine_Schoolmaster_Loop.SFX_Routine_Schoolmaster_Loop"));
 		break;
 	}
 
@@ -454,6 +733,26 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 			GetMesh()->SetRelativeLocation(FVector(0.0f, 0.0f, -64.0f));
 		}
 		break;
+
+	case ECivilianOccupation::MunadiTownCrier:
+		PropMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Munadi_Proclamation_Drum.SM_Munadi_Proclamation_Drum"));
+		if (PropAccessoryMesh)
+		{
+			PropAccessoryMesh->SetRelativeLocation(FVector(25.0f, 0.0f, -20.0f));
+			PropAccessoryMesh->SetRelativeRotation(FRotator(0.0f, 0.0f, 0.0f));
+			PropAccessoryMesh->SetRelativeScale3D(FVector(0.35f, 0.35f, 0.35f));
+		}
+		break;
+
+	case ECivilianOccupation::ProtestElder:
+		PropMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_Pamphlet_Stack_Rowlatt.SM_Prop_Pamphlet_Stack_Rowlatt"));
+		if (PropAccessoryMesh)
+		{
+			PropAccessoryMesh->SetRelativeLocation(FVector(20.0f, 15.0f, -30.0f));
+			PropAccessoryMesh->SetRelativeRotation(FRotator(0.0f, 30.0f, 0.0f));
+			PropAccessoryMesh->SetRelativeScale3D(FVector(0.55f, 0.55f, 0.55f));
+		}
+		break;
 	}
 
 	if (PropMesh && PropAccessoryMesh)
@@ -461,10 +760,46 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		PropAccessoryMesh->SetStaticMesh(PropMesh);
 	}
 
+	if (PropAccessoryMesh)
+	{
+		PropInitialRelativeLocation = PropAccessoryMesh->GetRelativeLocation();
+		PropInitialRelativeRotation = PropAccessoryMesh->GetRelativeRotation();
+	}
+
 	if (GetMesh())
 	{
 		MeshInitialRelativeLocation = GetMesh()->GetRelativeLocation();
 		MeshInitialRelativeRotation = GetMesh()->GetRelativeRotation();
+	}
+
+	ApplyHeritageAttireMaterials();
+
+	if (OccupationRoutineSound)
+	{
+		if (RoutineAudioComp)
+		{
+			RoutineAudioComp->Stop();
+			RoutineAudioComp->SetSound(OccupationRoutineSound);
+			if (bEnableRoutineAnimations)
+			{
+				RoutineAudioComp->Play();
+			}
+		}
+		else if (GetWorld() && GetWorld()->IsGameWorld())
+		{
+			RoutineAudioComp = UGameplayStatics::SpawnSoundAttached(
+				OccupationRoutineSound,
+				RootComponent,
+				NAME_None,
+				FVector::ZeroVector,
+				EAttachLocation::KeepRelativeOffset,
+				false,
+				0.75f,
+				1.0f,
+				0.0f,
+				VoiceAttenuation
+			);
+		}
 	}
 }
 
@@ -514,6 +849,10 @@ void ACivilianNPCActor::OnInteract_Implementation(ARevolutionCharacter* Interact
 				{
 					bShouldAdvance = true;
 				}
+				else if (Occupation == ECivilianOccupation::MunadiTownCrier && Stage == ECourierMissionStage::Stage_Afternoon_MunadiProclamation)
+				{
+					bShouldAdvance = true;
+				}
 
 				if (bShouldAdvance)
 				{
@@ -542,23 +881,25 @@ bool ACivilianNPCActor::CanInteract_Implementation(const ARevolutionCharacter* I
 
 FText ACivilianNPCActor::AdvanceConversation()
 {
-	if (ConversationDialogues.Num() == 0)
+	const TArray<FText>& ActiveDialogues = (bIsInActIIMode && ActIIDialogues.Num() > 0) ? ActIIDialogues : ConversationDialogues;
+	if (ActiveDialogues.Num() == 0)
 	{
 		return HistoricalLore;
 	}
 
-	FText ChosenDialogue = ConversationDialogues[CurrentDialogueIndex];
-	CurrentDialogueIndex = (CurrentDialogueIndex + 1) % ConversationDialogues.Num();
+	FText ChosenDialogue = ActiveDialogues[CurrentDialogueIndex % ActiveDialogues.Num()];
+	CurrentDialogueIndex = (CurrentDialogueIndex + 1) % ActiveDialogues.Num();
 	return ChosenDialogue;
 }
 
 FText ACivilianNPCActor::GetCurrentDialogue() const
 {
-	if (ConversationDialogues.Num() == 0)
+	const TArray<FText>& ActiveDialogues = (bIsInActIIMode && ActIIDialogues.Num() > 0) ? ActIIDialogues : ConversationDialogues;
+	if (ActiveDialogues.Num() == 0)
 	{
 		return HistoricalLore;
 	}
-	return ConversationDialogues[CurrentDialogueIndex];
+	return ActiveDialogues[CurrentDialogueIndex % ActiveDialogues.Num()];
 }
 
 void ACivilianNPCActor::OnProximityBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -571,11 +912,12 @@ void ACivilianNPCActor::OnProximityBeginOverlap(UPrimitiveComponent* OverlappedC
 
 	// Check bark cooldown
 	float CurrentTime = GetWorld()->GetTimeSeconds();
-	if (CurrentTime - LastBarkTime >= ProximityBarkCooldown && AmbientBarks.Num() > 0)
+	const TArray<FText>& ActiveBarks = (bIsInActIIMode && ActIIBarks.Num() > 0) ? ActIIBarks : AmbientBarks;
+	if (CurrentTime - LastBarkTime >= ProximityBarkCooldown && ActiveBarks.Num() > 0)
 	{
 		LastBarkTime = CurrentTime;
-		int32 RandomIndex = FMath::RandRange(0, AmbientBarks.Num() - 1);
-		FText BarkText = AmbientBarks[RandomIndex];
+		int32 RandomIndex = FMath::RandRange(0, ActiveBarks.Num() - 1);
+		FText BarkText = ActiveBarks[RandomIndex];
 
 		UE_LOG(LogREVOLUTION, Log, TEXT("[%s Ambient Bark]: %s"), *CivilianName.ToString(), *BarkText.ToString());
 		OnDialogueSpoken.Broadcast(this, CivilianName, BarkText);
@@ -695,5 +1037,116 @@ void ACivilianNPCActor::NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UP
 			TriggerStumble(ImpactDir, Speed);
 			Player->HandleCivilianCollision(this);
 		}
+	}
+}
+
+void ACivilianNPCActor::SetRoutineAnimationsEnabled(bool bEnabled)
+{
+	bEnableRoutineAnimations = bEnabled;
+	if (!bEnabled)
+	{
+		if (GetMesh())
+		{
+			GetMesh()->SetRelativeLocation(MeshInitialRelativeLocation);
+			GetMesh()->SetRelativeRotation(MeshInitialRelativeRotation);
+		}
+		if (PropAccessoryMesh)
+		{
+			PropAccessoryMesh->SetRelativeLocation(PropInitialRelativeLocation);
+			PropAccessoryMesh->SetRelativeRotation(PropInitialRelativeRotation);
+		}
+		if (RoutineAudioComp && RoutineAudioComp->IsPlaying())
+		{
+			RoutineAudioComp->Stop();
+		}
+	}
+	else
+	{
+		if (RoutineAudioComp && !RoutineAudioComp->IsPlaying())
+		{
+			RoutineAudioComp->Play();
+		}
+	}
+}
+
+void ACivilianNPCActor::ApplyHeritageAttireMaterials()
+{
+	USkeletalMeshComponent* SkelMesh = GetMesh();
+	if (!SkelMesh)
+	{
+		return;
+	}
+
+	UMaterialInterface* MatUndyedCotton = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Environment/Mohalla/Materials/M_ClothUndyedCotton_PBR.M_ClothUndyedCotton_PBR"));
+	UMaterialInterface* MatSaffron = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Environment/Mohalla/Materials/M_ClothSaffron_PBR.M_ClothSaffron_PBR"));
+	UMaterialInterface* MatIndigo = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Environment/Mohalla/Materials/M_ClothIndigo_PBR.M_ClothIndigo_PBR"));
+	UMaterialInterface* MatAgedTeak = LoadObject<UMaterialInterface>(nullptr, TEXT("/Game/Environment/Mohalla/Materials/M_AgedTeak_PBR.M_AgedTeak_PBR"));
+
+	UMaterialInterface* UpperAttireMat = nullptr;
+	UMaterialInterface* LowerAttireMat = nullptr;
+	UMaterialInterface* TurbanMat = nullptr;
+
+	switch (Occupation)
+	{
+	case ECivilianOccupation::FatherTailor:
+		UpperAttireMat = MatUndyedCotton;
+		LowerAttireMat = MatAgedTeak;
+		TurbanMat = MatUndyedCotton;
+		break;
+
+	case ECivilianOccupation::HalwaiChaiVendor:
+		UpperAttireMat = MatSaffron;
+		LowerAttireMat = MatUndyedCotton;
+		TurbanMat = MatSaffron;
+		break;
+
+	case ECivilianOccupation::BhishtiWaterCarrier:
+		UpperAttireMat = MatIndigo;
+		LowerAttireMat = MatUndyedCotton;
+		TurbanMat = MatIndigo;
+		break;
+
+	case ECivilianOccupation::ClothMerchant:
+		UpperAttireMat = MatSaffron;
+		LowerAttireMat = MatUndyedCotton;
+		TurbanMat = MatSaffron;
+		break;
+
+	case ECivilianOccupation::SchoolHeadmaster:
+		UpperAttireMat = MatUndyedCotton;
+		LowerAttireMat = MatUndyedCotton;
+		TurbanMat = MatUndyedCotton;
+		break;
+
+	case ECivilianOccupation::SchoolFriendKartar:
+		UpperAttireMat = MatSaffron;
+		LowerAttireMat = MatIndigo;
+		TurbanMat = MatSaffron;
+		break;
+
+	case ECivilianOccupation::MunadiTownCrier:
+		UpperAttireMat = MatSaffron;
+		LowerAttireMat = MatUndyedCotton;
+		TurbanMat = MatSaffron;
+		break;
+
+	case ECivilianOccupation::ProtestElder:
+		UpperAttireMat = MatUndyedCotton;
+		LowerAttireMat = MatUndyedCotton;
+		TurbanMat = MatUndyedCotton;
+		break;
+	}
+
+	if (UpperAttireMat)
+	{
+		SkelMesh->SetMaterial(0, UpperAttireMat);
+	}
+	if (LowerAttireMat)
+	{
+		SkelMesh->SetMaterial(1, LowerAttireMat);
+	}
+	if (TurbanMesh && TurbanMat)
+	{
+		TurbanMesh->SetMaterial(0, TurbanMat);
 	}
 }

@@ -60,6 +60,14 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Cinematic")
 	void StopCinematicCutscene(float InBlendOutTime = 1.0f);
 
+	/** Plays the Baisakhi Dawn historical narrative epilogue sequence (Task 25) */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Cinematic")
+	bool PlayBaisakhiDawnEpilogue();
+
+	/** Plays General Dyer's Munadi Proclamation cutscene (Task 35 / Act I Finale handoff) */
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Cinematic")
+	bool PlayMunadiProclamationCutscene();
+
 	/** Updates the active subtitle caption during cutscene playback */
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Cinematic")
 	void UpdateSubtitle(const FText& InSubtitle);

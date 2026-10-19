@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Character.h"
 #include "InteractableInterface.h"
+#include "RevolutionMissionSubsystem.h"
 #include "CivilianNPCActor.generated.h"
 
 class USphereComponent;
@@ -21,7 +22,9 @@ enum class ECivilianOccupation : uint8
 	BhishtiWaterCarrier UMETA(DisplayName = "Ghasita Bhishti (Traditional Water-Carrier)"),
 	SchoolHeadmaster UMETA(DisplayName = "Pandit Kashi Ram (Vernacular School Headmaster)"),
 	ClothMerchant UMETA(DisplayName = "Lala Karam Chand (Textile Merchant)"),
-	SchoolFriendKartar UMETA(DisplayName = "Kartar Singh (Schoolmate & Friend)")
+	SchoolFriendKartar UMETA(DisplayName = "Kartar Singh (Schoolmate & Friend)"),
+	MunadiTownCrier UMETA(DisplayName = "Nikka Ram (Town Crier / Munadi Drummer)"),
+	ProtestElder UMETA(DisplayName = "Bhai Sant Singh (Community Elder / Mohalla Elder)")
 };
 
 UENUM(BlueprintType)
@@ -87,6 +90,25 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Dialogue")
 	TArray<FText> ConversationDialogues;
+
+	// --- TASK 36: ACT II CRISIS DIALOGUES & BARKS ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Dialogue")
+	TArray<FText> ActIIBarks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Dialogue")
+	TArray<FText> ActIIDialogues;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Dialogue")
+	bool bIsInActIIMode = false;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Dialogue")
+	void SetDialogueModeForStage(ECourierMissionStage NewStage);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Dialogue")
+	void HandleMissionDirectiveChanged(ECourierMissionStage NewStage, FText Title, FText Directive);
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Dialogue")
+	bool IsInActIIMode() const { return bIsInActIIMode; }
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Dialogue")
 	int32 CurrentDialogueIndex = 0;
@@ -176,6 +198,43 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Mission")
 	bool bCanAdvanceMission = true;
 
+	// --- TASK 31: SKELETAL IDLE ANIMATIONS & ROUTINE LIFE SYSTEM ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Animation")
+	bool bEnableRoutineAnimations = true;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Animation")
+	float RoutineCycleTime = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Animation")
+	float BreathingCycleTime = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Animation")
+	float IdleBreathingRate = 0.25f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Animation")
+	float IdleBreathingAmplitude = 1.25f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* OccupationRoutineSound = nullptr;
+
+	UPROPERTY(Transient, BlueprintReadOnly, Category = "Revolution|Audio")
+	class UAudioComponent* RoutineAudioComp = nullptr;
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Animation")
+	bool IsRoutineAnimationActive() const { return bEnableRoutineAnimations; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Animation")
+	float GetRoutineCycleTime() const { return RoutineCycleTime; }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Animation")
+	void SetRoutineAnimationsEnabled(bool bEnabled);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Animation")
+	void SimulateRoutineTick(float DeltaTime) { Tick(DeltaTime); }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Civilian")
+	void ApplyHeritageAttireMaterials();
+
 	// IInteractableInterface Implementation
 	virtual void OnInteract_Implementation(ARevolutionCharacter* Interactor) override;
 	virtual FText GetInteractionPrompt_Implementation() const override;
@@ -201,6 +260,8 @@ private:
 	TWeakObjectPtr<ARevolutionCharacter> NearbyPlayer;
 	FVector MeshInitialRelativeLocation;
 	FRotator MeshInitialRelativeRotation;
+	FVector PropInitialRelativeLocation;
+	FRotator PropInitialRelativeRotation;
 
 	UFUNCTION()
 	void OnProximityBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

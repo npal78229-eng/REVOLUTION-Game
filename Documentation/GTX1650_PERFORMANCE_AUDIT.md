@@ -64,7 +64,7 @@ pie title GTX 1650 4GB VRAM Budget Allocation (MB)
 ## 4. Master Scene Breakdown (/Game/Maps/L_Validation_Gym)
 
 - **Total Level Actors:** 205
-- **Static Mesh Architectural Geometry:** 189 actors
+- **Static Mesh Architectural Geometry:** 188 actors
 - **Historical Lighting & Atmosphere:** 2 actors (Movable Sun/Moon directional light, SkyLight, Height Fog)
 - **AI Curfew Sentry & Patrol Constables:** 1 actors with 850cm lantern vision cones
 - **Interactive Story & Stealth Actors:** 2 actors (Singer sewing machine, well, water taps, brick kiln cache, steam pressure valve)

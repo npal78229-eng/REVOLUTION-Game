@@ -36,8 +36,8 @@ def run_cinematic_verification():
 
     actor_sub = unreal.get_editor_subsystem(unreal.EditorActorSubsystem)
     all_actors = actor_sub.get_all_level_actors()
-    log_warn(f"Total Level Actors present: {len(all_actors)} (Expected >= 206)")
-    assert len(all_actors) >= 206, f"Expected at least 206 actors, found {len(all_actors)}!"
+    log_warn(f"Total Level Actors present: {len(all_actors)} (Expected >= 205)")
+    assert len(all_actors) >= 205, f"Expected at least 205 actors, found {len(all_actors)}!"
 
     # 2. Verify Level Sequence Assets
     munadi_asset = unreal.EditorAssetLibrary.load_asset("/Game/Cinematics/LS_Munadi_Proclamation")

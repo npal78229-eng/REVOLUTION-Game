@@ -56,6 +56,9 @@ protected:
 	/** Draw Keen Senses tactical beacons (Assassin's Creed / Hitman benchmark) */
 	void DrawKeenSensesBeacons(ARevolutionCharacter* Kabir);
 
+	/** Draw tactile in-world objective beacon and distance indicator */
+	void DrawInWorldObjectiveBeacon(ARevolutionCharacter* Kabir);
+
 	/** Draw Environmental Shadow Concealment meter (Thief / Dishonored benchmark) */
 	void DrawConcealmentMeter(ARevolutionCharacter* Kabir);
 
@@ -109,6 +112,46 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Cinematic")
 	void SetCinematicSubtitle(const FText& InSubtitle);
+
+	// --- TASK 29: TITLE & PAUSE MENUS ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
+	bool bTitleMenuVisible = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
+	bool bPauseMenuVisible = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
+	int32 TitleMenuIndex = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
+	int32 PauseMenuIndex = 0;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void SetTitleMenuVisible(bool bVisible);
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|UI")
+	bool IsTitleMenuVisible() const { return bTitleMenuVisible; }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void SetPauseMenuVisible(bool bVisible);
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|UI")
+	bool IsPauseMenuVisible() const { return bPauseMenuVisible; }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void NavigateTitleMenu(int32 Direction);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void NavigatePauseMenu(int32 Direction);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void ConfirmMenuSelection();
+
+protected:
+	void DrawTitleMenu(float DeltaTime);
+	void DrawPauseMenu(float DeltaTime);
+
+public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
 	bool bShowReticle = true;
 
@@ -126,6 +169,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
 	bool bShowMissionBanner = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
+	bool bShowObjectiveBeacons = true;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|UI")
 	FLinearColor ParchmentColor = FLinearColor(0.93f, 0.89f, 0.80f, 0.96f);

@@ -7,6 +7,7 @@
 #include "Components/DirectionalLightComponent.h"
 #include "Components/SkyLightComponent.h"
 #include "Components/ExponentialHeightFogComponent.h"
+#include "Components/AudioComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "UObject/ConstructorHelpers.h"
 #include "Sound/SoundBase.h"
@@ -19,9 +20,14 @@ ARevolutionAtmosphereController::ARevolutionAtmosphereController()
 	PrimaryActorTick.bCanEverTick = true;
 
 	CurrentPhase = EHistoricalAtmospherePhase::MorningDawn;
+	CurrentWeather = EHistoricalWeatherState::GoldenHaze;
 	CurrentSettings = GetSettingsForPhase(CurrentPhase);
 	TargetSettings = CurrentSettings;
 	SourceSettings = CurrentSettings;
+
+	WeatherAudioComponent = CreateDefaultSubobject<UAudioComponent>(TEXT("WeatherAudioComponent"));
+	WeatherAudioComponent->SetupAttachment(RootComponent);
+	WeatherAudioComponent->bAutoActivate = false;
 
 	static ConstructorHelpers::FObjectFinder<USoundBase> BellSoundFinder(TEXT("/Game/Audio/SFX/SFX_Dawn_Temple_Bell.SFX_Dawn_Temple_Bell"));
 	if (BellSoundFinder.Succeeded())
@@ -46,6 +52,18 @@ ARevolutionAtmosphereController::ARevolutionAtmosphereController()
 	{
 		CanalWaterSound = CanalSoundFinder.Object;
 	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> DustWindFinder(TEXT("/Game/Audio/Weather/SFX_Weather_DustStorm_Wind_Loop.SFX_Weather_DustStorm_Wind_Loop"));
+	if (DustWindFinder.Succeeded())
+	{
+		DustStormWindSound = DustWindFinder.Object;
+	}
+
+	static ConstructorHelpers::FObjectFinder<USoundBase> BreezeFinder(TEXT("/Game/Audio/Weather/SFX_Weather_GoldenHaze_Breeze.SFX_Weather_GoldenHaze_Breeze"));
+	if (BreezeFinder.Succeeded())
+	{
+		GoldenHazeBreezeSound = BreezeFinder.Object;
+	}
 }
 
 FHistoricalAtmosphereSettings ARevolutionAtmosphereController::GetSettingsForPhase(EHistoricalAtmospherePhase Phase) const
@@ -65,6 +83,11 @@ FHistoricalAtmosphereSettings ARevolutionAtmosphereController::GetSettingsForPha
 		Settings.FogDensity = 0.012f;
 		Settings.FogHeightFalloff = 0.25f;
 		Settings.FogInscatteringColor = FLinearColor(0.85f, 0.75f, 0.60f, 1.0f);
+		Settings.WeatherState = EHistoricalWeatherState::GoldenHaze;
+		Settings.VolumetricFogScatteringDistribution = 0.45f;
+		Settings.VolumetricFogExtinctionScale = 1.0f;
+		Settings.WindIntensity = 0.20f;
+		Settings.DirectionalInscatteringColor = FLinearColor(0.95f, 0.78f, 0.50f, 1.0f);
 		break;
 
 	case EHistoricalAtmospherePhase::BaisakhiMidday:
@@ -78,6 +101,11 @@ FHistoricalAtmosphereSettings ARevolutionAtmosphereController::GetSettingsForPha
 		Settings.FogDensity = 0.004f;
 		Settings.FogHeightFalloff = 0.15f;
 		Settings.FogInscatteringColor = FLinearColor(0.80f, 0.85f, 0.95f, 1.0f);
+		Settings.WeatherState = EHistoricalWeatherState::ClearSky;
+		Settings.VolumetricFogScatteringDistribution = 0.20f;
+		Settings.VolumetricFogExtinctionScale = 0.8f;
+		Settings.WindIntensity = 0.10f;
+		Settings.DirectionalInscatteringColor = FLinearColor(0.85f, 0.85f, 0.90f, 1.0f);
 		break;
 
 	case EHistoricalAtmospherePhase::CurfewNight:
@@ -91,6 +119,11 @@ FHistoricalAtmosphereSettings ARevolutionAtmosphereController::GetSettingsForPha
 		Settings.FogDensity = 0.040f;
 		Settings.FogHeightFalloff = 0.35f;
 		Settings.FogInscatteringColor = FLinearColor(0.15f, 0.20f, 0.35f, 1.0f);
+		Settings.WeatherState = EHistoricalWeatherState::CurfewSmog;
+		Settings.VolumetricFogScatteringDistribution = 0.65f;
+		Settings.VolumetricFogExtinctionScale = 1.8f;
+		Settings.WindIntensity = 0.30f;
+		Settings.DirectionalInscatteringColor = FLinearColor(0.15f, 0.20f, 0.35f, 1.0f);
 		break;
 
 	case EHistoricalAtmospherePhase::CanalNight:
@@ -104,6 +137,11 @@ FHistoricalAtmosphereSettings ARevolutionAtmosphereController::GetSettingsForPha
 		Settings.FogDensity = 0.058f;
 		Settings.FogHeightFalloff = 0.45f;
 		Settings.FogInscatteringColor = FLinearColor(0.20f, 0.30f, 0.40f, 1.0f);
+		Settings.WeatherState = EHistoricalWeatherState::GoldenHaze;
+		Settings.VolumetricFogScatteringDistribution = 0.55f;
+		Settings.VolumetricFogExtinctionScale = 1.5f;
+		Settings.WindIntensity = 0.25f;
+		Settings.DirectionalInscatteringColor = FLinearColor(0.25f, 0.35f, 0.50f, 1.0f);
 		break;
 
 	case EHistoricalAtmospherePhase::GoldenSunrise:
@@ -117,6 +155,61 @@ FHistoricalAtmosphereSettings ARevolutionAtmosphereController::GetSettingsForPha
 		Settings.FogDensity = 0.018f;
 		Settings.FogHeightFalloff = 0.20f;
 		Settings.FogInscatteringColor = FLinearColor(0.95f, 0.70f, 0.45f, 1.0f);
+		Settings.WeatherState = EHistoricalWeatherState::GoldenHaze;
+		Settings.VolumetricFogScatteringDistribution = 0.75f;
+		Settings.VolumetricFogExtinctionScale = 1.2f;
+		Settings.WindIntensity = 0.25f;
+		Settings.DirectionalInscatteringColor = FLinearColor(1.0f, 0.75f, 0.40f, 1.0f);
+		break;
+	}
+
+	return Settings;
+}
+
+FHistoricalAtmosphereSettings ARevolutionAtmosphereController::GetSettingsForWeather(EHistoricalWeatherState Weather) const
+{
+	FHistoricalAtmosphereSettings Settings = GetSettingsForPhase(CurrentPhase);
+	Settings.WeatherState = Weather;
+
+	switch (Weather)
+	{
+	case EHistoricalWeatherState::ClearSky:
+		Settings.FogDensity = 0.003f;
+		Settings.VolumetricFogScatteringDistribution = 0.20f;
+		Settings.VolumetricFogExtinctionScale = 0.8f;
+		Settings.WindIntensity = 0.10f;
+		break;
+
+	case EHistoricalWeatherState::GoldenHaze:
+		Settings.FogDensity = 0.016f;
+		Settings.FogInscatteringColor = FLinearColor(0.92f, 0.78f, 0.55f, 1.0f);
+		Settings.VolumetricFogScatteringDistribution = 0.55f;
+		Settings.VolumetricFogExtinctionScale = 1.2f;
+		Settings.WindIntensity = 0.22f;
+		Settings.DirectionalInscatteringColor = FLinearColor(0.96f, 0.80f, 0.52f, 1.0f);
+		break;
+
+	case EHistoricalWeatherState::DustStormAndhi:
+		// Northern Indian pre-monsoonal Andhi dust squall: rich ochre alluvial particulate haze
+		Settings.SunIntensity *= 0.60f;
+		Settings.SunColor = FLinearColor(1.0f, 0.68f, 0.35f, 1.0f);
+		Settings.SunTemperature = 3800.0f;
+		Settings.FogDensity = 0.075f;
+		Settings.FogHeightFalloff = 0.30f;
+		Settings.FogInscatteringColor = FLinearColor(0.92f, 0.64f, 0.32f, 1.0f);
+		Settings.VolumetricFogScatteringDistribution = 0.75f;
+		Settings.VolumetricFogExtinctionScale = 2.4f;
+		Settings.WindIntensity = 0.85f;
+		Settings.DirectionalInscatteringColor = FLinearColor(0.92f, 0.62f, 0.28f, 1.0f);
+		break;
+
+	case EHistoricalWeatherState::CurfewSmog:
+		Settings.FogDensity = 0.045f;
+		Settings.FogInscatteringColor = FLinearColor(0.18f, 0.22f, 0.38f, 1.0f);
+		Settings.VolumetricFogScatteringDistribution = 0.65f;
+		Settings.VolumetricFogExtinctionScale = 1.8f;
+		Settings.WindIntensity = 0.35f;
+		Settings.DirectionalInscatteringColor = FLinearColor(0.15f, 0.20f, 0.35f, 1.0f);
 		break;
 	}
 
@@ -130,7 +223,6 @@ void ARevolutionAtmosphereController::BeginPlay()
 	UWorld* World = GetWorld();
 	if (!World) return;
 
-	// Locate environment lighting actors
 	for (TActorIterator<ADirectionalLight> It(World); It; ++It)
 	{
 		SunMoonLight = *It;
@@ -149,7 +241,6 @@ void ARevolutionAtmosphereController::BeginPlay()
 		break;
 	}
 
-	// Apply Initial Atmosphere based on active Mission Stage
 	EHistoricalAtmospherePhase InitialPhase = EHistoricalAtmospherePhase::MorningDawn;
 
 	if (URevolutionMissionSubsystem* Subsystem = World->GetSubsystem<URevolutionMissionSubsystem>())
@@ -180,12 +271,13 @@ void ARevolutionAtmosphereController::BeginPlay()
 	}
 
 	SetAtmospherePhase(InitialPhase, 0.0f);
-	UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController initialized with Historical Phase %d."), (int32)InitialPhase);
+	UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController initialized with Historical Phase %d and Weather %d."), (int32)InitialPhase, (int32)CurrentWeather);
 }
 
 void ARevolutionAtmosphereController::ApplyAtmosphereSettings(const FHistoricalAtmosphereSettings& Settings)
 {
 	CurrentSettings = Settings;
+	CurrentWeather = Settings.WeatherState;
 
 	if (SunMoonLight)
 	{
@@ -218,8 +310,26 @@ void ARevolutionAtmosphereController::ApplyAtmosphereSettings(const FHistoricalA
 			FogComp->SetFogDensity(Settings.FogDensity);
 			FogComp->SetFogHeightFalloff(Settings.FogHeightFalloff);
 			FogComp->SetFogInscatteringColor(Settings.FogInscatteringColor);
+			FogComp->SetDirectionalInscatteringColor(Settings.DirectionalInscatteringColor);
+			FogComp->SetVolumetricFog(true);
+			FogComp->SetVolumetricFogScatteringDistribution(Settings.VolumetricFogScatteringDistribution);
+			FogComp->SetVolumetricFogExtinctionScale(Settings.VolumetricFogExtinctionScale);
 		}
 	}
+}
+
+float ARevolutionAtmosphereController::GetWeatherVisibilityMultiplier() const
+{
+	if (CurrentWeather == EHistoricalWeatherState::DustStormAndhi)
+	{
+		return 0.65f; // 35% reduction in sentry visual perception!
+	}
+	return 1.0f;
+}
+
+bool ARevolutionAtmosphereController::IsWeatherSoundMasked() const
+{
+	return CurrentWeather == EHistoricalWeatherState::DustStormAndhi;
 }
 
 void ARevolutionAtmosphereController::SetAtmospherePhase(EHistoricalAtmospherePhase NewPhase, float InTransitionDuration)
@@ -240,7 +350,6 @@ void ARevolutionAtmosphereController::SetAtmospherePhase(EHistoricalAtmospherePh
 		bIsTransitioning = true;
 	}
 
-	// Play accompanying audio for the phase change
 	switch (NewPhase)
 	{
 	case EHistoricalAtmospherePhase::MorningDawn:
@@ -259,16 +368,14 @@ void ARevolutionAtmosphereController::SetAtmospherePhase(EHistoricalAtmospherePh
 	case EHistoricalAtmospherePhase::CanalNight:
 		if (CanalWaterSound)
 		{
-			UGameplayStatics::PlaySound2D(this, CanalWaterSound, 0.75f);
+			UGameplayStatics::PlaySound2D(this, CanalWaterSound, 0.80f);
 		}
 		break;
 	default:
 		break;
 	}
 
-	// Update dynamic sound mix modifier
-	UWorld* World = GetWorld();
-	if (World)
+	if (UWorld* World = GetWorld())
 	{
 		if (NewPhase == EHistoricalAtmospherePhase::CurfewNight)
 		{
@@ -296,6 +403,52 @@ void ARevolutionAtmosphereController::SetAtmospherePhase(EHistoricalAtmospherePh
 	}
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController: Transitioning to Atmosphere Phase %d over %.1f seconds."), (int32)NewPhase, InTransitionDuration);
+}
+
+void ARevolutionAtmosphereController::SetWeatherState(EHistoricalWeatherState NewWeather, float InTransitionDuration)
+{
+	CurrentWeather = NewWeather;
+	TargetSettings = GetSettingsForWeather(NewWeather);
+
+	if (InTransitionDuration <= 0.0f)
+	{
+		bIsTransitioning = false;
+		ApplyAtmosphereSettings(TargetSettings);
+	}
+	else
+	{
+		SourceSettings = CurrentSettings;
+		TransitionDuration = InTransitionDuration;
+		TransitionProgress = 0.0f;
+		bIsTransitioning = true;
+	}
+
+	if (WeatherAudioComponent)
+	{
+		if (CurrentWeather == EHistoricalWeatherState::DustStormAndhi && DustStormWindSound)
+		{
+			WeatherAudioComponent->SetSound(DustStormWindSound);
+			WeatherAudioComponent->FadeIn(2.0f, 0.90f);
+		}
+		else if (CurrentWeather == EHistoricalWeatherState::GoldenHaze && GoldenHazeBreezeSound)
+		{
+			WeatherAudioComponent->SetSound(GoldenHazeBreezeSound);
+			WeatherAudioComponent->FadeIn(3.0f, 0.70f);
+		}
+		else
+		{
+			WeatherAudioComponent->FadeOut(2.0f, 0.0f);
+		}
+	}
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController: Set Weather State to %d."), (int32)NewWeather);
+}
+
+void ARevolutionAtmosphereController::TriggerDustStorm(float Duration)
+{
+	DustStormRemainingTimer = Duration;
+	SetWeatherState(EHistoricalWeatherState::DustStormAndhi, 4.0f);
+	UE_LOG(LogREVOLUTION, Log, TEXT("Triggered Andhi Dust Storm for %.1f seconds."), Duration);
 }
 
 void ARevolutionAtmosphereController::Tick(float DeltaTime)
@@ -331,7 +484,20 @@ void ARevolutionAtmosphereController::Tick(float DeltaTime)
 		}
 	}
 
-	// Smooth Atmosphere Phase Interpolation
+	// Dust storm timer countdown
+	if (DustStormRemainingTimer > 0.0f)
+	{
+		DustStormRemainingTimer -= DeltaTime;
+		if (DustStormRemainingTimer <= 0.0f)
+		{
+			DustStormRemainingTimer = 0.0f;
+			// Restore weather matching current phase
+			SetWeatherState(GetSettingsForPhase(CurrentPhase).WeatherState, 6.0f);
+			UE_LOG(LogREVOLUTION, Log, TEXT("Andhi Dust Storm subsided: Restored phase weather."));
+		}
+	}
+
+	// Smooth Atmosphere Phase / Weather Interpolation
 	if (bIsTransitioning)
 	{
 		TransitionProgress = FMath::Clamp(TransitionProgress + (DeltaTime / TransitionDuration), 0.0f, 1.0f);
@@ -351,6 +517,11 @@ void ARevolutionAtmosphereController::Tick(float DeltaTime)
 		InterpSettings.FogDensity = FMath::Lerp(SourceSettings.FogDensity, TargetSettings.FogDensity, Alpha);
 		InterpSettings.FogHeightFalloff = FMath::Lerp(SourceSettings.FogHeightFalloff, TargetSettings.FogHeightFalloff, Alpha);
 		InterpSettings.FogInscatteringColor = FMath::Lerp(SourceSettings.FogInscatteringColor, TargetSettings.FogInscatteringColor, Alpha);
+		InterpSettings.VolumetricFogScatteringDistribution = FMath::Lerp(SourceSettings.VolumetricFogScatteringDistribution, TargetSettings.VolumetricFogScatteringDistribution, Alpha);
+		InterpSettings.VolumetricFogExtinctionScale = FMath::Lerp(SourceSettings.VolumetricFogExtinctionScale, TargetSettings.VolumetricFogExtinctionScale, Alpha);
+		InterpSettings.WindIntensity = FMath::Lerp(SourceSettings.WindIntensity, TargetSettings.WindIntensity, Alpha);
+		InterpSettings.DirectionalInscatteringColor = FMath::Lerp(SourceSettings.DirectionalInscatteringColor, TargetSettings.DirectionalInscatteringColor, Alpha);
+		InterpSettings.WeatherState = TargetSettings.WeatherState;
 
 		ApplyAtmosphereSettings(InterpSettings);
 
@@ -358,7 +529,7 @@ void ARevolutionAtmosphereController::Tick(float DeltaTime)
 		{
 			bIsTransitioning = false;
 			ApplyAtmosphereSettings(TargetSettings);
-			UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController: Atmosphere transition to Phase %d complete."), (int32)CurrentPhase);
+			UE_LOG(LogREVOLUTION, Log, TEXT("RevolutionAtmosphereController: Atmosphere transition complete."));
 		}
 	}
 }

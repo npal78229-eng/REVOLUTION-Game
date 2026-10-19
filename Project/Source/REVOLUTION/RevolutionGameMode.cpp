@@ -3,6 +3,8 @@
 #include "RevolutionGameMode.h"
 #include "RevolutionCharacter.h"
 #include "RevolutionHUD.h"
+#include "RevolutionSaveGame.h"
+#include "RevolutionMissionSubsystem.h"
 #include "InspectableProp.h"
 #include "CurfewPatrolAI.h"
 #include "ObjectiveTriggerActor.h"
@@ -33,6 +35,11 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "Kismet/GameplayStatics.h"
 #include "EngineUtils.h"
+#include "GameFramework/PlayerStart.h"
+#include "Animation/BlendSpace.h"
+#include "Animation/AnimSequence.h"
+#include "Misc/PackageName.h"
+#include "UObject/SavePackage.h"
 #include "REVOLUTION.h"
 
 ARevolutionGameMode::ARevolutionGameMode()
@@ -49,6 +56,47 @@ void ARevolutionGameMode::BeginPlay()
 	Super::BeginPlay();
 
 	SpawnDefaultMohallaProps();
+}
+
+AActor* ARevolutionGameMode::ChoosePlayerStart_Implementation(AController* Player)
+{
+	UWorld* World = GetWorld();
+	if (World)
+	{
+		for (TActorIterator<APlayerStart> It(World); It; ++It)
+		{
+			APlayerStart* Start = *It;
+			if (Start)
+			{
+				UE_LOG(LogREVOLUTION, Warning, TEXT("[REVOLUTION_GAMEMODE] ChoosePlayerStart selected: %s at %s"), *Start->GetName(), *Start->GetActorLocation().ToString());
+				return Start;
+			}
+		}
+	}
+
+	return Super::ChoosePlayerStart_Implementation(Player);
+}
+
+APawn* ARevolutionGameMode::SpawnDefaultPawnAtTransform_Implementation(AController* NewPlayer, const FTransform& SpawnTransform)
+{
+	FActorSpawnParameters SpawnInfo;
+	SpawnInfo.Instigator = GetInstigator();
+	SpawnInfo.ObjectFlags |= RF_Transient;
+	SpawnInfo.bDeferConstruction = false;
+	SpawnInfo.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AdjustIfPossibleButAlwaysSpawn;
+
+	UClass* PawnClass = GetDefaultPawnClassForController(NewPlayer);
+	if (PawnClass && GetWorld())
+	{
+		APawn* SpawnedPawn = GetWorld()->SpawnActor<APawn>(PawnClass, SpawnTransform, SpawnInfo);
+		if (SpawnedPawn)
+		{
+			UE_LOG(LogREVOLUTION, Warning, TEXT("[REVOLUTION_GAMEMODE] Successfully spawned player pawn (%s) at %s"), *PawnClass->GetName(), *SpawnedPawn->GetActorLocation().ToString());
+			return SpawnedPawn;
+		}
+	}
+
+	return Super::SpawnDefaultPawnAtTransform_Implementation(NewPlayer, SpawnTransform);
 }
 
 void ARevolutionGameMode::SpawnDefaultMohallaProps()
@@ -292,6 +340,9 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 				TEXT("Kabir sits at the wooden desk and sets down his slate. Through the open archway, elders whisper of the town-wide Hartal. The morning errands are done; the seeds of freedom are planted. Act I prologue complete.")
 			);
 			DeskTrigger->bHideMeshOnTrigger = false;
+			DeskTrigger->bTriggerCinematicSequence = true;
+			DeskTrigger->CinematicChapterTitle = FText::FromString(TEXT("ACT II: THE GATHERING STORM"));
+			DeskTrigger->CinematicSubtitle = FText::FromString(TEXT("Amritsar, April 13, 1919 — Afternoon nagara drums echo across Kot Gurdarshan as British town criers beat the Munadi, announcing General Dyer's proclamation banning all assemblies."));
 
 			USoundBase* GongSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Dawn_Gong_Complete.SFX_Dawn_Gong_Complete"));
 			if (GongSFX)
@@ -1414,7 +1465,10 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			{ ECivilianOccupation::BhishtiWaterCarrier, FVector(-80.0f, 1320.0f, 10.0f), FRotator(0.0f, 45.0f, 0.0f), TEXT("Ghasita Bhishti (Water-Carrier)") },
 			{ ECivilianOccupation::HalwaiChaiVendor, FVector(-200.0f, 1680.0f, 10.0f), FRotator(0.0f, 90.0f, 0.0f), TEXT("Hira Halwai (Tea Stall Owner)") },
 			{ ECivilianOccupation::ClothMerchant, FVector(200.0f, 1980.0f, 10.0f), FRotator(0.0f, -90.0f, 0.0f), TEXT("Lala Karam Chand (Cloth Merchant)") },
-			{ ECivilianOccupation::SchoolHeadmaster, FVector(1350.0f, 1420.0f, 10.0f), FRotator(0.0f, -90.0f, 0.0f), TEXT("Pandit Kashi Ram (School Headmaster)") }
+			{ ECivilianOccupation::SchoolHeadmaster, FVector(1350.0f, 1420.0f, 10.0f), FRotator(0.0f, -90.0f, 0.0f), TEXT("Pandit Kashi Ram (School Headmaster)") },
+			{ ECivilianOccupation::SchoolFriendKartar, FVector(450.0f, 1380.0f, 88.0f), FRotator(0.0f, -90.0f, 0.0f), TEXT("Kartar Singh (Schoolmate & Friend)") },
+			{ ECivilianOccupation::MunadiTownCrier, FVector(60.0f, 1920.0f, 10.0f), FRotator(0.0f, 30.0f, 0.0f), TEXT("Nikka Ram (Munadi Town Crier)") },
+			{ ECivilianOccupation::ProtestElder, FVector(140.0f, 1860.0f, 10.0f), FRotator(0.0f, 120.0f, 0.0f), TEXT("Bhai Sant Singh (Protest Elder)") }
 		};
 
 		for (const FCivDef& Def : CiviliansToSpawn)
@@ -1429,6 +1483,50 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			{
 				NewCiv->ConfigureOccupation(Def.Occupation);
 				UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Civilian NPC: %s at %s"), Def.LogName, *Def.Location.ToString());
+			}
+		}
+	}
+	else
+	{
+		// If level has existing civilians, ensure Munadi Town Crier and Protest Elder exist in Grand Bazaar Chowk
+		bool bHasMunadi = false;
+		bool bHasElder = false;
+		for (TActorIterator<ACivilianNPCActor> CivIt(World); CivIt; ++CivIt)
+		{
+			if (CivIt->Occupation == ECivilianOccupation::MunadiTownCrier) bHasMunadi = true;
+			if (CivIt->Occupation == ECivilianOccupation::ProtestElder) bHasElder = true;
+		}
+
+		FActorSpawnParameters CivSpawnParams;
+		CivSpawnParams.SpawnCollisionHandlingOverride = ESpawnActorCollisionHandlingMethod::AlwaysSpawn;
+
+		if (!bHasMunadi)
+		{
+			ACivilianNPCActor* MunadiCiv = World->SpawnActor<ACivilianNPCActor>(
+				ACivilianNPCActor::StaticClass(),
+				FVector(60.0f, 1920.0f, 10.0f),
+				FRotator(0.0f, 30.0f, 0.0f),
+				CivSpawnParams
+			);
+			if (MunadiCiv)
+			{
+				MunadiCiv->ConfigureOccupation(ECivilianOccupation::MunadiTownCrier);
+				UE_LOG(LogREVOLUTION, Log, TEXT("Spawned missing Civilian NPC: Nikka Ram (Munadi Town Crier) at (60, 1920, 10)"));
+			}
+		}
+
+		if (!bHasElder)
+		{
+			ACivilianNPCActor* ElderCiv = World->SpawnActor<ACivilianNPCActor>(
+				ACivilianNPCActor::StaticClass(),
+				FVector(140.0f, 1860.0f, 10.0f),
+				FRotator(0.0f, 120.0f, 0.0f),
+				CivSpawnParams
+			);
+			if (ElderCiv)
+			{
+				ElderCiv->ConfigureOccupation(ECivilianOccupation::ProtestElder);
+				UE_LOG(LogREVOLUTION, Log, TEXT("Spawned missing Civilian NPC: Bhai Sant Singh (Protest Elder) at (140, 1860, 10)"));
 			}
 		}
 	}
@@ -1541,4 +1639,218 @@ void ARevolutionGameMode::SetCheckpoint(const FVector& NewLocation, const FRotat
 	CheckpointRotation = NewRotation;
 	UE_LOG(LogREVOLUTION, Log, TEXT("Checkpoint updated to %s (Yaw: %.1f)"), *NewLocation.ToString(), NewRotation.Yaw);
 }
+
+bool ARevolutionGameMode::FixKabirBlendSpace()
+{
+#if WITH_EDITOR
+	UBlendSpace* BS = LoadObject<UBlendSpace>(nullptr, TEXT("/Game/Characters/Kabir_AAA/Animations/KabirAAA_BS_MM_WalkRun.KabirAAA_BS_MM_WalkRun"));
+	if (!BS)
+	{
+		UE_LOG(LogREVOLUTION, Error, TEXT("[FixKabirBlendSpace] Failed to load KabirAAA_BS_MM_WalkRun"));
+		return false;
+	}
+
+	UAnimSequence* Idle = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/Kabir_AAA/Animations/KabirAAA_MM_Idle2.KabirAAA_MM_Idle2"));
+	UAnimSequence* Walk = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/Kabir_AAA/Animations/KabirAAA_MM_Walk_Fwd2.KabirAAA_MM_Walk_Fwd2"));
+	UAnimSequence* Run = LoadObject<UAnimSequence>(nullptr, TEXT("/Game/Characters/Kabir_AAA/Animations/KabirAAA_MM_Run_Fwd2.KabirAAA_MM_Run_Fwd2"));
+
+	if (!Idle || !Walk || !Run)
+	{
+		UE_LOG(LogREVOLUTION, Error, TEXT("[FixKabirBlendSpace] Failed to load one or more anim sequences (Idle=%s, Walk=%s, Run=%s)"),
+			Idle ? TEXT("OK") : TEXT("Missing"),
+			Walk ? TEXT("OK") : TEXT("Missing"),
+			Run ? TEXT("OK") : TEXT("Missing"));
+		return false;
+	}
+
+	while (BS->GetNumberOfBlendSamples() > 0)
+	{
+		BS->DeleteSample(0);
+	}
+
+	BS->AddSample(Idle, FVector(0.0f, 0.0f, 0.0f));
+	BS->AddSample(Walk, FVector(230.0f, 0.0f, 0.0f));
+	BS->AddSample(Run, FVector(500.0f, 0.0f, 0.0f));
+
+	BS->ValidateSampleData();
+	BS->MarkPackageDirty();
+
+	UPackage* Package = BS->GetOutermost();
+	Package->MarkPackageDirty();
+	FString PackageFileName = FPackageName::LongPackageNameToFilename(Package->GetName(), FPackageName::GetAssetPackageExtension());
+	FSavePackageArgs SaveArgs;
+	SaveArgs.TopLevelFlags = RF_Public | RF_Standalone;
+	bool bSaved = UPackage::SavePackage(Package, BS, *PackageFileName, SaveArgs);
+	UE_LOG(LogREVOLUTION, Warning, TEXT("[FixKabirBlendSpace] Saved BlendSpace to %s: %s"), *PackageFileName, bSaved ? TEXT("SUCCESS") : TEXT("FAILED"));
+
+	// Also assign authentic historical PBR materials directly to SK_Kabir_Protagonist_AAA asset
+	USkeletalMesh* Mesh = LoadObject<USkeletalMesh>(nullptr, TEXT("/Game/Characters/Kabir_AAA/SK_Kabir_Protagonist_AAA.SK_Kabir_Protagonist_AAA"));
+	if (Mesh)
+	{
+		static const TCHAR* MatPaths[] = {
+			TEXT("/Game/Characters/Kabir_v04_RigB/Kabir_Skin.Kabir_Skin"),
+			TEXT("/Game/Environment/Mohalla/Materials/M_AgedTeak_PBR.M_AgedTeak_PBR"),
+			TEXT("/Game/Characters/Kabir_v04_RigB/Kabir_Sclera.Kabir_Sclera"),
+			TEXT("/Game/Characters/Kabir_v04_RigB/Kabir_Iris.Kabir_Iris"),
+			TEXT("/Game/Characters/Kabir_v04_RigB/Kabir_Hair_001.Kabir_Hair_001"),
+			TEXT("/Game/Environment/Mohalla/Materials/M_AgedTeak_PBR.M_AgedTeak_PBR"),
+			TEXT("/Game/Environment/Mohalla/Materials/M_ClothUndyedCotton_PBR.M_ClothUndyedCotton_PBR"),
+			TEXT("/Game/Characters/Kabir_v04_RigB/Kabir_Shorts_Cotton.Kabir_Shorts_Cotton"),
+			TEXT("/Game/Environment/Mohalla/Materials/M_ClothSaffron_PBR.M_ClothSaffron_PBR"),
+			TEXT("/Game/Environment/Mohalla/Materials/M_WroughtIron_PBR.M_WroughtIron_PBR")
+		};
+		for (int32 i = 0; i < 10; ++i)
+		{
+			if (UMaterialInterface* M = LoadObject<UMaterialInterface>(nullptr, MatPaths[i]))
+			{
+				if (Mesh->GetMaterials().IsValidIndex(i))
+				{
+					Mesh->GetMaterials()[i].MaterialInterface = M;
+				}
+			}
+		}
+		Mesh->MarkPackageDirty();
+		UPackage* MeshPkg = Mesh->GetOutermost();
+		MeshPkg->MarkPackageDirty();
+		FString MeshFileName = FPackageName::LongPackageNameToFilename(MeshPkg->GetName(), FPackageName::GetAssetPackageExtension());
+		bool bMeshSaved = UPackage::SavePackage(MeshPkg, Mesh, *MeshFileName, SaveArgs);
+		UE_LOG(LogREVOLUTION, Warning, TEXT("[FixKabirBlendSpace] Saved SK_Kabir_Protagonist_AAA with 10 authentic materials: %s"), bMeshSaved ? TEXT("SUCCESS") : TEXT("FAILED"));
+	}
+
+	return bSaved;
+#else
+	return false;
+#endif
+}
+
+// ============================================================================
+// TASK 30: PERSISTENT SAVE / LOAD SYSTEM IMPLEMENTATION
+// ============================================================================
+
+bool ARevolutionGameMode::SaveGameToSlot(const FString& SlotName, int32 UserIndex)
+{
+	URevolutionSaveGame* SaveInst = Cast<URevolutionSaveGame>(UGameplayStatics::CreateSaveGameObject(URevolutionSaveGame::StaticClass()));
+	if (!SaveInst)
+	{
+		UE_LOG(LogREVOLUTION, Error, TEXT("[SaveGame] Failed to allocate URevolutionSaveGame instance!"));
+		return false;
+	}
+
+	SaveInst->SaveSlotName = SlotName;
+	SaveInst->UserIndex = UserIndex;
+	SaveInst->SaveTimestamp = FDateTime::UtcNow();
+	LastSaveTimestamp = SaveInst->SaveTimestamp;
+
+	// Persist checkpoint transform
+	SaveInst->CheckpointLocation = CheckpointLocation;
+	SaveInst->CheckpointRotation = CheckpointRotation;
+
+	// Persist narrative mission stage
+	if (URevolutionMissionSubsystem* Subsystem = GetWorld()->GetSubsystem<URevolutionMissionSubsystem>())
+	{
+		SaveInst->CurrentMissionStage = Subsystem->GetCurrentStage();
+	}
+
+	// Persist Kabir's dynamic location, inventory, and settings
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		if (ARevolutionCharacter* Kabir = Cast<ARevolutionCharacter>(PC->GetPawn()))
+		{
+			SaveInst->PlayerLocation = Kabir->GetActorLocation();
+			SaveInst->PlayerRotation = Kabir->GetActorRotation();
+			SaveInst->CurrentStamina = Kabir->CurrentStamina;
+			SaveInst->PamphletCount = Kabir->GetPamphletCount();
+			SaveInst->PebbleCount = Kabir->GetPebbleCount();
+			SaveInst->ChalkCount = Kabir->GetChalkCount();
+			SaveInst->SelectedCodexIndex = Kabir->SelectedCodexIndex;
+			SaveInst->MasterVolume = Kabir->MasterVolume;
+			SaveInst->SFXVolume = Kabir->SFXVolume;
+			SaveInst->FoleyVolume = Kabir->FoleyVolume;
+			SaveInst->VoiceVolume = Kabir->VoiceVolume;
+			SaveInst->AmbienceVolume = Kabir->AmbienceVolume;
+			SaveInst->SubtitleScaleMultiplier = Kabir->SubtitleScaleMultiplier;
+			SaveInst->bHandheldSteamOSMode = Kabir->bHandheldSteamOSMode;
+		}
+	}
+
+	const bool bSaved = UGameplayStatics::SaveGameToSlot(SaveInst, SlotName, UserIndex);
+	if (bSaved)
+	{
+		UE_LOG(LogREVOLUTION, Log, TEXT("[SaveGame] Successfully committed state to slot '%s' (User %d). Timestamp: %s"), *SlotName, UserIndex, *SaveInst->SaveTimestamp.ToString());
+	}
+	else
+	{
+		UE_LOG(LogREVOLUTION, Error, TEXT("[SaveGame] Failed to write slot '%s' to disk!"), *SlotName);
+	}
+
+	return bSaved;
+}
+
+bool ARevolutionGameMode::LoadGameFromSlot(const FString& SlotName, int32 UserIndex)
+{
+	if (!UGameplayStatics::DoesSaveGameExist(SlotName, UserIndex))
+	{
+		UE_LOG(LogREVOLUTION, Warning, TEXT("[SaveGame] Slot '%s' does not exist on disk!"), *SlotName);
+		return false;
+	}
+
+	URevolutionSaveGame* SaveInst = Cast<URevolutionSaveGame>(UGameplayStatics::LoadGameFromSlot(SlotName, UserIndex));
+	if (!SaveInst)
+	{
+		UE_LOG(LogREVOLUTION, Error, TEXT("[SaveGame] Failed to deserialize URevolutionSaveGame from slot '%s'!"), *SlotName);
+		return false;
+	}
+
+	LastSaveTimestamp = SaveInst->SaveTimestamp;
+
+	// Restore checkpoint transform
+	CheckpointLocation = SaveInst->CheckpointLocation;
+	CheckpointRotation = SaveInst->CheckpointRotation;
+
+	// Restore narrative mission stage
+	if (URevolutionMissionSubsystem* Subsystem = GetWorld()->GetSubsystem<URevolutionMissionSubsystem>())
+	{
+		Subsystem->SetMissionStage(SaveInst->CurrentMissionStage);
+	}
+
+	// Restore Kabir's location, vitals, inventory and settings
+	if (APlayerController* PC = UGameplayStatics::GetPlayerController(GetWorld(), 0))
+	{
+		if (ARevolutionCharacter* Kabir = Cast<ARevolutionCharacter>(PC->GetPawn()))
+		{
+			Kabir->TeleportTo(SaveInst->PlayerLocation, SaveInst->PlayerRotation);
+			Kabir->CurrentStamina = SaveInst->CurrentStamina;
+			Kabir->PamphletCount = SaveInst->PamphletCount;
+			Kabir->PebbleCount = SaveInst->PebbleCount;
+			Kabir->ChalkCount = SaveInst->ChalkCount;
+			Kabir->SelectedCodexIndex = SaveInst->SelectedCodexIndex;
+			Kabir->MasterVolume = SaveInst->MasterVolume;
+			Kabir->SFXVolume = SaveInst->SFXVolume;
+			Kabir->FoleyVolume = SaveInst->FoleyVolume;
+			Kabir->VoiceVolume = SaveInst->VoiceVolume;
+			Kabir->AmbienceVolume = SaveInst->AmbienceVolume;
+			Kabir->SubtitleScaleMultiplier = SaveInst->SubtitleScaleMultiplier;
+			Kabir->bHandheldSteamOSMode = SaveInst->bHandheldSteamOSMode;
+
+			Kabir->ApplyAudioSettings();
+			Kabir->ApplyHandheldScalability(SaveInst->bHandheldSteamOSMode);
+		}
+	}
+
+	UE_LOG(LogREVOLUTION, Log, TEXT("[SaveGame] Successfully restored state from slot '%s' (User %d). Timestamp: %s"), *SlotName, UserIndex, *SaveInst->SaveTimestamp.ToString());
+	return true;
+}
+
+bool ARevolutionGameMode::DoesSaveGameExist(const FString& SlotName, int32 UserIndex) const
+{
+	return UGameplayStatics::DoesSaveGameExist(SlotName, UserIndex);
+}
+
+bool ARevolutionGameMode::DeleteSaveSlot(const FString& SlotName, int32 UserIndex)
+{
+	const bool bDeleted = UGameplayStatics::DeleteGameInSlot(SlotName, UserIndex);
+	UE_LOG(LogREVOLUTION, Log, TEXT("[SaveGame] Delete save slot '%s' (User %d): %s"), *SlotName, UserIndex, bDeleted ? TEXT("SUCCESS") : TEXT("FAILED/NOT_FOUND"));
+	return bDeleted;
+}
+
 

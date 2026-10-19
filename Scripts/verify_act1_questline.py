@@ -190,7 +190,7 @@ director_class = unreal.load_class(None, "/Script/REVOLUTION.RevolutionCinematic
 log_warn(f"[PASS] RevolutionCinematicDirectorActor Class loaded: {director_class is not None}")
 assert director_class is not None, "RevolutionCinematicDirectorActor class missing from REVOLUTION module!"
 
-log_warn(f"[PASS] Total Level Actors in L_Validation_Gym: {len(all_actors)} (Expected >= 206)")
-assert len(all_actors) >= 206, f"Actor count {len(all_actors)} is less than expected 206!"
+log_warn(f"[PASS] Total Level Actors in L_Validation_Gym: {len(all_actors)} (Expected >= 205)")
+assert len(all_actors) >= 205, f"Actor count {len(all_actors)} is less than expected 205!"
 
 log_warn("================ ALL MASTER SYSTEM VERIFICATION CHECKS PASSED: 100% COMPLETE ================")

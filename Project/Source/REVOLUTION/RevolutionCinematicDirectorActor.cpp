@@ -151,3 +151,32 @@ void ARevolutionCinematicDirectorActor::HandleSequenceFinished()
 {
 	StopCinematicCutscene(ActiveBlendOutTime);
 }
+
+bool ARevolutionCinematicDirectorActor::PlayBaisakhiDawnEpilogue()
+{
+	ULevelSequence* TargetSeq = GoldenSunriseFinaleSequence;
+	if (!TargetSeq)
+	{
+		TargetSeq = Cast<ULevelSequence>(StaticLoadObject(ULevelSequence::StaticClass(), nullptr, TEXT("/Game/Cinematics/LS_Golden_Sunrise_Finale")));
+	}
+
+	FText EpilogueTitle = FText::FromString(TEXT("THE BAISAKHI DAWN"));
+	FText EpilogueSubtitle = FText::FromString(TEXT("Kot Gurdarshan, April 14, 1919 — As golden morning light crests the terracotta rooftops, Punjab awakens with an unyielding moral resolve."));
+
+	return PlayCinematicCutscene(TargetSeq, EpilogueTitle, EpilogueSubtitle, 1.5f);
+}
+
+bool ARevolutionCinematicDirectorActor::PlayMunadiProclamationCutscene()
+{
+	ULevelSequence* TargetSeq = MunadiProclamationSequence;
+	if (!TargetSeq)
+	{
+		TargetSeq = Cast<ULevelSequence>(StaticLoadObject(ULevelSequence::StaticClass(), nullptr, TEXT("/Game/Cinematics/LS_Munadi_Proclamation")));
+	}
+
+	FText ChapterTitle = FText::FromString(TEXT("ACT II: THE GATHERING STORM"));
+	FText Subtitle = FText::FromString(TEXT("Amritsar, April 13, 1919 — Afternoon nagara drums echo across Kot Gurdarshan as British town criers beat the Munadi, announcing General Dyer's proclamation banning all assemblies."));
+
+	return PlayCinematicCutscene(TargetSeq, ChapterTitle, Subtitle, 1.25f);
+}
+

@@ -52,6 +52,11 @@ $RECYCLE.BIN/
 *.log
 *.bak
 *.orig
+/Tests/*
+!/Tests/.gitkeep
+/Tools/base_meshes/
+Scripts/ci_master_summary.txt
+
 
 # --- Sensitive Files & Credentials ---
 *.env

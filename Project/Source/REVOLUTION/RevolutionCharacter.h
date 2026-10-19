@@ -163,6 +163,25 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
 	void TryVaultOrJump();
 
+	// --- VERTICAL LADDER TRAVERSAL SYSTEM (Courtyard to Rooftop Terrace) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Traversal")
+	bool bIsClimbingLadder = false;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Traversal")
+	float LadderClimbDuration = 1.8f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Traversal")
+	float LadderClimbProgress = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Traversal")
+	bool bLadderAscending = true;
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Traversal")
+	bool IsClimbingLadder() const { return bIsClimbingLadder; }
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Traversal")
+	void StartLadderClimb(const FVector& StartLocation, const FVector& TargetLocation, float Duration, bool bAscending);
+
 	// --- LOW DRAIN CRAWLWAY TRAVERSAL SYSTEM (80cm Conduits & Foundation Breaches) ---
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Traversal")
 	bool bIsCrawlTraversing = false;
@@ -521,9 +540,47 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Satchel")
 	void OnMenuRight();
 
+	// --- TASK 29: TITLE & PAUSE MENU SYSTEM ---
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void OnEscapePressed();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void OnMenuConfirm();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void TogglePauseMenu();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void ResumeGame();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void RestartFromCheckpoint();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|UI")
+	void ReturnToTitleMenu();
+
+	// --- TASK 30: PERSISTENT SAVE / LOAD QUICK HOOKS ---
+	UFUNCTION(BlueprintCallable, Category = "Revolution|SaveGame")
+	bool QuickSaveGame();
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|SaveGame")
+	bool QuickLoadGame();
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|SaveGame")
+	bool HasSaveData() const;
+
 	// --- PEDESTRIAN CROWD COLLISION & STUMBLE REACTION (TASK 22) ---
 	UFUNCTION(BlueprintCallable, Category = "Revolution|Locomotion")
 	void HandleCivilianCollision(class ACivilianNPCActor* HitCivilian);
+
+	// --- TASK 33 / MILESTONE P2: IN-ENGINE ROOFTOP & TRAVERSAL QA VERIFICATION ---
+	UFUNCTION(BlueprintCallable, Category = "Revolution|QA")
+	void StartP2VerificationSequence();
+
+	void ExecuteP2Step(int32 StepIndex);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	int32 P2CurrentStep = 0;
 
 	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 
@@ -535,6 +592,11 @@ private:
 	FVector MantleStartLocation;
 	FVector MantleTargetLocation;
 	float MantleProgress = 0.0f;
+
+	FVector LadderStartLocation;
+	FVector LadderTargetLocation;
+	float LadderClimbProgressInternal = 0.0f;
+	float CurrentLadderDuration = 1.8f;
 
 	FVector CrawlStartLocation;
 	FVector CrawlTargetLocation;

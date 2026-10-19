@@ -9,6 +9,8 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "Engine/World.h"
+#include "EngineUtils.h"
+#include "RevolutionCinematicDirectorActor.h"
 #include "REVOLUTION.h"
 
 AObjectiveTriggerActor::AObjectiveTriggerActor()
@@ -71,6 +73,27 @@ void AObjectiveTriggerActor::OnInteract_Implementation(ARevolutionCharacter* Int
 		{
 			FVector CheckpointPos = GetActorLocation() + FVector(0.0f, 0.0f, 15.0f);
 			GM->SetCheckpoint(CheckpointPos, GetActorRotation());
+		}
+
+		// TASK 35: Act I Finale to Act II Cinematic Handoff
+		if (RequiredMissionStage == ECourierMissionStage::Stage_Morning_ClassroomDesk || bTriggerCinematicSequence)
+		{
+			for (TActorIterator<ARevolutionCinematicDirectorActor> It(World); It; ++It)
+			{
+				ARevolutionCinematicDirectorActor* Director = *It;
+				if (Director)
+				{
+					if (CinematicSequence)
+					{
+						Director->PlayCinematicCutscene(CinematicSequence, CinematicChapterTitle, CinematicSubtitle, 1.25f);
+					}
+					else
+					{
+						Director->PlayMunadiProclamationCutscene();
+					}
+					break;
+				}
+			}
 		}
 	}
 
