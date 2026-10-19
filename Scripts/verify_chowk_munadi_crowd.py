@@ -57,17 +57,18 @@ def main():
     log_qa("--- Subtest 1: Level Assembly of Chowk Crowd Civilian NPCs ---")
     b_level_modified = False
 
+    src_civ = actor_map.get("NPC_LalaKaramChand_Cloth")
+
     # Check / spawn NPC_Munadi_TownCrier
     munadi_actor = actor_map.get("NPC_Munadi_TownCrier")
     if not munadi_actor:
-        log_qa("  Spawning NPC_Munadi_TownCrier (Nikka Ram) at (60, 1920, 10)...")
-        munadi_actor = unreal.EditorLevelLibrary.spawn_actor_from_class(
-            civ_class,
-            unreal.Vector(60.0, 1920.0, 10.0),
-            unreal.Rotator(0.0, 30.0, 0.0)
-        )
-        assert munadi_actor is not None, "Failed to spawn NPC_Munadi_TownCrier!"
+        log_qa("  Spawning NPC_Munadi_TownCrier (Nikka Ram) via clean duplicate...")
+        assert src_civ is not None, "Source civilian NPC_LalaKaramChand_Cloth missing for duplication!"
+        munadi_actor = editor_actor_sub.duplicate_actor(src_civ)
+        assert munadi_actor is not None, "Failed to duplicate actor for NPC_Munadi_TownCrier!"
         munadi_actor.set_actor_label("NPC_Munadi_TownCrier")
+        munadi_actor.set_actor_location(unreal.Vector(60.0, 1920.0, 88.0), False, False)
+        munadi_actor.set_actor_rotation(unreal.Rotator(0.0, 30.0, 0.0), False)
         munadi_val = getattr(occ_enum, "MUNADI_TOWN_CRIER")
         munadi_actor.set_editor_property("occupation", munadi_val)
         munadi_actor.configure_occupation(munadi_val)
@@ -82,14 +83,13 @@ def main():
     # Check / spawn NPC_BhaiSantSingh_Elder
     elder_actor = actor_map.get("NPC_BhaiSantSingh_Elder")
     if not elder_actor:
-        log_qa("  Spawning NPC_BhaiSantSingh_Elder (Bhai Sant Singh) at (140, 1860, 10)...")
-        elder_actor = unreal.EditorLevelLibrary.spawn_actor_from_class(
-            civ_class,
-            unreal.Vector(140.0, 1860.0, 10.0),
-            unreal.Rotator(0.0, 120.0, 0.0)
-        )
-        assert elder_actor is not None, "Failed to spawn NPC_BhaiSantSingh_Elder!"
+        log_qa("  Spawning NPC_BhaiSantSingh_Elder (Bhai Sant Singh) via clean duplicate...")
+        assert src_civ is not None, "Source civilian NPC_LalaKaramChand_Cloth missing for duplication!"
+        elder_actor = editor_actor_sub.duplicate_actor(src_civ)
+        assert elder_actor is not None, "Failed to duplicate actor for NPC_BhaiSantSingh_Elder!"
         elder_actor.set_actor_label("NPC_BhaiSantSingh_Elder")
+        elder_actor.set_actor_location(unreal.Vector(140.0, 1860.0, 88.0), False, False)
+        elder_actor.set_actor_rotation(unreal.Rotator(0.0, 120.0, 0.0), False)
         elder_val = getattr(occ_enum, "PROTEST_ELDER")
         elder_actor.set_editor_property("occupation", elder_val)
         elder_actor.configure_occupation(elder_val)
@@ -183,9 +183,17 @@ def main():
     # =========================================================================
     log_qa("--- Subtest 3: Verifying Dynamic Stage-Aware Dialogue Switching ---")
     
+    def check_act_ii_mode(actor):
+        val = getattr(actor, "is_in_act_ii_mode", None)
+        if callable(val):
+            return val()
+        if val is not None:
+            return bool(val)
+        return bool(actor.get_editor_property("b_is_in_act_ii_mode"))
+
     # 3a. Nikka Ram in Act I Mode
     munadi_actor.set_dialogue_mode_for_stage(unreal.CourierMissionStage.STAGE_MORNING_FATHER_TAILOR)
-    assert munadi_actor.is_in_act_ii_mode() is False, "Expected IsInActIIMode == False for Act I stage!"
+    assert check_act_ii_mode(munadi_actor) is False, "Expected IsInActIIMode == False for Act I stage!"
     act1_dlg = str(munadi_actor.get_current_dialogue())
     log_qa(f"  Nikka Ram (Act I Mode): '{act1_dlg}'")
     assert "proclamation" in act1_dlg.lower() or "ram lubhaya" in act1_dlg.lower() or "sun" in act1_dlg.lower(), \
@@ -193,7 +201,7 @@ def main():
 
     # 3b. Nikka Ram in Act II Mode
     munadi_actor.set_dialogue_mode_for_stage(unreal.CourierMissionStage.STAGE_AFTERNOON_MUNADI_PROCLAMATION)
-    assert munadi_actor.is_in_act_ii_mode() is True, "Expected IsInActIIMode == True for Act II stage!"
+    assert check_act_ii_mode(munadi_actor) is True, "Expected IsInActIIMode == True for Act II stage!"
     act2_dlg_1 = str(munadi_actor.get_current_dialogue())
     log_qa(f"  Nikka Ram (Act II Mode, line 1): '{act2_dlg_1}'")
     assert "jallianwala bagh" in act2_dlg_1.lower() or "dyer" in act2_dlg_1.lower() or "proclamation" in act2_dlg_1.lower(), \
@@ -207,7 +215,7 @@ def main():
 
     # 3c. Bhai Sant Singh in Act II Mode
     elder_actor.set_dialogue_mode_for_stage(unreal.CourierMissionStage.STAGE_AFTERNOON_MUNADI_PROCLAMATION)
-    assert elder_actor.is_in_act_ii_mode() is True, "Expected Elder IsInActIIMode == True!"
+    assert check_act_ii_mode(elder_actor) is True, "Expected Elder IsInActIIMode == True!"
     elder_act2_dlg = str(elder_actor.get_current_dialogue())
     log_qa(f"  Bhai Sant Singh (Act II Mode): '{elder_act2_dlg}'")
     assert "peaceful" in elder_act2_dlg.lower() or "dyer" in elder_act2_dlg.lower() or "bagh" in elder_act2_dlg.lower() or "alleys" in elder_act2_dlg.lower(), \
@@ -215,7 +223,7 @@ def main():
 
     # 3d. Restore to Act I Mode cleanly
     munadi_actor.set_dialogue_mode_for_stage(unreal.CourierMissionStage.STAGE_MORNING_DELIVER_CLOTH)
-    assert munadi_actor.is_in_act_ii_mode() is False, "Expected IsInActIIMode == False after restoring Act I!"
+    assert check_act_ii_mode(munadi_actor) is False, "Expected IsInActIIMode == False after restoring Act I!"
     log_qa("[PASS] Subtest 3: Dynamic stage-aware dialogue switching certified.")
 
     # =========================================================================

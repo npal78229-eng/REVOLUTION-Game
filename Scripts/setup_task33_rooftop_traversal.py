@@ -67,6 +67,7 @@ def main():
     kite_actor = actor_sub.spawn_actor_from_class(unreal.StaticMeshActor, kite_loc, kite_rot)
     assert kite_actor is not None, "Failed to spawn Haveli_Rooftop_Basant_Kite!"
     kite_actor.set_actor_label("Haveli_Rooftop_Basant_Kite")
+    kite_actor.set_actor_scale3d(unreal.Vector(0.010, 0.010, 0.010))
 
     kite_sm = kite_actor.get_component_by_class(unreal.StaticMeshComponent)
     if kite_sm:
