@@ -19,6 +19,7 @@
 #include "ChalkMarkActor.h"
 #include "ProclamationBoardActor.h"
 #include "ChaffDustDecoyActor.h"
+#include "CivilianNPCActor.h"
 #include "CommunityTrustSubsystem.h"
 #include "EngineUtils.h"
 #include "REVOLUTION.h"
@@ -188,7 +189,26 @@ void ACurfewPatrolAI::Tick(float DeltaTime)
 		}
 	}
 
+	// Pehchan & Talashi: Interrogation state machine takes precedence if active
+	if (ConfrontationState != ECurfewConfrontationState::None)
+	{
+		UpdateConfrontation(DeltaTime);
+		return;
+	}
+
 	UpdateDetection(DeltaTime);
+
+	// Check if suspicious sentry should challenge Kabir
+	if (AlertState == ECurfewAlertState::Suspicious || (DetectionMeter >= 35.0f && AlertState == ECurfewAlertState::Unaware))
+	{
+		ARevolutionCharacter* Player = Cast<ARevolutionCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+		if (Player && CanInitiateConfrontation(Player))
+		{
+			InitiateConfrontation(Player);
+			return;
+		}
+	}
+
 	UpdatePatrol(DeltaTime);
 }
 
@@ -697,6 +717,10 @@ void ACurfewPatrolAI::ResetPatrolState()
 	bIsLanternFlickering = false;
 	LanternFlickerTimer = 0.0f;
 	LanternFlickerCycleTimer = 0.0f;
+	ConfrontationState = ECurfewConfrontationState::None;
+	ConfrontationTimer = 0.0f;
+	bConfrontationVouched = false;
+	ConfrontationTargetPlayer = nullptr;
 	if (LanternLight)
 	{
 		LanternLight->SetIntensity(1400.0f);
@@ -707,5 +731,289 @@ void ACurfewPatrolAI::ResetPatrolState()
 	}
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("Watchman %s reset to unaware patrol at origin waypoint."), *GetName());
+}
+
+bool ACurfewPatrolAI::CanInitiateConfrontation(ARevolutionCharacter* TargetPlayer) const
+{
+	if (!TargetPlayer || AlertState == ECurfewAlertState::Alerted)
+	{
+		return false;
+	}
+
+	if (ConfrontationState != ECurfewConfrontationState::None)
+	{
+		return false;
+	}
+
+	if (TargetPlayer->IsHidingInCover() || TargetPlayer->IsCrawlTraversing() || TargetPlayer->IsSteamObscured())
+	{
+		return false;
+	}
+
+	float DistToPlayer = FVector::Dist(GetActorLocation(), TargetPlayer->GetActorLocation());
+	if (DistToPlayer > ConfrontationHaltRadius)
+	{
+		return false;
+	}
+
+	// Line of sight check to ensure sentry is not confronting through brick walls
+	FHitResult HitLOS;
+	FCollisionQueryParams TraceParams;
+	TraceParams.AddIgnoredActor(this);
+	TraceParams.AddIgnoredActor(TargetPlayer);
+	bool bBlocked = GetWorld()->LineTraceSingleByChannel(
+		HitLOS,
+		GetActorLocation() + FVector(0.0f, 0.0f, 65.0f),
+		TargetPlayer->GetActorLocation() + FVector(0.0f, 0.0f, 40.0f),
+		ECC_Visibility,
+		TraceParams
+	);
+
+	return !bBlocked;
+}
+
+void ACurfewPatrolAI::SetConfrontationTarget(ARevolutionCharacter* TargetPlayer)
+{
+	ConfrontationTargetPlayer = TargetPlayer;
+}
+
+void ACurfewPatrolAI::InitiateConfrontation(ARevolutionCharacter* TargetPlayer)
+{
+	if (!TargetPlayer) return;
+
+	ConfrontationTargetPlayer = TargetPlayer;
+
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+	}
+
+	FVector SensedDir = (TargetPlayer->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+	if (!SensedDir.IsNearlyZero())
+	{
+		SetActorRotation(SensedDir.Rotation());
+	}
+
+	ConfrontationTimer = 0.0f;
+	bConfrontationVouched = false;
+
+	if (SentryHaltSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SentryHaltSound, GetActorLocation(), 1.15f, 1.0f, 0.0f, VoiceAttenuation);
+	}
+	else if (SuspiciousVoiceSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, SuspiciousVoiceSound, GetActorLocation(), 1.1f, 1.0f, 0.0f, VoiceAttenuation);
+	}
+	else if (WatchmanCalloutSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, WatchmanCalloutSound, GetActorLocation(), 1.0f);
+	}
+
+	SetConfrontationState(ECurfewConfrontationState::ChallengerHalt, TEXT("Curfew Section 144 Stop & Identity Demand"));
+	UE_LOG(LogREVOLUTION, Warning, TEXT("[Pehchan & Talashi] Sentry challenged Kabir: 'Thahar! Kaun hai wahan?' (Halt under Section 144!)"));
+}
+
+void ACurfewPatrolAI::SetConfrontationState(ECurfewConfrontationState NewState, const FString& Reason)
+{
+	if (ConfrontationState != NewState)
+	{
+		ConfrontationState = NewState;
+		LastConfrontationReason = Reason;
+		OnConfrontationChanged.Broadcast(ConfrontationState, LastConfrontationReason);
+
+		FString StateStr;
+		switch (ConfrontationState)
+		{
+		case ECurfewConfrontationState::None: StateStr = TEXT("None"); break;
+		case ECurfewConfrontationState::ChallengerHalt: StateStr = TEXT("ChallengerHalt"); break;
+		case ECurfewConfrontationState::SatchelSearch: StateStr = TEXT("SatchelSearch"); break;
+		case ECurfewConfrontationState::CommunityVouch: StateStr = TEXT("CommunityVouch"); break;
+		case ECurfewConfrontationState::CleanPass: StateStr = TEXT("CleanPass"); break;
+		case ECurfewConfrontationState::ArrestEscalation: StateStr = TEXT("ArrestEscalation"); break;
+		}
+
+		UE_LOG(LogREVOLUTION, Log, TEXT("[Pehchan & Talashi] Confrontation State -> %s (%s)"), *StateStr, *Reason);
+	}
+}
+
+void ACurfewPatrolAI::UpdateConfrontation(float DeltaTime)
+{
+	ARevolutionCharacter* Player = ConfrontationTargetPlayer.IsValid() ? ConfrontationTargetPlayer.Get() : Cast<ARevolutionCharacter>(UGameplayStatics::GetPlayerCharacter(this, 0));
+	if (!Player)
+	{
+		SetConfrontationState(ECurfewConfrontationState::None, TEXT("Player reference lost"));
+		return;
+	}
+
+	if (GetCharacterMovement())
+	{
+		GetCharacterMovement()->StopMovementImmediately();
+	}
+
+	FVector SensedDir = (Player->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+	if (!SensedDir.IsNearlyZero())
+	{
+		SetActorRotation(FMath::RInterpTo(GetActorRotation(), SensedDir.Rotation(), DeltaTime, 6.0f));
+	}
+
+	float DistToPlayer = FVector::Dist(GetActorLocation(), Player->GetActorLocation());
+
+	// If player breaks away during halt or search, sentry immediately sounds alert whistle!
+	if (DistToPlayer > (ConfrontationHaltRadius * 1.6f) &&
+		(ConfrontationState == ECurfewConfrontationState::ChallengerHalt || ConfrontationState == ECurfewConfrontationState::SatchelSearch))
+	{
+		UE_LOG(LogREVOLUTION, Warning, TEXT("[Pehchan & Talashi] Kabir fled during sentry interrogation! Sentry sounding alarm!"));
+		SetConfrontationState(ECurfewConfrontationState::ArrestEscalation, TEXT("Player evaded curfew interrogation"));
+		DetectionMeter = 100.0f;
+		SetAlertState(ECurfewAlertState::Alerted);
+		SetConfrontationState(ECurfewConfrontationState::None, TEXT("Pursuit active"));
+		return;
+	}
+
+	ConfrontationTimer += DeltaTime;
+
+	switch (ConfrontationState)
+	{
+	case ECurfewConfrontationState::ChallengerHalt:
+	{
+		// Sentry halts player for 1.0 second, then begins inspecting satchel
+		if (ConfrontationTimer >= 1.0f)
+		{
+			ConfrontationTimer = 0.0f;
+			SetConfrontationState(ECurfewConfrontationState::SatchelSearch, TEXT("Inspecting Satchel (Talashi)"));
+
+			if (SentrySearchSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, SentrySearchSound, GetActorLocation(), 1.0f);
+			}
+		}
+		break;
+	}
+
+	case ECurfewConfrontationState::SatchelSearch:
+	{
+		// Check for Community Vouch if local cluster is Trusted
+		if (!bConfrontationVouched)
+		{
+			if (UWorld* World = GetWorld())
+			{
+				if (UCommunityTrustSubsystem* TrustSub = World->GetSubsystem<UCommunityTrustSubsystem>())
+				{
+					FName ClusterID = TrustSub->GetClusterAtLocation(GetActorLocation());
+					ECommunityStance Stance = TrustSub->GetClusterStance(ClusterID);
+
+					if (Stance == ECommunityStance::Trusted)
+					{
+						ACivilianNPCActor* NearbyCivilian = nullptr;
+						float ClosestDist = 750.0f;
+
+						for (TActorIterator<ACivilianNPCActor> CivIt(World); CivIt; ++CivIt)
+						{
+							ACivilianNPCActor* Civ = *CivIt;
+							if (Civ && Civ->CommunityClusterID == ClusterID)
+							{
+								float DistCiv = FVector::Dist(GetActorLocation(), Civ->GetActorLocation());
+								if (DistCiv < ClosestDist)
+								{
+									ClosestDist = DistCiv;
+									NearbyCivilian = Civ;
+								}
+							}
+						}
+
+						if (NearbyCivilian)
+						{
+							bConfrontationVouched = true;
+							FText VouchBark = NearbyCivilian->DeliverCommunityVouch(this);
+							SetConfrontationState(ECurfewConfrontationState::CommunityVouch, VouchBark.ToString());
+							ConfrontationTimer = 0.0f;
+							return;
+						}
+					}
+				}
+			}
+		}
+
+		if (ConfrontationTimer >= ConfrontationSearchDuration)
+		{
+			ConfrontationTimer = 0.0f;
+
+			if (Player->GetPamphletCount() > 0)
+			{
+				if (SentryContrabandFoundSound)
+				{
+					UGameplayStatics::PlaySoundAtLocation(this, SentryContrabandFoundSound, GetActorLocation(), 1.15f);
+				}
+
+				SetConfrontationState(ECurfewConfrontationState::ArrestEscalation, TEXT("Contraband strike leaflets uncovered in satchel!"));
+				DetectionMeter = 100.0f;
+				SetAlertState(ECurfewAlertState::Alerted);
+
+				if (UWorld* World = GetWorld())
+				{
+					if (UCommunityTrustSubsystem* TrustSub = World->GetSubsystem<UCommunityTrustSubsystem>())
+					{
+						FName ClusterID = TrustSub->GetClusterAtLocation(GetActorLocation());
+						TrustSub->RecordIncident(ClusterID, FName(TEXT("Incident_ContrabandSeizedByCurfew")), Player, this, -30);
+					}
+				}
+
+				SetConfrontationState(ECurfewConfrontationState::None, TEXT("Pursuit active"));
+			}
+			else
+			{
+				if (SentryCleanPassSound)
+				{
+					UGameplayStatics::PlaySoundAtLocation(this, SentryCleanPassSound, GetActorLocation(), 1.0f);
+				}
+
+				SetConfrontationState(ECurfewConfrontationState::CleanPass, TEXT("No contraband detected. Cleared."));
+			}
+		}
+		break;
+	}
+
+	case ECurfewConfrontationState::CommunityVouch:
+	{
+		// Sentry defuses after hearing civilian testimony (1.2s)
+		if (ConfrontationTimer >= 1.2f)
+		{
+			ConfrontationTimer = 0.0f;
+			if (SentryCleanPassSound)
+			{
+				UGameplayStatics::PlaySoundAtLocation(this, SentryCleanPassSound, GetActorLocation(), 1.0f);
+			}
+			SetConfrontationState(ECurfewConfrontationState::CleanPass, TEXT("Civilian testimony accepted. Dismissed."));
+		}
+		break;
+	}
+
+	case ECurfewConfrontationState::CleanPass:
+	{
+		if (ConfrontationTimer >= 1.0f)
+		{
+			ConfrontationTimer = 0.0f;
+			DetectionMeter = 0.0f;
+			SetAlertState(ECurfewAlertState::Unaware);
+			SetConfrontationState(ECurfewConfrontationState::None, TEXT("Resuming regular patrol"));
+		}
+		break;
+	}
+
+	case ECurfewConfrontationState::ArrestEscalation:
+	{
+		SetConfrontationState(ECurfewConfrontationState::None, TEXT("Pursuit active"));
+		break;
+	}
+
+	default:
+		break;
+	}
+}
+
+UCommunityTrustSubsystem* ACurfewPatrolAI::GetCommunityTrustSubsystem() const
+{
+	return GetWorld() ? GetWorld()->GetSubsystem<UCommunityTrustSubsystem>() : nullptr;
 }
 

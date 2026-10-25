@@ -279,15 +279,18 @@ The following files were modified or created during defect resolution (all user 
 8. **Remote Control Security:** Open ports 30010/30020 auto-start disabled; remote Python and console execution blocked.
 9. **Title Menu Startup Flow:** Gated in `ARevolutionHUD::BeginPlay()` to show Title Menu on standalone boot before unpausing into gameplay.
 10. **Community-Trust Persistence:** Disk serialization and deserialization verified through `USaveGame` with 100% data fidelity.
-11. **Full 36-Suite CI Verification:** Master test runner (`Scripts/run_all_tests.py`) expanded to all 36 suites: **100% PASS (36/36)** with **0 asset modifications or dirty working tree side effects**.
+11. **Full 39-Suite CI Verification:** Master test runner (`Scripts/run_all_tests.py`) expanded to all 39 suites: **100% PASS (39/39)** with **0 asset modifications or dirty working tree side effects**.
 12. **Extended Soak & Stability (TEST-33):** 300 simulated cycles executed with 0 leaked actors (constant 299 level actors) and 0 memory growth. Telemetry exported to `Documentation/SOAK_TEST_TELEMETRY.json`.
 13. **Hardware Scalability & Multi-GPU Matrix (TEST-34):** 4/4 scalability presets verified (Low/Handheld 40 FPS, Medium 50 FPS, High 60 FPS, Epic 75 FPS). Matrix exported to `Documentation/HARDWARE_SCALABILITY_MATRIX.json`.
 14. **Distribution Cryptographic Security (TEST-35):** SHA256 hashes generated for all 8 Shipping containers (`REVOLUTION.exe`, `REVOLUTION-Win64-Shipping.exe`, pak/ucas/utoc files). Manifest saved to `Documentation/DISTRIBUTION_SECURITY_MANIFEST.json`.
 15. **Multi-Language Localization (TEST-36):** 100% coverage across English, Punjabi (Gurmukhi), Hindi (Devanagari), and Urdu (Nastaliq). All C++ sources verified with UTF-8 BOM (`EF BB BF`). Report saved to `Documentation/LOCALIZATION_COVERAGE_REPORT.json`.
+16. **Kabir v06 Character & Animation Suite (TEST-37):** Audited all 30 assets (8 PBR Heritage Materials, 3 life-stage Skeletal Meshes, 16 Animation Sequences, and 3 Character Blueprints) in Unreal Engine 5.5.4 LTS.
+17. **Kabir v06 Showcase Level & Staging (TEST-38):** Audited `L_Kabir_v06_Showcase` with all 3 life stages, CineCamera, and dynamic atmosphere.
+18. **Pehchan & Talashi Interrogation & Persian Wheel Labor (TEST-39):** Validated APersianWheelActor flume labor (+35 trust bonus), clean satchel pass, contraband arrest escalation, community vouch defusal, and evasion flight pursuit.
 
 ---
 
-## 9. Master CI Verification Suite Results (36/36 Suites Passed)
+## 9. Master CI Verification Suite Results (39/39 Suites Passed)
 
 | Suite ID | Status | Duration | Test Suite Name | Target System / Scope |
 | :--- | :--- | :--- | :--- | :--- |
@@ -325,10 +328,13 @@ The following files were modified or created during defect resolution (all user 
 | **TEST-32** | PASS | 17.15s | End-to-End Interactive QA Playthrough Bot & 29-Stage Telemetry | 29-stage pawn capsule sweep across 205.5m without collision blockades |
 | **TEST-33** | PASS | 16.50s | Extended Soak & Memory Stability Verification (300 Cycles) | 300 cycles, 0 actor leaks (constant 299 actors), 0 memory growth |
 | **TEST-34** | PASS | 16.20s | Hardware Scalability & Multi-Tier GPU Compatibility Matrix | Low, Medium, High, Epic presets validated across all subsystems |
-| **TEST-35** | PASS | 2.10s | Win64 Shipping Distribution Security & Cryptographic Integrity | SHA256 hashes & Authenticode status for all 8 Shipping containers |
-| **TEST-36** | PASS | 1.15s | Multi-Language Localization Coverage & UTF-8 Text Integrity Audit | English, Punjabi, Hindi, Urdu 100% verified; UTF-8 BOM confirmed |
+| **TEST-35** | PASS | 3.11s | Win64 Shipping Distribution Security & Cryptographic Integrity | SHA256 hashes & Authenticode status for all 8 Shipping containers |
+| **TEST-36** | PASS | 0.06s | Multi-Language Localization Coverage & UTF-8 Text Integrity Audit | English, Punjabi, Hindi, Urdu 100% verified; UTF-8 BOM confirmed |
+| **TEST-37** | PASS | 17.07s | Kabir v06 Heritage Character, 16 Animation Suite & Blueprints Audit | 8 materials, 3 skeletal meshes, 16 animation sequences, 3 character BPs |
+| **TEST-38** | PASS | 4.24s | Kabir v06 In-Engine Cinematic Showcase Level & Staging Audit | 303 level actors in `L_Kabir_v06_Showcase`, 3 stages & CineCamera |
+| **TEST-39** | PASS | 0.51s | Pehchan & Talashi Interrogation & Persian Wheel Labor Verification | 5/5 subtests: flume labor, clean pass, contraband, vouch, evasion |
 
-**Asset Modification Check:** Post-test Git status verification confirmed that zero map (`.umap`) or content (`.uasset`) files were modified or dirtied during the execution of all 36 suites.
+**Asset Modification Check:** Post-test Git status verification confirmed that zero map (`.umap`) or content (`.uasset`) files were modified or dirtied during the execution of all 39 suites.
 
 ---
 
@@ -350,17 +356,19 @@ To resolve the remaining verification question regarding whether the 29-stage st
 
 ## 11. Production Release Readiness & Final Certification
 
-With the completion of **TEST-32 through TEST-36**, all technical requirements across the engine, C++ gameplay architecture, level collision, multi-GPU scalability, long-term memory stability, and multilingual localization are **100% verified**:
+With the completion of **TEST-32 through TEST-39**, all technical requirements across the engine, C++ gameplay architecture, level collision, multi-GPU scalability, long-term memory stability, Kabir v06 assets, and multilingual localization are **100% verified**:
 
 ### Completed Production Milestones:
 1. **Runtime Defect Remediations:** 6 of 6 defects investigated and resolved at root cause with 0 warnings.
-2. **Master CI Test Harness:** 36 of 36 automated verification suites passing with 100% success rate.
+2. **Master CI Test Harness:** 39 of 39 automated verification suites passing with 100% success rate.
 3. **End-to-End Story Traversal (TEST-32):** 29 of 29 narrative stages verified via physical pawn navigation ($205.5\text{ m}$).
 4. **Extended Soak Stability (TEST-33):** 300 active simulation cycles verified with constant 299 actors and 0 memory leaks.
 5. **Hardware Scalability Matrix (TEST-34):** Low, Medium, High, and Epic quality profiles verified across handheld APUs, discrete GPUs, and high-refresh hardware envelopes.
 6. **Binary Cryptographic Signatures (TEST-35):** SHA256 checksums cataloged for all 8 Shipping release containers.
 7. **Multilingual Localization & Encoding (TEST-36):** English, Punjabi (Gurmukhi), Hindi (Devanagari), and Urdu (Nastaliq) verified with UTF-8 BOM source encoding.
-8. **Isolated Build Distributions:** Baseline Development (`Build/Development/Windows/`), Candidate Development (`Build/Candidate_Windows/Windows/`), and stripped Win64 Shipping distribution (`Build/Shipping_Windows/Windows/`) verified and preserved.
+8. **Kabir v06 Heritage Assets (TEST-37 & TEST-38):** 8 PBR materials, 3 skeletal meshes, 16 animation sequences, 3 character Blueprints, and 303-actor showcase level audited with 0 regressions.
+9. **Pehchan & Talashi Interrogation & Labor (TEST-39):** Persian Wheel irrigation labor (+35 trust) and full 5-stage sentry confrontation mechanics certified.
+10. **Isolated Build Distributions:** Baseline Development (`Build/Development/Windows/`), Candidate Development (`Build/Candidate_Windows/Windows/`), and stripped Win64 Shipping distribution (`Build/Shipping_Windows/Windows/`) verified and preserved.
 
 ### Final External Storefront Publishing Step:
 - **EV Authenticode Code Signing:**

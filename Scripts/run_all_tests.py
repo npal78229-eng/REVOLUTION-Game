@@ -236,6 +236,24 @@ def main():
             "name": "Multi-Language Localization Coverage & UTF-8 Text Integrity Audit",
             "script": os.path.join(scripts_dir, "verify_localization_coverage.py"),
             "type": "python"
+        },
+        {
+            "id": "TEST-37",
+            "name": "Kabir v06 Heritage Character, 16 Animation Suite & Blueprints Audit",
+            "script": os.path.join(scripts_dir, "verify_kabir_v06_full_suite.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-38",
+            "name": "Kabir v06 In-Engine Cinematic Showcase Level & Staging Audit",
+            "script": os.path.join(scripts_dir, "verify_kabir_v06_showcase_level.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-39",
+            "name": "Pehchan & Talashi Colonial Interrogation & Persian Wheel Labor Verification",
+            "script": os.path.join(scripts_dir, "verify_pehchan_talashi.py"),
+            "type": "commandlet"
         }
     ]
 

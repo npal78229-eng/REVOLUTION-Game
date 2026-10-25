@@ -3,7 +3,7 @@
   "name": "Extended Soak & Memory Stability Verification",
   "target_level": "/Game/Maps/L_Validation_Gym",
   "total_cycles": 300,
-  "total_elapsed_seconds": 0.07,
+  "total_elapsed_seconds": 0.04,
   "initial_actor_count": 299,
   "final_actor_count": 299,
   "initial_memory_mb": 0.0,
@@ -11,46 +11,46 @@
   "net_memory_growth_mb": 0.0,
   "actor_leak_count": 0,
   "status": "PASS",
-  "timestamp": "2026-10-25T13:28:11Z",
+  "timestamp": "2026-10-25T13:57:15Z",
   "samples": [
     {
       "cycle": 50,
-      "elapsed_seconds": 0.02,
+      "elapsed_seconds": 0.01,
       "actor_count": 299,
       "memory_rss_mb": 0.0,
       "memory_delta_mb": 0.0
     },
     {
       "cycle": 100,
-      "elapsed_seconds": 0.03,
+      "elapsed_seconds": 0.01,
       "actor_count": 299,
       "memory_rss_mb": 0.0,
       "memory_delta_mb": 0.0
     },
     {
       "cycle": 150,
-      "elapsed_seconds": 0.04,
+      "elapsed_seconds": 0.02,
       "actor_count": 299,
       "memory_rss_mb": 0.0,
       "memory_delta_mb": 0.0
     },
     {
       "cycle": 200,
-      "elapsed_seconds": 0.05,
+      "elapsed_seconds": 0.03,
       "actor_count": 299,
       "memory_rss_mb": 0.0,
       "memory_delta_mb": 0.0
     },
     {
       "cycle": 250,
-      "elapsed_seconds": 0.06,
+      "elapsed_seconds": 0.04,
       "actor_count": 299,
       "memory_rss_mb": 0.0,
       "memory_delta_mb": 0.0
     },
     {
       "cycle": 300,
-      "elapsed_seconds": 0.07,
+      "elapsed_seconds": 0.04,
       "actor_count": 299,
       "memory_rss_mb": 0.0,
       "memory_delta_mb": 0.0

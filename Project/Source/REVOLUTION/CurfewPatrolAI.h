@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -10,6 +10,7 @@ class UPointLightComponent;
 class USpotLightComponent;
 class UStaticMeshComponent;
 class ARevolutionCharacter;
+class UCommunityTrustSubsystem;
 class USoundBase;
 class USoundAttenuation;
 
@@ -22,7 +23,19 @@ enum class ECurfewAlertState : uint8
 	Alerted UMETA(DisplayName = "Alerted (Curfew Challenge)")
 };
 
+UENUM(BlueprintType)
+enum class ECurfewConfrontationState : uint8
+{
+	None UMETA(DisplayName = "None"),
+	ChallengerHalt UMETA(DisplayName = "Challenger Halt (Identity Demand)"),
+	SatchelSearch UMETA(DisplayName = "Satchel Search (Stop-and-Frisk Talashi)"),
+	CommunityVouch UMETA(DisplayName = "Community Vouch (Civilian Defusal)"),
+	CleanPass UMETA(DisplayName = "Clean Pass (Dismissed / Cleared)"),
+	ArrestEscalation UMETA(DisplayName = "Arrest Escalation (Contraband Uncovered)")
+};
+
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnWatchmanAlertChanged, ECurfewAlertState, NewState, float, DetectionPercentage);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnCurfewConfrontationChanged, ECurfewConfrontationState, NewState, const FString&, Details);
 
 /**
  * Historical British-Era Watchman (Chaukidar / Colonial Constable)
@@ -73,7 +86,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Perception")
 	float HearingRadius = 850.0f; // Audible detection for sprinting steps
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Perception")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Perception")
 	float DetectionMeter = 0.0f; // 0.0 to 100.0
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Perception")
@@ -82,7 +95,7 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Perception")
 	float SuspicionDecayRate = 18.0f; // Per second when Kabir breaks line of sight
 
-	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Perception")
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Perception")
 	ECurfewAlertState AlertState = ECurfewAlertState::Unaware;
 
 	UPROPERTY(BlueprintAssignable, Category = "Revolution|Perception")
@@ -151,10 +164,73 @@ public:
 	UFUNCTION(BlueprintPure, Category = "Revolution|Perception")
 	bool IsLanternFlickering() const { return bIsLanternFlickering; }
 
+	// --- PEHCHAN & TALASHI (CONFRONTATION & INTERROGATION SYSTEM) ---
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Confrontation")
+	ECurfewConfrontationState ConfrontationState = ECurfewConfrontationState::None;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Confrontation")
+	float ConfrontationHaltRadius = 280.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Confrontation")
+	float ConfrontationSearchDuration = 2.5f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Confrontation")
+	float ConfrontationTimer = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Confrontation")
+	bool bConfrontationVouched = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Confrontation")
+	TWeakObjectPtr<ARevolutionCharacter> ConfrontationTargetPlayer;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|Confrontation")
+	FString LastConfrontationReason;
+
+	UPROPERTY(BlueprintAssignable, Category = "Revolution|Confrontation")
+	FOnCurfewConfrontationChanged OnConfrontationChanged;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* SentryHaltSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* SentrySearchSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* SentryCleanPassSound = nullptr;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Audio")
+	USoundBase* SentryContrabandFoundSound = nullptr;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Confrontation")
+	void SetConfrontationTarget(ARevolutionCharacter* TargetPlayer);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Confrontation")
+	bool CanInitiateConfrontation(ARevolutionCharacter* TargetPlayer) const;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Confrontation")
+	void InitiateConfrontation(ARevolutionCharacter* TargetPlayer);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Confrontation")
+	void UpdateConfrontation(float DeltaTime);
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Confrontation")
+	void SetConfrontationState(ECurfewConfrontationState NewState, const FString& Reason = TEXT(""));
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Confrontation")
+	ECurfewConfrontationState GetConfrontationState() const { return ConfrontationState; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|Confrontation")
+	bool IsInConfrontation() const { return ConfrontationState != ECurfewConfrontationState::None; }
+
+	UFUNCTION(BlueprintPure, Category = "Revolution|CommunityTrust")
+	UCommunityTrustSubsystem* GetCommunityTrustSubsystem() const;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|Perception")
+	void SetAlertState(ECurfewAlertState NewState);
+
 protected:
 	void UpdatePatrol(float DeltaTime);
 	void UpdateDetection(float DeltaTime);
-	void SetAlertState(ECurfewAlertState NewState);
 
 private:
 	int32 CurrentWaypointIndex = 0;

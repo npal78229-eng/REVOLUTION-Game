@@ -205,6 +205,48 @@ $TestSuites = @(
         Name = 'End-to-End Interactive QA Playthrough Bot & 29-Stage Telemetry'
         Script = "$ScriptsDir\verify_e2e_interactive_playthrough.py"
         Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-33'
+        Name = 'Extended Soak & Memory Stability Verification (300 Cycles)'
+        Script = "$ScriptsDir\verify_extended_soak_test.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-34'
+        Name = 'Hardware Scalability & Multi-Tier GPU Compatibility Matrix'
+        Script = "$ScriptsDir\verify_hardware_scalability_matrix.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-35'
+        Name = 'Win64 Shipping Distribution Security & Cryptographic Integrity'
+        Script = "$ScriptsDir\verify_distribution_manifest.py"
+        Type = 'Python'
+    },
+    @{
+        Id = 'TEST-36'
+        Name = 'Multi-Language Localization Coverage & UTF-8 Text Integrity Audit'
+        Script = "$ScriptsDir\verify_localization_coverage.py"
+        Type = 'Python'
+    },
+    @{
+        Id = 'TEST-37'
+        Name = 'Kabir v06 Heritage Character, 16 Animation Suite & Blueprints Audit'
+        Script = "$ScriptsDir\verify_kabir_v06_full_suite.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-38'
+        Name = 'Kabir v06 In-Engine Cinematic Showcase Level & Staging Audit'
+        Script = "$ScriptsDir\verify_kabir_v06_showcase_level.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-39'
+        Name = 'Pehchan & Talashi Colonial Interrogation & Persian Wheel Labor Verification'
+        Script = "$ScriptsDir\verify_pehchan_talashi.py"
+        Type = 'Commandlet'
     }
 )
 

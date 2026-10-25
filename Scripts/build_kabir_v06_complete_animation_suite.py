@@ -190,6 +190,8 @@ def set_active_action(arm_obj, act):
     if not arm_obj.animation_data:
         arm_obj.animation_data_create()
     arm_obj.animation_data.action = act
+    if act:
+        act.use_fake_user = True
 
 def reset_pose(arm_obj):
     for pb in arm_obj.pose.bones:
@@ -989,30 +991,42 @@ def main():
     scene.camera = cam_obj
     
     review_shots = [
-        ("Anim_Kabir_v06_Weapon_Aim", 15, "Kabir_v06_Action_Weapon_Aim.png"),
-        ("Anim_Kabir_v06_Weapon_Shoot", 2, "Kabir_v06_Action_Weapon_Shoot_Recoil.png"),
-        ("Anim_Kabir_v06_Weapon_Pickup", 22, "Kabir_v06_Action_Weapon_Pickup.png"),
-        ("Anim_Kabir_v06_Walk", 15, "Kabir_v06_Action_Walk_Cadence.png"),
-        ("Anim_Kabir_v06_Crouch_Idle", 30, "Kabir_v06_Action_Stealth_Crouch.png")
+        ("Anim_Kabir_v06_Weapon_Aim", 15, "Kabir_v06_Action_Weapon_Aim.png", (1.55, -2.2, 1.35), (math.radians(82), 0, math.radians(12))),
+        ("Anim_Kabir_v06_Weapon_Shoot", 2, "Kabir_v06_Action_Weapon_Shoot_Recoil.png", (1.55, -2.2, 1.35), (math.radians(82), 0, math.radians(12))),
+        ("Anim_Kabir_v06_Weapon_Pickup", 22, "Kabir_v06_Action_Weapon_Pickup.png", (1.55, -2.0, 0.95), (math.radians(84), 0, math.radians(12))),
+        ("Anim_Kabir_v06_Walk", 15, "Kabir_v06_Action_Walk_Cadence.png", (1.55, -2.2, 1.35), (math.radians(82), 0, math.radians(12))),
+        ("Anim_Kabir_v06_Crouch_Idle", 30, "Kabir_v06_Action_Stealth_Crouch.png", (1.55, -2.0, 0.95), (math.radians(84), 0, math.radians(12))),
+        ("Anim_Kabir_v06_Run", 10, "Kabir_v06_Action_Run_Sprint.png", (1.65, -2.4, 1.25), (math.radians(82), 0, math.radians(10))),
+        ("Anim_Kabir_v06_Stop", 8, "Kabir_v06_Action_Stop_Decel.png", (1.65, -2.4, 1.20), (math.radians(82), 0, math.radians(10))),
+        ("Anim_Kabir_v06_Jump", 12, "Kabir_v06_Action_Jump_Apex.png", (1.65, -2.5, 1.45), (math.radians(80), 0, math.radians(10))),
+        ("Anim_Kabir_v06_Mantle", 18, "Kabir_v06_Action_Mantle_Heave.png", (1.55, -2.2, 1.40), (math.radians(80), 0, math.radians(10))),
+        ("Anim_Kabir_v06_Climb_Ladder", 15, "Kabir_v06_Action_Ladder_Climb.png", (1.55, -2.2, 1.30), (math.radians(82), 0, math.radians(10))),
+        ("Anim_Kabir_v06_Curfew_Listen", 30, "Kabir_v06_Action_Curfew_Listen.png", (1.45, -1.8, 1.35), (math.radians(82), 0, math.radians(10))),
+        ("Anim_Kabir_v06_Satchel_Open", 20, "Kabir_v06_Action_Satchel_Open.png", (1.45, -1.6, 1.20), (math.radians(84), 0, math.radians(10)))
     ]
     
-    for act_name, frame_num, png_name in review_shots:
+    artifact_dir = r"C:\Users\npal7\.gemini\antigravity\brain\f71e59c5-c47d-4ecc-9d85-fded280f9f20"
+    import shutil
+    
+    for act_name, frame_num, png_name, cam_loc, cam_rot in review_shots:
         act, _, _ = all_actions[act_name]
         set_active_action(arm_obj, act)
         scene.frame_set(frame_num)
         
-        # Adjust camera for pickup / crouch
-        if "Pickup" in act_name or "Crouch" in act_name:
-            cam_obj.location = (1.55, -2.0, 0.95)
-            cam_obj.rotation_euler = (math.radians(84), 0, math.radians(12))
-        else:
-            cam_obj.location = (1.55, -2.2, 1.35)
-            cam_obj.rotation_euler = (math.radians(82), 0, math.radians(12))
+        cam_obj.location = cam_loc
+        cam_obj.rotation_euler = cam_rot
             
         out_png = os.path.join(render_dir, png_name)
         scene.render.filepath = out_png
         bpy.ops.render.render(write_still=True)
         log(f"Rendered Action Review: {out_png}")
+        
+        try:
+            dest_art = os.path.join(artifact_dir, png_name)
+            shutil.copy2(out_png, dest_art)
+            log(f"  Copied to artifact dir: {dest_art}")
+        except Exception as e:
+            log(f"  Note copying to artifact: {e}")
         
     # Save master blend file with all actions & props preserved
     bpy.ops.wm.save_mainfile(filepath=blend_path)

@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -12,6 +12,7 @@
 class USphereComponent;
 class UStaticMeshComponent;
 class ARevolutionCharacter;
+class ACurfewPatrolAI;
 class USoundBase;
 class USoundAttenuation;
 
@@ -269,6 +270,12 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|CommunityTrust")
 	TArray<FText> TrustedBarks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|CommunityTrust")
+	TArray<FText> VouchBarks;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|CommunityTrust")
+	FText DeliverCommunityVouch(ACurfewPatrolAI* ConfrontingSentry);
 
 	UFUNCTION(BlueprintCallable, Category = "Revolution|CommunityTrust")
 	void OnCommunityStanceChanged(FName ClusterID, ECommunityStance NewStance);

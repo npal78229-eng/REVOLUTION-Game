@@ -3,7 +3,7 @@
   "name": "Hardware Scalability & Multi-Tier GPU Compatibility Matrix",
   "total_tiers": 4,
   "status": "PASS",
-  "timestamp": "2026-10-25T13:29:01Z",
+  "timestamp": "2026-10-25T13:57:31Z",
   "tiers": [
     {
       "tier": "Tier 1: Low (Handheld / APU Profile)",

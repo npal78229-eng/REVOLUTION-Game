@@ -13,6 +13,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "RevolutionMissionSubsystem.h"
 #include "CommunityTrustSubsystem.h"
+#include "CurfewPatrolAI.h"
 #include "Sound/SoundBase.h"
 #include "Sound/SoundAttenuation.h"
 #include "Components/AudioComponent.h"
@@ -411,6 +412,7 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 	CautiousBarks.Empty();
 	CompromisedBarks.Empty();
 	TrustedBarks.Empty();
+	VouchBarks.Empty();
 
 	// Default authentic period barks for community stances
 	CautiousBarks.Add(FText::FromString(TEXT("Tread softly, Kabir. The constables were asking questions down the lane.")));
@@ -421,6 +423,11 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 
 	TrustedBarks.Add(FText::FromString(TEXT("Quick, Kabir, step into the shadows here. The horse patrol is turning the corner.")));
 	TrustedBarks.Add(FText::FromString(TEXT("The passage door is unlatched for you, child. Vande Mataram.")));
+
+	// Default community vouch barks for sentry confrontations (Pehchan & Talashi)
+	VouchBarks.Add(FText::FromString(TEXT("Daroga sahib, he is only Rahim's apprentice fetching dry straw for the kiln. Let him pass!")));
+	VouchBarks.Add(FText::FromString(TEXT("Halt your rifle, Havildar! Kabir has been in our mohalla all afternoon repairing the flume. There is no mischief here.")));
+	VouchBarks.Add(FText::FromString(TEXT("Bhai, look at his hands—only canal mud and river silt, not ink! He belongs to our basti.")));
 
 	CurrentDialogueIndex = 0;
 
@@ -1367,4 +1374,34 @@ void ACivilianNPCActor::ApplyHeritageAttireMaterials()
 	{
 		TurbanMesh->SetMaterial(0, TurbanMat);
 	}
+}
+
+FText ACivilianNPCActor::DeliverCommunityVouch(ACurfewPatrolAI* ConfrontingSentry)
+{
+	FText VouchText = FText::FromString(TEXT("Daroga sahib, he is with us! There is no mischief in this boy."));
+	if (VouchBarks.Num() > 0)
+	{
+		int32 Index = FMath::RandRange(0, VouchBarks.Num() - 1);
+		VouchText = VouchBarks[Index];
+	}
+
+	if (ConfrontingSentry)
+	{
+		FVector DirToSentry = (ConfrontingSentry->GetActorLocation() - GetActorLocation()).GetSafeNormal2D();
+		if (!DirToSentry.IsNearlyZero())
+		{
+			SetActorRotation(DirToSentry.Rotation());
+		}
+	}
+
+	UE_LOG(LogREVOLUTION, Warning, TEXT("[CommunityVouch] Civilian '%s' intervened with sentry: \"%s\""),
+		*CivilianName.ToString(), *VouchText.ToString());
+	OnDialogueSpoken.Broadcast(this, CivilianName, VouchText);
+
+	if (AmbientBarkVoiceSound)
+	{
+		UGameplayStatics::PlaySoundAtLocation(this, AmbientBarkVoiceSound, GetActorLocation(), 1.0f, 1.0f, 0.0f, VoiceAttenuation);
+	}
+
+	return VouchText;
 }

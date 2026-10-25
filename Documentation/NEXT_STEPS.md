@@ -1050,7 +1050,8 @@ All 35 planned milestones across Phases 1 through 5, Gold Master certification, 
   Phase 7: Packaging, Candidate Builds & Verification     -> Task 45
   Phase 8: Kabir v05 Locomotion Suite & PBR Overhaul       -> Task 46
   Phase 9: Runtime Defect Remediation & Shipping Release   -> Audit Report (AUDIT-REV-2026-FINAL)
-  Phase 10: End-to-End QA Traversal & Production Hardening -> Task 47 (Upcoming)
+  Phase 10: End-to-End QA Traversal & Production Hardening -> Task 47 (TEST-32 to TEST-36) [COMPLETED]
+  Phase 11: Kabir v06 Lineup & Pehchan-Talashi Mechanics  -> Tasks 48-49 (TEST-37 to TEST-39) [COMPLETED]
 ================================================================================
 ```
 
@@ -1138,3 +1139,40 @@ All 35 planned milestones across Phases 1 through 5, Gold Master certification, 
   - **Master CI Test Harness Upgrade:**
     - Registered `TEST-32` in `Scripts/run_all_tests.py` and `Scripts/run_all_tests.ps1`.
     - Executed all 32 automated regression test suites: **100% PASS (32/32 SUITES PASSED) in 11.21 minutes** with 0 errors.
+
+---
+
+### 48. Task 48: Kabir v06 Heritage Character Lineup, 16 Animation Sequences & Cinematic Showcase [COMPLETED]
+- **Status:** **100% COMPLETE & VALIDATED IN-ENGINE (TEST-37 & TEST-38 PASSED, 0 ERRORS)**
+- **Implemented Components:**
+  - **3 Life-Stage Hero Skeletal Meshes:**
+    - `SKM_Kabir_v06_Child_12` (12-year-old child protagonist, height 128 cm, khadi kurta and blue shorts).
+    - `SKM_Kabir_v06_Teen_16` (16-year-old youth, height 155 cm, pajama and bandi vest).
+    - `SKM_Kabir_v06_Adult_25` (25-year-old revolutionary, height 178 cm, full dhoti kurta and angavastram).
+  - **8 PBR Heritage Materials:**
+    - `M_Kabir_v06_Skin`, `M_Kabir_v06_Eye`, `M_Kabir_v06_Hair`, `M_Kabir_v06_Khadi_Cream`, `M_Kabir_v06_Khadi_Pajama`, `M_Kabir_v06_Angavastram`, `M_Kabir_v06_Leather`, `M_Kabir_v06_Brass`.
+  - **16 Custom Animation Sequences (`/Game/Characters/Kabir_v06/Animations/`):**
+    - Locomotion: Idle, Walk, Run, Stop, Crouch Idle, Crouch Walk.
+    - Combat & Weapons: Weapon Pickup, Weapon Draw, Weapon Aim, Weapon Shoot, Weapon Holster.
+    - Traversal & Agility: Jump, Climb Ladder, Mantle.
+    - Diegetic Interaction: Satchel Open, Curfew Listen.
+  - **3 Playable Character Blueprints:** `BP_Kabir_v06_Child_12`, `BP_Kabir_v06_Teen_16`, `BP_Kabir_v06_Adult_25`.
+  - **Dedicated Showcase Map:** `L_Kabir_v06_Showcase.umap` (303 level actors, 3 life-stage hero lineup, Master CineCamera).
+  - **Automated Verification:** `TEST-37` (`verify_kabir_v06_full_suite.py`) and `TEST-38` (`verify_kabir_v06_showcase_level.py`) passed 100% with 0 errors.
+
+---
+
+### 49. Task 49: "Pehchan & Talashi" Colonial Interrogation System & Persian Wheel Labor [COMPLETED]
+- **Status:** **100% COMPLETE & VALIDATED IN-ENGINE (TEST-39 PASSED, 5/5 SUBTESTS, 0 ERRORS)**
+- **Implemented Components:**
+  - **APersianWheelActor Flume Labor & Manual Reparation:**
+    - Interactive Persian wheel (`Rural_Persian_Wheel_Rahat_Canal`) connected to `Cluster_UBDC_CanalBasti`.
+    - Pushing the timber draught beam clears irrigation flumes to Kumhar Rahim's potter pits, granting `+35` community trust bonus, elevating cluster stance from Compromised to Neutral, and unbolting deorhi barricades (`Door_CanalBypass_Gate`).
+  - **Pehchan & Talashi Sentry Interrogation State Machine:**
+    - Sentry initiates `ChallengerHalt` under Section 144 martial curfew ("Thahar! Kaun hai wahan?").
+    - Frisk inspection transitions to `SatchelSearch` (2.5s examination).
+    - If satchel contains 0 contraband: Sentry issues `CleanPass` and returns to unaware patrol.
+    - If satchel contains banned pamphlets: Sentry escalates to `Alerted`, sounds whistle, and registers `Incident_ContrabandSeizedByCurfew` with -30 trust penalty.
+    - Community Vouch Protection: If local cluster is `Trusted` and a civilian NPC is nearby, civilian delivers protective vouch bark ("Daroga sahib, he is with us!"), defusing search into `CleanPass`.
+    - Interrogation Evasion Flight: If Kabir flees outside confrontation radius during halt/search, sentry triggers immediate pursuit alarm.
+  - **Automated Verification:** `TEST-39` (`verify_pehchan_talashi.py`) passed all 5/5 subtests with 100% QA certification. Documented in `Tests/TASK_38_PEHCHAN_TALASHI_VERIFICATION.json`.
