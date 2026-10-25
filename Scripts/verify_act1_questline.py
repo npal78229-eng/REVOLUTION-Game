@@ -139,6 +139,8 @@ expected_titles = [
     "TAKE YOUR DESK IN CLASSROOM 4B",
     "GENERAL DYER'S MUNADI PROCLAMATION",
     "THE ROAD TO JALLIANWALA BAGH",
+    "COLONIAL CHECKPOST EAVESDROPPING",
+    "RETRIEVE SATYAGRAHA HANDBILLS",
     "ASSEMBLY AT THE WALLED GARDEN",
     "13 APRIL 1919 — THE CENSORED DUSK",
     "THE VEIL OF REMEMBRANCE",
@@ -158,7 +160,7 @@ expected_titles = [
     "ACT V MILESTONE: INTO THE CANTONMENT"
 ]
 
-log_warn("Expected Act I through Act V Story Progression Flow (27 Milestones):")
+log_warn(f"Expected Act I through Act V Story Progression Flow ({len(expected_titles)} Milestones):")
 for idx, title in enumerate(expected_titles, 1):
     log_warn(f"  Step {idx}: {title}")
 

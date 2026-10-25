@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -21,23 +21,25 @@ enum class ECourierMissionStage : uint8
 	Stage_Morning_ClassroomDesk UMETA(DisplayName = "8. Classroom 4B Student Desk"),
 	Stage_Afternoon_MunadiProclamation UMETA(DisplayName = "9. General Dyer's Munadi Proclamation"),
 	Stage_Afternoon_BaghNarrowEntry UMETA(DisplayName = "10. The Road to Jallianwala Bagh"),
-	Stage_ActII_BaisakhiGathering UMETA(DisplayName = "11. The Assembly at the Walled Garden"),
-	Stage_ActII_TheFiring UMETA(DisplayName = "12. General Dyer Orders Fire"),
-	Stage_ActII_FindEscapeRoute UMETA(DisplayName = "13. Panic in the Enclosure"),
-	Stage_ActII_VaultWallBreach UMETA(DisplayName = "14. Vault the Crumbling Wall Breach"),
-	Stage_ActII_Completed UMETA(DisplayName = "15. Act II Finale: Escape from Jallianwala Bagh"),
-	Stage_ActIII_NightCurfewFall UMETA(DisplayName = "16. Act III: The Martial Law Curfew"),
-	Stage_ActIII_EvadeSearchlightPicket UMETA(DisplayName = "17. Evade Imperial Searchlight Picket"),
-	Stage_ActIII_AidWoundedSurvivors UMETA(DisplayName = "18. Clandestine Aid to the Wounded"),
-	Stage_ActIII_Completed UMETA(DisplayName = "19. Act III Finale: The Curfew Defied"),
-	Stage_ActIV_ReachCanalDistributary UMETA(DisplayName = "20. Outskirts: Upper Bari Doab Canal Sluice"),
-	Stage_ActIV_PersianWheelContact UMETA(DisplayName = "21. Agricultural Feeder & Persian Wheel (Rahat)"),
-	Stage_ActIV_BrickKilnSafehouse UMETA(DisplayName = "22. The Bhatta Brick Kiln Resistance Stash"),
-	Stage_ActIV_Completed UMETA(DisplayName = "23. Act IV Finale: Safehouse Reached"),
-	Stage_ActV_ReachRailwayCutting UMETA(DisplayName = "24. Act V: North Western Railway Cutting"),
-	Stage_ActV_ClimbSignalGantry UMETA(DisplayName = "25. Scale the Semaphore Signal Gantry"),
-	Stage_ActV_CrossCivilLinesPalisade UMETA(DisplayName = "26. Breach the Civil Lines Perimeter"),
-	Stage_Completed UMETA(DisplayName = "27. Act V Milestone: Into the Cantonment"),
+	Stage_Afternoon_EavesdropCheckpost UMETA(DisplayName = "11. Colonial Checkpost Eavesdropping"),
+	Stage_Afternoon_ClothBoltLeaflets UMETA(DisplayName = "12. Mandi Cloth Bolt Satyagraha Leaflets"),
+	Stage_ActII_BaisakhiGathering UMETA(DisplayName = "13. The Assembly at the Walled Garden"),
+	Stage_ActII_TheFiring UMETA(DisplayName = "14. General Dyer Orders Fire"),
+	Stage_ActII_FindEscapeRoute UMETA(DisplayName = "15. Panic in the Enclosure"),
+	Stage_ActII_VaultWallBreach UMETA(DisplayName = "16. Vault the Crumbling Wall Breach"),
+	Stage_ActII_Completed UMETA(DisplayName = "17. Act II Finale: Escape from Jallianwala Bagh"),
+	Stage_ActIII_NightCurfewFall UMETA(DisplayName = "18. Act III: The Martial Law Curfew"),
+	Stage_ActIII_EvadeSearchlightPicket UMETA(DisplayName = "19. Evade Imperial Searchlight Picket"),
+	Stage_ActIII_AidWoundedSurvivors UMETA(DisplayName = "20. Clandestine Aid to the Wounded"),
+	Stage_ActIII_Completed UMETA(DisplayName = "21. Act III Finale: The Curfew Defied"),
+	Stage_ActIV_ReachCanalDistributary UMETA(DisplayName = "22. Outskirts: Upper Bari Doab Canal Sluice"),
+	Stage_ActIV_PersianWheelContact UMETA(DisplayName = "23. Agricultural Feeder & Persian Wheel (Rahat)"),
+	Stage_ActIV_BrickKilnSafehouse UMETA(DisplayName = "24. The Bhatta Brick Kiln Resistance Stash"),
+	Stage_ActIV_Completed UMETA(DisplayName = "25. Act IV Finale: Safehouse Reached"),
+	Stage_ActV_ReachRailwayCutting UMETA(DisplayName = "26. Act V: North Western Railway Cutting"),
+	Stage_ActV_ClimbSignalGantry UMETA(DisplayName = "27. Scale the Semaphore Signal Gantry"),
+	Stage_ActV_CrossCivilLinesPalisade UMETA(DisplayName = "28. Breach the Civil Lines Perimeter"),
+	Stage_Completed UMETA(DisplayName = "29. Act V Milestone: Into the Cantonment"),
 
 	// Legacy aliases for compatibility
 	Stage_RetrievePamphlets = Stage_Morning_FatherTailor,

@@ -33,7 +33,9 @@ def run_package_verification():
     log_qa("================================================================================")
 
     base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    build_dir = os.path.join(base_dir, "Build", "Development", "Windows")
+    candidate_dir = os.path.join(base_dir, "Build", "Candidate_Windows", "Windows")
+    dev_dir = os.path.join(base_dir, "Build", "Development", "Windows")
+    build_dir = candidate_dir if os.path.exists(candidate_dir) else dev_dir
 
     log_qa(f"Auditing Package Directory: {build_dir}")
     assert os.path.exists(build_dir), f"Package directory not found: {build_dir}"
@@ -96,27 +98,29 @@ def run_package_verification():
 
     log_qa("[PASS] Cooked manifests verified with complete project asset coverage.")
 
-    # 4. GTX 1650 Hardware Budget Compliance Audit
-    log_qa("--- Auditing Hardware Budget Compliance (NVIDIA GeForce GTX 1650) ---")
+    # 4. Distribution Package Size & Runtime Benchmark Audit
+    log_qa("--- Auditing Package Footprint & Hardware Verification Scope ---")
     total_package_size_mb = 0
     for root, _, files in os.walk(build_dir):
         for f in files:
             total_package_size_mb += os.path.getsize(os.path.join(root, f)) / (1024 * 1024)
 
-    log_qa(f"  [METRIC] Packaged Distribution Size: {total_package_size_mb:.1f} MB (Budget: <= 20,000 MB)")
+    log_qa(f"  [DISK MEASURED] Packaged Distribution Size: {total_package_size_mb:.1f} MB (Budget: <= 20,000 MB)")
     assert total_package_size_mb < 20000, "Package size exceeds 20 GB distribution limit!"
 
-    modeled_vram_mb = 3412.0
-    vram_budget_mb = 3500.0
-    vram_headroom_mb = vram_budget_mb - modeled_vram_mb
-    log_qa(f"  [METRIC] Peak VRAM Allocation: {modeled_vram_mb:.1f} MB / {vram_budget_mb:.1f} MB ({vram_headroom_mb:.1f} MB safety headroom)")
-    assert modeled_vram_mb <= vram_budget_mb, "Peak VRAM exceeds GTX 1650 3500 MB limit!"
-
-    modeled_frametime_ms = 21.40
-    target_frametime_ms = 33.33
-    modeled_fps = 1000.0 / modeled_frametime_ms
-    log_qa(f"  [METRIC] Frame Time: {modeled_frametime_ms:.2f} ms (~{modeled_fps:.1f} FPS, Target: >= 30 FPS)")
-    assert modeled_frametime_ms <= target_frametime_ms, "Frametime exceeds 33.33 ms limit!"
+    # Check for live measured benchmark results
+    benchmark_json = os.path.join(base_dir, "Project", "Tests", "P3_BENCHMARK_RESULTS.json")
+    if os.path.isfile(benchmark_json):
+        import json
+        with open(benchmark_json, "r") as f:
+            bench_data = json.load(f)
+        log_qa("  [LIVE TELEMETRY] Found real runtime benchmark data:")
+        for b in bench_data.get("benchmarks", []):
+            log_qa(f"    Zone '{b.get('zone')}' ({b.get('profile')}): Measured {b.get('avg_fps'):.1f} FPS, FrameTime={b.get('avg_frame_time_ms'):.2f} ms [Status: {b.get('status')}]")
+        mem = bench_data.get("memory_audit", {})
+        log_qa(f"    Memory Audit: Physical RAM Used = {mem.get('physical_ram_used_gb')} GB / {mem.get('physical_ram_total_gb')} GB, Virtual RAM = {mem.get('virtual_ram_used_gb')} GB")
+    else:
+        log_qa("  [NOTE] Live performance benchmarking is validated during runtime execution (P3 suite).")
 
     log_qa("================================================================================")
     log_qa("  TASK 19 STANDALONE PACKAGE & COOK RESULT: 100% PASS (0 ERRORS)")

@@ -1,0 +1,25 @@
+{
+  "milestone": "TASK_43_ACT4_CLIMAX_BRICK_KILN",
+  "total_level_actors": 298,
+  "status": "PASS",
+  "kiln_structures": {
+    "Industrial_Brick_Kiln_Bhatta_Chimney": true
+  },
+  "smoke_plume": {
+    "Smoke_Plume_Bhatta_Kiln": true
+  },
+  "kiln_lighting": {
+    "Light_Bhatta_Kiln_Flue_Glow": true
+  },
+  "underground_press_props": {
+    "Story_Clandestine_Safehouse_Supply_Cache": true,
+    "Prop_Safehouse_Handbill_Bundles": true,
+    "Prop_Safehouse_Printing_Lantern": true,
+    "Light_Safehouse_Printing_Lantern": true
+  },
+  "resistance_npc": {
+    "NPC_Resistance_Courier_Liaison": true
+  },
+  "subtests_passed": 5,
+  "total_subtests": 5
+}

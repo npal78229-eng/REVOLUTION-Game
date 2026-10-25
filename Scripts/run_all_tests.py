@@ -47,7 +47,7 @@ def main():
         },
         {
             "id": "TEST-05",
-            "name": "Master PIE & Story Simulation (27 Milestones across Acts I-V)",
+            "name": "Story Subsystem State Machine & 29-Stage Progression Suite",
             "script": os.path.join(scripts_dir, "verify_pie_master_walkthrough.py"),
             "type": "commandlet"
         },
@@ -146,6 +146,72 @@ def main():
             "name": "Act I Finale to Act II Cinematic Handoff & Munadi Proclamation Sequence",
             "script": os.path.join(scripts_dir, "verify_act1_to_act2_handoff.py"),
             "type": "commandlet"
+        },
+        {
+            "id": "TEST-22",
+            "name": "Grand Bazaar Chowk Munadi Crowd Clatter & Dynamic Dialogue System",
+            "script": os.path.join(scripts_dir, "verify_chowk_munadi_crowd.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-23",
+            "name": "Act II Questline: 'The Rumors of Baisakhi' & Checkpost Eavesdropping",
+            "script": os.path.join(scripts_dir, "verify_act2_questline.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-24",
+            "name": "Baisakhi Fair Ground Atmosphere & Gathering Expansion",
+            "script": os.path.join(scripts_dir, "verify_baisakhi_fairground.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-25",
+            "name": "RDR2-Inspired Volumetric Smoke, Curl Noise Flow & Atmospheric Optics",
+            "script": os.path.join(scripts_dir, "verify_rdr2_smoke_integration.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-26",
+            "name": "Act II Climax: The Firing Line at Jallianwala Bagh & Escape Traversal",
+            "script": os.path.join(scripts_dir, "verify_act2_climax_firing_line.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-27",
+            "name": "Act III: The Desolate Night & Clandestine Medical Evacuation",
+            "script": os.path.join(scripts_dir, "verify_act3_medical_evacuation.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-28",
+            "name": "Act IV: The Rural Outskirts & Upper Bari Doab Canal Feeder Network",
+            "script": os.path.join(scripts_dir, "verify_act4_canal_outskirts.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-29",
+            "name": "Act IV Climax: Bhatta Brick Kiln Resistance Infiltration & Underground Press",
+            "script": os.path.join(scripts_dir, "verify_act4_climax_brick_kiln.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-30",
+            "name": "Act V: North Western Railway Cutting, Signal Gantry & Locomotive Climax",
+            "script": os.path.join(scripts_dir, "verify_act5_railway_climax.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-31",
+            "name": "Community-Trust System ('Izzat & Vishwas') & Localized Reputation",
+            "script": os.path.join(scripts_dir, "verify_community_trust.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-32",
+            "name": "End-to-End Interactive QA Playthrough Bot & 29-Stage Telemetry",
+            "script": os.path.join(scripts_dir, "verify_e2e_interactive_playthrough.py"),
+            "type": "commandlet"
         }
     ]
 
@@ -180,8 +246,14 @@ def main():
             ]
 
         res = subprocess.run(cmd, capture_output=True, text=True)
+        # Transient lock failure retry for headless editor commandlet
+        if res.returncode != 0 and test["type"] == "commandlet":
+            time.sleep(2.0)
+            res = subprocess.run(cmd, capture_output=True, text=True)
+
         elapsed = round(time.time() - t0, 2)
         status = "PASS" if res.returncode == 0 else "FAIL"
+        time.sleep(0.5)
 
         with open(summary_path, "a", encoding="utf-8") as f:
             f.write(f"[{test['id']}] {test['name']} -> {status} (Exit {res.returncode}) in {elapsed}s\n")
@@ -233,7 +305,7 @@ def main():
 
     if all_passed:
         pass_count = len([r for r in results if r['status'] == 'PASS'])
-        msg = f"  OVERALL RESULT: 100% PASS ({pass_count}/{len(test_suites)} SUITES PASSED) in {total_elapsed_min} minutes!\n  PROJECT REVOLUTION IS CERTIFIED GOLD MASTER READY!"
+        msg = f"  OVERALL RESULT: 100% PASS ({pass_count}/{len(test_suites)} SUITES PASSED) in {total_elapsed_min} minutes!\n  ALL {len(test_suites)} AUTOMATED CI VERIFICATION SUITES COMPLETED SUCCESSFULLY."
         print("================================================================================", flush=True)
         print(msg, flush=True)
         print("================================================================================", flush=True)

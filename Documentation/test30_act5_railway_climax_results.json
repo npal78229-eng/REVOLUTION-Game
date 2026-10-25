@@ -1,0 +1,36 @@
+{
+  "milestone": "TASK_44_ACT5_RAILWAY_CLIMAX",
+  "total_level_actors": 298,
+  "status": "PASS",
+  "locomotive_steam": {
+    "Locomotive_Engine_PunjabMail_Depot": true,
+    "Locomotive_Steam_Pressure_Relief_Valve": true,
+    "Smoke_Plume_Locomotive_PunjabMail": true,
+    "Light_Locomotive_Headlamp_Beam": true
+  },
+  "signal_gantry": {
+    "Colonial_Railway_Signal_Gantry_Junction": true,
+    "Light_Railway_Signal_Amber": true,
+    "Light_Railway_Signal_Green": true,
+    "Ladder_Signal_Gantry_Climb": true
+  },
+  "cantonment_sentry": {
+    "Cantonment_Guardhouse_Picket_NorthGate": true,
+    "NPC_Cantonment_Sentry_NorthGate": true,
+    "Light_Cantonment_NorthGate_Sentry": true
+  },
+  "bungalow_archive": {
+    "Civil_Lines_Clubhouse_Bungalow_HQ": true,
+    "Prop_Cantonment_Archive_Cabinet_Veranda": true,
+    "Prop_Cantonment_Telegraph_Station": true,
+    "Light_Cantonment_Archive_Veranda": true
+  },
+  "act5_stages": {
+    "Stage_ActV_ReachRailwayCutting": true,
+    "Stage_ActV_ClimbSignalGantry": true,
+    "Stage_ActV_CrossCivilLinesPalisade": true,
+    "Stage_Completed": true
+  },
+  "subtests_passed": 5,
+  "total_subtests": 5
+}

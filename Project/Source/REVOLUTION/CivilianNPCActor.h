@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -6,6 +6,7 @@
 #include "GameFramework/Character.h"
 #include "InteractableInterface.h"
 #include "RevolutionMissionSubsystem.h"
+#include "CommunityTrustTypes.h"
 #include "CivilianNPCActor.generated.h"
 
 class USphereComponent;
@@ -24,7 +25,9 @@ enum class ECivilianOccupation : uint8
 	ClothMerchant UMETA(DisplayName = "Lala Karam Chand (Textile Merchant)"),
 	SchoolFriendKartar UMETA(DisplayName = "Kartar Singh (Schoolmate & Friend)"),
 	MunadiTownCrier UMETA(DisplayName = "Nikka Ram (Town Crier / Munadi Drummer)"),
-	ProtestElder UMETA(DisplayName = "Bhai Sant Singh (Community Elder / Mohalla Elder)")
+	ProtestElder UMETA(DisplayName = "Bhai Sant Singh (Community Elder / Mohalla Elder)"),
+	BaisakhiPilgrim UMETA(DisplayName = "Bhai Gurmukh Singh (Baisakhi Pilgrim / Rural Farmer)"),
+	FairVendor UMETA(DisplayName = "Chacha Milkha (Baisakhi Fair Vendor / Toy & Sweet Seller)")
 };
 
 UENUM(BlueprintType)
@@ -250,6 +253,25 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Revolution|Dialogue")
 	FText GetCurrentDialogue() const;
+
+	// --- COMMUNITY TRUST INTEGRATION ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|CommunityTrust")
+	FName CommunityClusterID = FName(TEXT("Cluster_UBDC_CanalBasti"));
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|CommunityTrust")
+	ECommunityStance CurrentObservedStance = ECommunityStance::Neutral;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|CommunityTrust")
+	TArray<FText> CautiousBarks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|CommunityTrust")
+	TArray<FText> CompromisedBarks;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|CommunityTrust")
+	TArray<FText> TrustedBarks;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|CommunityTrust")
+	void OnCommunityStanceChanged(FName ClusterID, ECommunityStance NewStance);
 
 private:
 	float LastBarkTime = -100.0f;

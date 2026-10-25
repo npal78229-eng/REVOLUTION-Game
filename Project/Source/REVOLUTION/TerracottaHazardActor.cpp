@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "TerracottaHazardActor.h"
 #include "RevolutionCharacter.h"
@@ -10,6 +10,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Sound/SoundBase.h"
 #include "EngineUtils.h"
+#include "CommunityTrustSubsystem.h"
 #include "REVOLUTION.h"
 
 ATerracottaHazardActor::ATerracottaHazardActor()
@@ -105,6 +106,21 @@ void ATerracottaHazardActor::Tick(float DeltaTime)
 			if (AlertedCount > 0)
 			{
 				UE_LOG(LogREVOLUTION, Log, TEXT("Terracotta crunch alerted %d Curfew Patrol Watchmen!"), AlertedCount);
+			}
+
+			// Log incident in community trust subsystem
+			if (UWorld* World = GetWorld())
+			{
+				if (UCommunityTrustSubsystem* TrustSubsystem = World->GetSubsystem<UCommunityTrustSubsystem>())
+				{
+					TrustSubsystem->RecordIncident(
+						CommunityClusterID,
+						FName(TEXT("Incident_TerracottaDestroyed")),
+						Kabir,
+						this,
+						TrustPenaltyOnCrunch
+					);
+				}
 			}
 		}
 	}

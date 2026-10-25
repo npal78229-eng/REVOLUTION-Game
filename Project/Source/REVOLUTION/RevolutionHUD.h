@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -96,6 +96,9 @@ protected:
 
 	/** Helper to wrap text into lines */
 	TArray<FString> WrapText(const FString& Text, UFont* InFont, float MaxWidth);
+
+	/** Draw Milestone P3 Hardware Performance & Telemetry Benchmark Card */
+	void DrawPerformanceBenchmarkCard(ARevolutionCharacter* Kabir);
 
 public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")

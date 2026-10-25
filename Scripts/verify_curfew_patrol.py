@@ -85,6 +85,63 @@ def run_curfew_ai_verification():
         assert hasattr(constable, m), f"CurfewPatrolAI missing method '{m}'!"
         log_qa(f"  [UFUNCTION VERIFIED] {m}")
 
+    # 8. Verify StaticMeshActor_128 (Bazaar Canopy) and Perimeter Barrier Collision Resolution
+    canopy_128 = next((a for a in all_actors if a.get_name() == "StaticMeshActor_128" or a.get_actor_label() == "Bazaar_Canopy_Khadi_SouthEast"), None)
+    if canopy_128:
+        comp = canopy_128.get_component_by_class(unreal.StaticMeshComponent)
+        col_name = str(comp.get_collision_profile_name()) if comp else "None"
+        col_enabled = comp.get_collision_enabled() if comp else None
+        log_qa(f"  StaticMeshActor_128 collision: Profile={col_name}, Enabled={col_enabled}")
+        assert col_name == "NoCollision" or col_enabled == unreal.CollisionEnabled.NO_COLLISION, \
+            f"StaticMeshActor_128 still has blocking collision: {col_name} / {col_enabled}!"
+        log_qa("[PASS] StaticMeshActor_128 awning collision cleared (NoCollision).")
+
+    barrier_200 = next((a for a in all_actors if a.get_actor_label() == "Boundary_Barrier_NorthGate_West"), None)
+    if barrier_200:
+        b_bounds = barrier_200.get_actor_bounds(False)
+        origin, extent = b_bounds[0], b_bounds[1]
+        log_qa(f"  Boundary_Barrier_NorthGate_West bounds: Origin={origin}, Extent={extent}")
+        # Verify barrier does not overlap patrol corridor Y in [1650, 2050]
+        barrier_min_y = origin.y - extent.y
+        assert barrier_min_y > 2050.0, f"Boundary_Barrier_NorthGate_West reaches into patrol corridor at Y={barrier_min_y:.1f}!"
+        log_qa(f"[PASS] Boundary_Barrier_NorthGate_West clearance verified (South edge at Y={barrier_min_y:.1f} > 2050).")
+
+    # 9. Verify Patrol Route Traversal & Runtime Movement Sweep
+    log_qa("--- Verifying Patrol Route Traversal & Capsule Movement Sweeps ---")
+    
+    # Store initial position to restore after test
+    initial_loc = constable.get_actor_location()
+    
+    for i in range(1, len(wps)):
+        start_wp = wps[i-1]
+        target_wp = wps[i]
+        to_target = target_wp - start_wp
+        dist = to_target.length()
+        assert dist > 100.0, f"Waypoints [{i-1}] and [{i}] are too close together ({dist:.1f} cm)!"
+        
+        # Reset sentry to segment start
+        constable.set_actor_location(start_wp, sweep=False, teleport=True)
+        
+        # Step through segment using real engine collision sweep
+        steps = 15
+        step_vec = to_target * (1.0 / float(steps))
+        for step in range(1, steps + 1):
+            next_loc = start_wp + step_vec * float(step)
+            # Perform sweep movement with Constable's actual character capsule
+            sweep_hit = constable.set_actor_location(next_loc, sweep=True, teleport=False)
+            
+            # Verify the sentry arrived within tolerance and was not blocked
+            actual_loc = constable.get_actor_location()
+            pos_err = (actual_loc - next_loc).length()
+            if pos_err >= 5.0:
+                log_qa(f"  [BLOCKED STEP {step}/{steps}] Target: {next_loc}, Actual: {actual_loc}, Err: {pos_err:.2f}")
+                assert pos_err < 5.0, f"Patrol movement blocked along WP[{i-1}] -> WP[{i}] at step {step}/{steps}! Blocked at {actual_loc}, target {next_loc}"
+
+        log_qa(f"  [PASS] Segment WP[{i-1}] -> WP[{i}] runtime capsule sweep traversal verified ({dist:.1f} cm, {steps} steps, 0 collisions).")
+
+    # Restore sentinel to original position
+    constable.set_actor_location(initial_loc, sweep=False, teleport=True)
+
     log_qa("================================================================================")
     log_qa("  TASK 28 CURFEW SENTRY PATROL AI RESULT: 100% PASS (0 ERRORS)")
     log_qa("================================================================================")

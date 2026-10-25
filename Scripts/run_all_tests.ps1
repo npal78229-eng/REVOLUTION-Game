@@ -139,6 +139,72 @@ $TestSuites = @(
         Name = 'Act I Finale to Act II Cinematic Handoff & Munadi Proclamation Sequence'
         Script = "$ScriptsDir\verify_act1_to_act2_handoff.py"
         Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-22'
+        Name = 'Grand Bazaar Chowk Munadi Crowd Clatter & Dynamic Dialogue System'
+        Script = "$ScriptsDir\verify_chowk_munadi_crowd.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-23'
+        Name = 'Act II Questline: ''The Rumors of Baisakhi'' & Checkpost Eavesdropping'
+        Script = "$ScriptsDir\verify_act2_questline.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-24'
+        Name = 'Baisakhi Fair Ground Atmosphere & Gathering Expansion'
+        Script = "$ScriptsDir\verify_baisakhi_fairground.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-25'
+        Name = 'RDR2-Inspired Volumetric Smoke, Curl Noise Flow & Atmospheric Optics'
+        Script = "$ScriptsDir\verify_rdr2_smoke_integration.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-26'
+        Name = 'Act II Climax: The Firing Line at Jallianwala Bagh & Escape Traversal'
+        Script = "$ScriptsDir\verify_act2_climax_firing_line.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-27'
+        Name = 'Act III: The Desolate Night & Clandestine Medical Evacuation'
+        Script = "$ScriptsDir\verify_act3_medical_evacuation.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-28'
+        Name = 'Act IV: The Rural Outskirts & Upper Bari Doab Canal Feeder Network'
+        Script = "$ScriptsDir\verify_act4_canal_outskirts.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-29'
+        Name = 'Act IV Climax: Bhatta Brick Kiln Resistance Infiltration & Underground Press'
+        Script = "$ScriptsDir\verify_act4_climax_brick_kiln.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-30'
+        Name = 'Act V: North Western Railway Cutting, Signal Gantry & Locomotive Climax'
+        Script = "$ScriptsDir\verify_act5_railway_climax.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-31'
+        Name = 'Community-Trust System [Izzat & Vishwas] & Localized Reputation'
+        Script = "$ScriptsDir\verify_community_trust.py"
+        Type = 'Commandlet'
+    },
+    @{
+        Id = 'TEST-32'
+        Name = 'End-to-End Interactive QA Playthrough Bot & 29-Stage Telemetry'
+        Script = "$ScriptsDir\verify_e2e_interactive_playthrough.py"
+        Type = 'Commandlet'
     }
 )
 
@@ -165,10 +231,16 @@ foreach ($Test in $TestSuites) {
         )
         $Proc = Start-Process -FilePath $UECmd -ArgumentList $ArgsList -NoNewWindow -Wait -PassThru
         $ExitCode = $Proc.ExitCode
+        if ($ExitCode -ne 0) {
+            Start-Sleep -Seconds 2
+            $Proc = Start-Process -FilePath $UECmd -ArgumentList $ArgsList -NoNewWindow -Wait -PassThru
+            $ExitCode = $Proc.ExitCode
+        }
     } else {
         $Proc = Start-Process -FilePath $UEPython -ArgumentList "`"$($Test.Script)`"" -NoNewWindow -Wait -PassThru
         $ExitCode = $Proc.ExitCode
     }
+    Start-Sleep -Milliseconds 500
 
     $Sw.Stop()
     $DurationSec = [math]::Round($Sw.Elapsed.TotalSeconds, 2)

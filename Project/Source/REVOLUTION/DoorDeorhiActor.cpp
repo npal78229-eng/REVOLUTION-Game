@@ -3,6 +3,7 @@
 #include "DoorDeorhiActor.h"
 #include "RevolutionCharacter.h"
 #include "CurfewPatrolAI.h"
+#include "CommunityTrustSubsystem.h"
 #include "Components/SceneComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "UObject/ConstructorHelpers.h"
@@ -64,6 +65,14 @@ void ADoorDeorhiActor::BeginPlay()
 	TargetYaw = bIsOpen ? MaxOpenAngle : 0.0f;
 	CurrentYaw = TargetYaw;
 	DoorHinge->SetRelativeRotation(FRotator(0.0f, CurrentYaw, 0.0f));
+
+	if (UWorld* World = GetWorld())
+	{
+		if (UCommunityTrustSubsystem* TrustSubsystem = World->GetSubsystem<UCommunityTrustSubsystem>())
+		{
+			TrustSubsystem->RegisterClusterDoor(CommunityClusterID, this);
+		}
+	}
 }
 
 void ADoorDeorhiActor::Tick(float DeltaTime)
@@ -207,4 +216,21 @@ void ADoorDeorhiActor::WatchmanBangOnDoor(ACurfewPatrolAI* Watchman)
 	}
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("Curfew Patrol Watchman banging bamboo lathi against locked Deorhi door!"));
+}
+
+void ADoorDeorhiActor::ApplyCommunityStance(ECommunityStance Stance)
+{
+	if (Stance == ECommunityStance::Compromised && bLockWhenCompromised)
+	{
+		SetBolted(true);
+		SetDoorOpen(false);
+		UE_LOG(LogREVOLUTION, Warning, TEXT("[DoorDeorhi] Door '%s' bolted due to COMPROMISED community trust in cluster '%s'."),
+			*GetName(), *CommunityClusterID.ToString());
+	}
+	else if ((Stance == ECommunityStance::Trusted || Stance == ECommunityStance::Neutral) && bUnlockWhenTrusted)
+	{
+		SetBolted(false);
+		UE_LOG(LogREVOLUTION, Log, TEXT("[DoorDeorhi] Door '%s' unbolted due to restored community trust (%s) in cluster '%s'."),
+			*GetName(), Stance == ECommunityStance::Trusted ? TEXT("TRUSTED") : TEXT("NEUTRAL"), *CommunityClusterID.ToString());
+	}
 }

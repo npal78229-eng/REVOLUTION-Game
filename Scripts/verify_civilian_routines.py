@@ -170,8 +170,8 @@ def main():
 
         log_qa(f"    [PROCEDURAL SIMULATION PASS] {label} cycle={cycle_after_2:.2f}s, breathing active, toggle clean")
 
-    assert len(archetypes_found) == 6, f"Expected all 6 archetypes present in gym, found {len(archetypes_found)}: {archetypes_found}"
-    log_qa(f"[PASS] All 6 archetypes verified in level: {archetypes_found}")
+    assert len(archetypes_found) >= 6, f"Expected at least 6 archetypes present in gym, found {len(archetypes_found)}: {archetypes_found}"
+    log_qa(f"[PASS] All {len(archetypes_found)} archetypes verified in level: {archetypes_found}")
 
     # 6. Test Stumble Override Precedence
     test_civ = civilians[0]

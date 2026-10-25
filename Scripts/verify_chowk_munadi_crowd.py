@@ -67,7 +67,7 @@ def main():
         munadi_actor = editor_actor_sub.duplicate_actor(src_civ)
         assert munadi_actor is not None, "Failed to duplicate actor for NPC_Munadi_TownCrier!"
         munadi_actor.set_actor_label("NPC_Munadi_TownCrier")
-        munadi_actor.set_actor_location(unreal.Vector(60.0, 1920.0, 88.0), False, False)
+        munadi_actor.set_actor_location(unreal.Vector(115.0, 1920.0, 88.0), False, False)
         munadi_actor.set_actor_rotation(unreal.Rotator(0.0, 30.0, 0.0), False)
         munadi_val = getattr(occ_enum, "MUNADI_TOWN_CRIER")
         munadi_actor.set_editor_property("occupation", munadi_val)

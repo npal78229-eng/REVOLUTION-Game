@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CivilianNPCActor.h"
 #include "RevolutionCharacter.h"
@@ -12,6 +12,7 @@
 #include "Kismet/GameplayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "RevolutionMissionSubsystem.h"
+#include "CommunityTrustSubsystem.h"
 #include "Sound/SoundBase.h"
 #include "Sound/SoundAttenuation.h"
 #include "Components/AudioComponent.h"
@@ -98,6 +99,11 @@ void ACivilianNPCActor::BeginPlay()
 		{
 			Subsystem->OnMissionDirectiveChanged.AddDynamic(this, &ACivilianNPCActor::HandleMissionDirectiveChanged);
 			SetDialogueModeForStage(Subsystem->GetCurrentStage());
+		}
+
+		if (UCommunityTrustSubsystem* TrustSubsystem = World->GetSubsystem<UCommunityTrustSubsystem>())
+		{
+			TrustSubsystem->RegisterClusterCivilian(CommunityClusterID, this);
 		}
 	}
 
@@ -359,6 +365,24 @@ void ACivilianNPCActor::Tick(float DeltaTime)
 			}
 			break;
 		}
+		case ECivilianOccupation::BaisakhiPilgrim:
+		{
+			// Patient rural pilgrim posture with gentle yaw scanning of the crowded garden
+			const float PilgrimScanPhase = RoutineCycleTime * 0.18f * TWO_PI;
+			RoutineMeshRot.Yaw += FMath::Sin(PilgrimScanPhase) * 2.8f;
+			const float PilgrimBreathing = FMath::Sin(RoutineCycleTime * 0.35f * TWO_PI);
+			RoutineMeshRot.Pitch += PilgrimBreathing * 1.0f;
+			break;
+		}
+		case ECivilianOccupation::FairVendor:
+		{
+			// Lively fair vendor selling pinwheels: pinwheel spinning and vocal hawker body gestures
+			RoutinePropRot.Yaw = FMath::Fmod(RoutineCycleTime * 140.0f, 360.0f);
+			const float HawkerCallPhase = RoutineCycleTime * 1.2f * TWO_PI;
+			RoutineMeshRot.Pitch += FMath::Sin(HawkerCallPhase) * 2.2f;
+			RoutineMeshRot.Roll += FMath::Cos(HawkerCallPhase * 0.5f) * 1.2f;
+			break;
+		}
 		}
 
 		if (GetMesh())
@@ -384,6 +408,20 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 	ActIIDialogues.Empty();
 	StumbleBarks.Empty();
 	CuriosityBarks.Empty();
+	CautiousBarks.Empty();
+	CompromisedBarks.Empty();
+	TrustedBarks.Empty();
+
+	// Default authentic period barks for community stances
+	CautiousBarks.Add(FText::FromString(TEXT("Tread softly, Kabir. The constables were asking questions down the lane.")));
+	CautiousBarks.Add(FText::FromString(TEXT("Keep your head down, boy. The soldiers have no mercy for curious eyes.")));
+
+	CompromisedBarks.Add(FText::FromString(TEXT("Bhaag yahan se! You brought the British rifles to our doorstep!")));
+	CompromisedBarks.Add(FText::FromString(TEXT("Out! Our families will not hang for your Satyagraha leaflets!")));
+
+	TrustedBarks.Add(FText::FromString(TEXT("Quick, Kabir, step into the shadows here. The horse patrol is turning the corner.")));
+	TrustedBarks.Add(FText::FromString(TEXT("The passage door is unlatched for you, child. Vande Mataram.")));
+
 	CurrentDialogueIndex = 0;
 
 	if (!VoiceAttenuation)
@@ -668,6 +706,90 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_02.SFX_Voice_Civilian_Curiosity_02"));
 		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Routine_Schoolmaster_Loop.SFX_Routine_Schoolmaster_Loop"));
 		break;
+
+	case ECivilianOccupation::BaisakhiPilgrim:
+		CivilianName = FText::FromString(TEXT("Bhai Gurmukh Singh"));
+		ProfessionTitle = FText::FromString(TEXT("Majha Farmer & Baisakhi Pilgrim"));
+		HistoricalLore = FText::FromString(
+			TEXT("A peasant farmer who traveled twenty miles by bullock cart from Tarn Taran with his family for the sacred Baisakhi snan at the Golden Temple and the annual cattle fair. Completely unaware of the colonial district magistrate's proclamation or Section 144 martial law, he restfully waits in Jallianwala Bagh with thousands of fellow pilgrims.")
+		);
+		AmbientBarks.Add(FText::FromString(TEXT("We bathed at Sri Harmandir Sahib at dawn. The wheat harvest this year was blessed.")));
+		AmbientBarks.Add(FText::FromString(TEXT("Why are the bazaar shops shutting their wooden shutters on Baisakhi day?")));
+		AmbientBarks.Add(FText::FromString(TEXT("They say speakers are reading poetry under the peepal tree here in the garden.")));
+
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Bhai Gurmukh Singh: 'Sat Sri Akal, young boy. We arrived from Tarn Taran for the sacred Baisakhi fair. Look at the thousands of turbans—Muslim, Hindu, Sikh, all gathered in peaceful brotherhood to celebrate the new harvest.'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Bhai Gurmukh Singh: 'Some men near the entrance spoke of British pickets blocking the roads, but surely they would not harm peaceful families resting under the neem trees.'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Bhai Gurmukh Singh: 'Take this roasted gram for your journey, son. May Waheguru keep you in chardi kala.'")
+		));
+
+		ActIIBarks.Add(FText::FromString(TEXT("The soldiers at the narrow passage have bayonets fixed! Why do they bar the way out?")));
+		ActIIBarks.Add(FText::FromString(TEXT("Keep the children close! Something is terribly wrong.")));
+
+		ActIIDialogues.Add(FText::FromString(
+			TEXT("Bhai Gurmukh Singh: 'Kabir, they are not letting anyone leave through the alley! Gurkha riflemen are deploying across the high entrance mound!'")
+		));
+		ActIIDialogues.Add(FText::FromString(
+			TEXT("Bhai Gurmukh Singh: 'Run toward the haveli walls! Do not stay in the open center!'")
+		));
+
+		StumbleBarks.Add(FText::FromString(TEXT("Waheguru! Watch your footing on the uneven garden grass, lad!")));
+		StumbleBarks.Add(FText::FromString(TEXT("Sambhal ke, young runner! It is crowded here.")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Did I hear a bugle call from the northern passage?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("What was that metallic clinking near the gateway?")));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_RamLubhaya_Dialogue.SFX_Voice_RamLubhaya_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Majhi_ChanaVendor_Bark.SFX_Voice_Majhi_ChanaVendor_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01.SFX_Voice_Civilian_Stumble_01"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01.SFX_Voice_Civilian_Curiosity_01"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Baisakhi_Crowd_Murmur.SFX_Baisakhi_Crowd_Murmur"));
+		break;
+
+	case ECivilianOccupation::FairVendor:
+		CivilianName = FText::FromString(TEXT("Chacha Milkha"));
+		ProfessionTitle = FText::FromString(TEXT("Baisakhi Mela Sweet & Toy Vendor"));
+		HistoricalLore = FText::FromString(
+			TEXT("A familiar sight at annual Punjab melas, Chacha Milkha set up his wooden pinwheel and sweet stand outside the garden gate to sell colorful toys and jalebis to visiting pilgrim children. He watches the ominous arrival of British military lorries with deepening anxiety.")
+		);
+		AmbientBarks.Add(FText::FromString(TEXT("Rang-birangee firkiyan! Spinning paper pinwheels and brass camel bells for two paisas!")));
+		AmbientBarks.Add(FText::FromString(TEXT("Sweet sugar jalebis, freshly fried in desi ghee! Taste the harvest mela sweet!")));
+		AmbientBarks.Add(FText::FromString(TEXT("Run home to your mother if you hear the police whistles, little ones.")));
+
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Chacha Milkha: 'Ah, Kabir! Come admire the Baisakhi pinwheels! When the spring wind blows across Kot Gurdarshan, they spin like the cycles of the world.'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Chacha Milkha: 'The mela was supposed to last three days, but the Kotwal has ordered every stall cleared before sunset. There is trouble in the air, puttar.'")
+		));
+		ConversationDialogues.Add(FText::FromString(
+			TEXT("Chacha Milkha: 'Here, take a wooden pinwheel for your satchel. Keep the joy of Baisakhi in your heart even when dark clouds gather.'")
+		));
+
+		ActIIBarks.Add(FText::FromString(TEXT("They've forced the tongas back! British armored cars tried to enter the lane!")));
+		ActIIBarks.Add(FText::FromString(TEXT("Clear the stalls! God have mercy on the crowd inside the garden!")));
+
+		ActIIDialogues.Add(FText::FromString(
+			TEXT("Chacha Milkha: 'Kabir, General Dyer's armored cars could not fit through the 2.2-meter passage, so he is marching fifty Gurkha riflemen inside on foot! Run before the gates are completely sealed!'")
+		));
+		ActIIDialogues.Add(FText::FromString(
+			TEXT("Chacha Milkha: 'Hide behind the brick chabutra! Quickly!'")
+		));
+
+		StumbleBarks.Add(FText::FromString(TEXT("Arrey dhyan naal! You'll smash the sweet trays!")));
+		StumbleBarks.Add(FText::FromString(TEXT("Watch your elbows, boy! The lane is packed.")));
+		CuriosityBarks.Add(FText::FromString(TEXT("What was that heavy rumble on the paved street?")));
+		CuriosityBarks.Add(FText::FromString(TEXT("Did an armored lorry just stall at the archway?")));
+
+		InteractionVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_HiraHalwai_Dialogue.SFX_Voice_HiraHalwai_Dialogue"));
+		AmbientBarkVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Doabi_KulfiWalla_Bark.SFX_Voice_Doabi_KulfiWalla_Bark"));
+		StumbleVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_02.SFX_Voice_Civilian_Stumble_02"));
+		CuriosityVoiceSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_02.SFX_Voice_Civilian_Curiosity_02"));
+		OccupationRoutineSound = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Routine_ChaiStir_Loop.SFX_Routine_ChaiStir_Loop"));
+		break;
 	}
 
 	// Attach authentic prop accessory based on occupation
@@ -751,6 +873,26 @@ void ACivilianNPCActor::ConfigureOccupation(ECivilianOccupation NewOccupation)
 			PropAccessoryMesh->SetRelativeLocation(FVector(20.0f, 15.0f, -30.0f));
 			PropAccessoryMesh->SetRelativeRotation(FRotator(0.0f, 30.0f, 0.0f));
 			PropAccessoryMesh->SetRelativeScale3D(FVector(0.55f, 0.55f, 0.55f));
+		}
+		break;
+
+	case ECivilianOccupation::BaisakhiPilgrim:
+		PropMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_GrainSack_Jute_01.SM_Prop_GrainSack_Jute_01"));
+		if (PropAccessoryMesh)
+		{
+			PropAccessoryMesh->SetRelativeLocation(FVector(20.0f, 15.0f, -40.0f));
+			PropAccessoryMesh->SetRelativeRotation(FRotator(0.0f, 15.0f, 0.0f));
+			PropAccessoryMesh->SetRelativeScale3D(FVector(0.6f, 0.6f, 0.6f));
+		}
+		break;
+
+	case ECivilianOccupation::FairVendor:
+		PropMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_Kite_Spool_Charkhi.SM_Prop_Kite_Spool_Charkhi"));
+		if (PropAccessoryMesh)
+		{
+			PropAccessoryMesh->SetRelativeLocation(FVector(22.0f, 12.0f, -15.0f));
+			PropAccessoryMesh->SetRelativeRotation(FRotator(0.0f, 45.0f, 0.0f));
+			PropAccessoryMesh->SetRelativeScale3D(FVector(0.45f, 0.45f, 0.45f));
 		}
 		break;
 	}
@@ -853,6 +995,10 @@ void ACivilianNPCActor::OnInteract_Implementation(ARevolutionCharacter* Interact
 				{
 					bShouldAdvance = true;
 				}
+				else if (Occupation == ECivilianOccupation::BaisakhiPilgrim && Stage == ECourierMissionStage::Stage_ActII_BaisakhiGathering)
+				{
+					bShouldAdvance = true;
+				}
 
 				if (bShouldAdvance)
 				{
@@ -881,7 +1027,21 @@ bool ACivilianNPCActor::CanInteract_Implementation(const ARevolutionCharacter* I
 
 FText ACivilianNPCActor::AdvanceConversation()
 {
-	const TArray<FText>& ActiveDialogues = (bIsInActIIMode && ActIIDialogues.Num() > 0) ? ActIIDialogues : ConversationDialogues;
+	const TArray<FText>* ChosenArray = &((bIsInActIIMode && ActIIDialogues.Num() > 0) ? ActIIDialogues : ConversationDialogues);
+	if (CurrentObservedStance == ECommunityStance::Compromised && CompromisedBarks.Num() > 0)
+	{
+		ChosenArray = &CompromisedBarks;
+	}
+	else if (CurrentObservedStance == ECommunityStance::Cautious && CautiousBarks.Num() > 0)
+	{
+		ChosenArray = &CautiousBarks;
+	}
+	else if (CurrentObservedStance == ECommunityStance::Trusted && TrustedBarks.Num() > 0)
+	{
+		ChosenArray = &TrustedBarks;
+	}
+
+	const TArray<FText>& ActiveDialogues = *ChosenArray;
 	if (ActiveDialogues.Num() == 0)
 	{
 		return HistoricalLore;
@@ -894,12 +1054,33 @@ FText ACivilianNPCActor::AdvanceConversation()
 
 FText ACivilianNPCActor::GetCurrentDialogue() const
 {
-	const TArray<FText>& ActiveDialogues = (bIsInActIIMode && ActIIDialogues.Num() > 0) ? ActIIDialogues : ConversationDialogues;
+	const TArray<FText>* ChosenArray = &((bIsInActIIMode && ActIIDialogues.Num() > 0) ? ActIIDialogues : ConversationDialogues);
+	if (CurrentObservedStance == ECommunityStance::Compromised && CompromisedBarks.Num() > 0)
+	{
+		ChosenArray = &CompromisedBarks;
+	}
+	else if (CurrentObservedStance == ECommunityStance::Cautious && CautiousBarks.Num() > 0)
+	{
+		ChosenArray = &CautiousBarks;
+	}
+	else if (CurrentObservedStance == ECommunityStance::Trusted && TrustedBarks.Num() > 0)
+	{
+		ChosenArray = &TrustedBarks;
+	}
+
+	const TArray<FText>& ActiveDialogues = *ChosenArray;
 	if (ActiveDialogues.Num() == 0)
 	{
 		return HistoricalLore;
 	}
 	return ActiveDialogues[CurrentDialogueIndex % ActiveDialogues.Num()];
+}
+
+void ACivilianNPCActor::OnCommunityStanceChanged(FName ClusterID, ECommunityStance NewStance)
+{
+	CurrentObservedStance = NewStance;
+	UE_LOG(LogREVOLUTION, Log, TEXT("[%s] Community stance updated to %d for cluster '%s'."),
+		*CivilianName.ToString(), (int32)NewStance, *ClusterID.ToString());
 }
 
 void ACivilianNPCActor::OnProximityBeginOverlap(UPrimitiveComponent* OverlappedComp, AActor* OtherActor, UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -912,7 +1093,21 @@ void ACivilianNPCActor::OnProximityBeginOverlap(UPrimitiveComponent* OverlappedC
 
 	// Check bark cooldown
 	float CurrentTime = GetWorld()->GetTimeSeconds();
-	const TArray<FText>& ActiveBarks = (bIsInActIIMode && ActIIBarks.Num() > 0) ? ActIIBarks : AmbientBarks;
+	const TArray<FText>* ChosenBarks = &((bIsInActIIMode && ActIIBarks.Num() > 0) ? ActIIBarks : AmbientBarks);
+	if (CurrentObservedStance == ECommunityStance::Compromised && CompromisedBarks.Num() > 0)
+	{
+		ChosenBarks = &CompromisedBarks;
+	}
+	else if (CurrentObservedStance == ECommunityStance::Cautious && CautiousBarks.Num() > 0)
+	{
+		ChosenBarks = &CautiousBarks;
+	}
+	else if (CurrentObservedStance == ECommunityStance::Trusted && TrustedBarks.Num() > 0)
+	{
+		ChosenBarks = &TrustedBarks;
+	}
+
+	const TArray<FText>& ActiveBarks = *ChosenBarks;
 	if (CurrentTime - LastBarkTime >= ProximityBarkCooldown && ActiveBarks.Num() > 0)
 	{
 		LastBarkTime = CurrentTime;
@@ -1134,6 +1329,18 @@ void ACivilianNPCActor::ApplyHeritageAttireMaterials()
 		UpperAttireMat = MatUndyedCotton;
 		LowerAttireMat = MatUndyedCotton;
 		TurbanMat = MatUndyedCotton;
+		break;
+
+	case ECivilianOccupation::BaisakhiPilgrim:
+		UpperAttireMat = MatUndyedCotton;
+		LowerAttireMat = MatAgedTeak;
+		TurbanMat = MatSaffron;
+		break;
+
+	case ECivilianOccupation::FairVendor:
+		UpperAttireMat = MatSaffron;
+		LowerAttireMat = MatIndigo;
+		TurbanMat = MatSaffron;
 		break;
 	}
 

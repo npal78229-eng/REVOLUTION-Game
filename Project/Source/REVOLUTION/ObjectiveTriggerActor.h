@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -62,6 +62,15 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Cinematic")
 	FText CinematicSubtitle;
+
+	// --- TASK 37: ACT II QUESTLINE FEATURES ---
+	/** Optional amount of pamphlets to add to player satchel upon triggering (e.g. 2 for Satyagraha handbills) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Mission")
+	int32 AwardPamphletsOnTrigger = 0;
+
+	/** If true, player must be crouched, in shadow concealment, or crowd-blended to interact (e.g. checkpost eavesdropping) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|Mission")
+	bool bRequireStealthForInteraction = false;
 
 	// IInteractableInterface Implementation
 	virtual void OnInteract_Implementation(ARevolutionCharacter* Interactor) override;

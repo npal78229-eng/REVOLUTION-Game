@@ -1,10 +1,11 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "InteractableInterface.h"
+#include "CommunityTrustTypes.h"
 #include "DoorDeorhiActor.generated.h"
 
 class UStaticMeshComponent;
@@ -100,6 +101,19 @@ public:
 
 	UFUNCTION(BlueprintPure, Category = "Revolution|Door")
 	bool IsDoorOpen() const { return bIsOpen; }
+
+	// --- COMMUNITY TRUST INTEGRATION ---
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|CommunityTrust")
+	FName CommunityClusterID = FName(TEXT("Cluster_UBDC_CanalBasti"));
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|CommunityTrust")
+	bool bLockWhenCompromised = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|CommunityTrust")
+	bool bUnlockWhenTrusted = true;
+
+	UFUNCTION(BlueprintCallable, Category = "Revolution|CommunityTrust")
+	void ApplyCommunityStance(ECommunityStance Stance);
 
 private:
 	float CurrentYaw = 0.0f;

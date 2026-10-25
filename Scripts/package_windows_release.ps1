@@ -38,6 +38,7 @@ $UATArgs = @(
     "-platform=Win64",
     "-clientconfig=$Config",
     "-cook",
+    "-iterative",
     "-build",
     "-stage",
     "-pak",

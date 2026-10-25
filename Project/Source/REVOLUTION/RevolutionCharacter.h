@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -18,6 +18,42 @@ struct FInputActionValue;
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnInteractionFocusChanged, bool, bHasFocus, FText, PromptText);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnItemInspected, FText, ItemName, FText, LoreDescription);
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnInspectionEnded);
+
+USTRUCT(BlueprintType)
+struct FP3BenchmarkRecord
+{
+	GENERATED_BODY()
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	FString Preset;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	FString Zone;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float TargetFPS = 60.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float AvgFPS = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float OnePercentLow = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float FrameTimeMs = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float GameThreadMs = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float RenderThreadMs = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float GPUMs = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	bool bPass = true;
+};
 
 UCLASS(config=Game)
 class REVOLUTION_API ARevolutionCharacter : public ACharacter
@@ -581,6 +617,73 @@ public:
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
 	int32 P2CurrentStep = 0;
+
+	// --- TASK 34 / MILESTONE P3: PERFORMANCE BENCHMARKING & SCALABILITY ---
+	UFUNCTION(BlueprintCallable, Category = "Revolution|QA")
+	void StartP3BenchmarkSequence();
+
+	void ExecuteP3Step(int32 StepIndex);
+
+	void RecordP3StepMetrics(int32 StepIndex, const FString& PresetName, const FString& ZoneName, float InTargetFPS);
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	bool bP3BenchmarkingActive = false;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	int32 P3CurrentStep = 0;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	FString P3CurrentBenchmarkTitle;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	FString P3CurrentZoneName;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3TargetFPS = 60.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3MeasuredFPS = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3MeasuredFrameTimeMs = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3OnePercentLowFPS = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3GameThreadMs = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3RenderThreadMs = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3GPUMs = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3PhysicalMemoryUsedGB = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3PhysicalMemoryTotalGB = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3VirtualMemoryUsedGB = 0.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	float P3DynamicResolutionPercent = 100.0f;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	int32 P3TextureStreamingPoolMB = 1800;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	int32 P3NanitePoolMB = 512;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	bool bP3CurrentStepPass = true;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "Revolution|QA")
+	TArray<FP3BenchmarkRecord> P3Results;
+
+	TArray<float> P3StepDeltaTimes;
 
 	virtual void NotifyHit(UPrimitiveComponent* MyComp, AActor* Other, UPrimitiveComponent* OtherComp, bool bSelfMoved, FVector HitLocation, FVector HitNormal, FVector NormalImpulse, const FHitResult& Hit) override;
 

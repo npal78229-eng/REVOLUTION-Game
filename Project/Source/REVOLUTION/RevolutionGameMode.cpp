@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RevolutionGameMode.h"
 #include "RevolutionCharacter.h"
@@ -28,6 +28,7 @@
 #include "MatkaStandActor.h"
 #include "CurfewGongActor.h"
 #include "CivilianNPCActor.h"
+#include "CommunityTrustSubsystem.h"
 #include "LocomotiveSteamValveActor.h"
 #include "Engine/World.h"
 #include "Engine/StaticMesh.h"
@@ -410,6 +411,67 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			}
 
 			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Jallianwala Narrow Gateway at (900, 2250, 50)."));
+		}
+
+		// Objective Trigger: Colonial Checkpost Eavesdropping Post (Act II Step 11)
+		AObjectiveTriggerActor* EavesdropTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(-40.0f, 2080.0f, 50.0f),
+			FRotator(0.0f, 0.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (EavesdropTrigger)
+		{
+			EavesdropTrigger->RequiredMissionStage = ECourierMissionStage::Stage_Afternoon_EavesdropCheckpost;
+			EavesdropTrigger->InteractionPrompt = FText::FromString(TEXT("Eavesdrop on Colonial Constables"));
+			EavesdropTrigger->ItemTitle = FText::FromString(TEXT("Colonial Checkpost: Dyer's Deployment Orders"));
+			EavesdropTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Concealed behind stacked sandbags, Kabir overhears Inspector Rehill and Constable Gurdial conferring in tense whispers: 'General Dyer has marched fifty Gurkha and Baluch riflemen from the Ram Bagh headquarters with orders to seal the gathering at Jallianwala Bagh. The General has forbidden any assembly under Section 144. Find the youth distributing Dr. Kitchlew's Satyagraha handbills before the columns arrive!' Kabir realizes the crowd at the Bagh is completely unaware of the trap.")
+			);
+			EavesdropTrigger->bRequireStealthForInteraction = true;
+			EavesdropTrigger->bHideMeshOnTrigger = false;
+
+			USoundBase* RustleSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Conceal_Cloth_Rustle.SFX_Conceal_Cloth_Rustle"));
+			if (RustleSFX)
+			{
+				EavesdropTrigger->TriggerSound = RustleSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Colonial Checkpost Eavesdropping Trigger at (-40, 2080, 50)."));
+		}
+
+		// Objective Trigger: Mandi Khadi Cloth Bolt Leaflets Stash (Act II Step 12)
+		AObjectiveTriggerActor* ClothBoltTrigger = World->SpawnActor<AObjectiveTriggerActor>(
+			AObjectiveTriggerActor::StaticClass(),
+			FVector(210.0f, 1960.0f, 50.0f),
+			FRotator(0.0f, 90.0f, 0.0f),
+			TriggerSpawnParams
+		);
+		if (ClothBoltTrigger)
+		{
+			ClothBoltTrigger->RequiredMissionStage = ECourierMissionStage::Stage_Afternoon_ClothBoltLeaflets;
+			ClothBoltTrigger->InteractionPrompt = FText::FromString(TEXT("Retrieve Satyagraha Handbills from Khadi Bolts"));
+			ClothBoltTrigger->ItemTitle = FText::FromString(TEXT("Satyagraha Handbills (Lala Karam Chand's Swadeshi Cache)"));
+			ClothBoltTrigger->HistoricalLoreUponInteraction = FText::FromString(
+				TEXT("Hidden between double-weave layers of Swadeshi hand-spun khadi cotton, Kabir discovers stacks of lithographed Satyagraha handbills. Printed by the underground freedom movement in defiance of the Rowlatt Act, they call for peaceful assembly at Jallianwala Bagh to demand the release of Dr. Saifuddin Kitchlew and Dr. Satyapal. Kabir carefully tucks them into his leather satchel to deliver to the assembly elders.")
+			);
+			ClothBoltTrigger->AwardPamphletsOnTrigger = 2;
+			ClothBoltTrigger->bHideMeshOnTrigger = false;
+
+			UStaticMesh* ClothMesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Game/Environment/Mohalla/Meshes/SM_Prop_ClothRolls_Manchester.SM_Prop_ClothRolls_Manchester"));
+			if (ClothMesh && ClothBoltTrigger->MeshComponent)
+			{
+				ClothBoltTrigger->MeshComponent->SetStaticMesh(ClothMesh);
+				ClothBoltTrigger->MeshComponent->SetRelativeScale3D(FVector(0.75f, 0.75f, 0.75f));
+			}
+
+			USoundBase* PamphletSFX = LoadObject<USoundBase>(nullptr, TEXT("/Game/Audio/SFX/SFX_Pamphlet_Retrieve.SFX_Pamphlet_Retrieve"));
+			if (PamphletSFX)
+			{
+				ClothBoltTrigger->TriggerSound = PamphletSFX;
+			}
+
+			UE_LOG(LogREVOLUTION, Log, TEXT("Spawned Mission Objective: Mandi Khadi Cloth Bolt Leaflets Trigger at (210, 1960, 50)."));
 		}
 
 		// Objective Trigger: The Martyrs' Well (Shahidi Kua)
@@ -1468,7 +1530,9 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			{ ECivilianOccupation::SchoolHeadmaster, FVector(1350.0f, 1420.0f, 10.0f), FRotator(0.0f, -90.0f, 0.0f), TEXT("Pandit Kashi Ram (School Headmaster)") },
 			{ ECivilianOccupation::SchoolFriendKartar, FVector(450.0f, 1380.0f, 88.0f), FRotator(0.0f, -90.0f, 0.0f), TEXT("Kartar Singh (Schoolmate & Friend)") },
 			{ ECivilianOccupation::MunadiTownCrier, FVector(60.0f, 1920.0f, 10.0f), FRotator(0.0f, 30.0f, 0.0f), TEXT("Nikka Ram (Munadi Town Crier)") },
-			{ ECivilianOccupation::ProtestElder, FVector(140.0f, 1860.0f, 10.0f), FRotator(0.0f, 120.0f, 0.0f), TEXT("Bhai Sant Singh (Protest Elder)") }
+			{ ECivilianOccupation::ProtestElder, FVector(140.0f, 1860.0f, 10.0f), FRotator(0.0f, 120.0f, 0.0f), TEXT("Bhai Sant Singh (Protest Elder)") },
+			{ ECivilianOccupation::BaisakhiPilgrim, FVector(1380.0f, 3050.0f, 10.0f), FRotator(0.0f, -60.0f, 0.0f), TEXT("Bhai Gurmukh Singh (Baisakhi Pilgrim)") },
+			{ ECivilianOccupation::FairVendor, FVector(1050.0f, 2400.0f, 10.0f), FRotator(0.0f, 45.0f, 0.0f), TEXT("Chacha Milkha (Baisakhi Fair Vendor)") }
 		};
 
 		for (const FCivDef& Def : CiviliansToSpawn)
@@ -1488,13 +1552,17 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 	}
 	else
 	{
-		// If level has existing civilians, ensure Munadi Town Crier and Protest Elder exist in Grand Bazaar Chowk
+		// If level has existing civilians, ensure Munadi Town Crier, Protest Elder, Baisakhi Pilgrim, and Fair Vendor exist
 		bool bHasMunadi = false;
 		bool bHasElder = false;
+		bool bHasPilgrim = false;
+		bool bHasVendor = false;
 		for (TActorIterator<ACivilianNPCActor> CivIt(World); CivIt; ++CivIt)
 		{
 			if (CivIt->Occupation == ECivilianOccupation::MunadiTownCrier) bHasMunadi = true;
 			if (CivIt->Occupation == ECivilianOccupation::ProtestElder) bHasElder = true;
+			if (CivIt->Occupation == ECivilianOccupation::BaisakhiPilgrim) bHasPilgrim = true;
+			if (CivIt->Occupation == ECivilianOccupation::FairVendor) bHasVendor = true;
 		}
 
 		FActorSpawnParameters CivSpawnParams;
@@ -1527,6 +1595,36 @@ void ARevolutionGameMode::SpawnDefaultMohallaProps()
 			{
 				ElderCiv->ConfigureOccupation(ECivilianOccupation::ProtestElder);
 				UE_LOG(LogREVOLUTION, Log, TEXT("Spawned missing Civilian NPC: Bhai Sant Singh (Protest Elder) at (140, 1860, 10)"));
+			}
+		}
+
+		if (!bHasPilgrim)
+		{
+			ACivilianNPCActor* PilgrimCiv = World->SpawnActor<ACivilianNPCActor>(
+				ACivilianNPCActor::StaticClass(),
+				FVector(1380.0f, 3050.0f, 10.0f),
+				FRotator(0.0f, -60.0f, 0.0f),
+				CivSpawnParams
+			);
+			if (PilgrimCiv)
+			{
+				PilgrimCiv->ConfigureOccupation(ECivilianOccupation::BaisakhiPilgrim);
+				UE_LOG(LogREVOLUTION, Log, TEXT("Spawned missing Civilian NPC: Bhai Gurmukh Singh (Baisakhi Pilgrim) at (1380, 3050, 10)"));
+			}
+		}
+
+		if (!bHasVendor)
+		{
+			ACivilianNPCActor* VendorCiv = World->SpawnActor<ACivilianNPCActor>(
+				ACivilianNPCActor::StaticClass(),
+				FVector(1050.0f, 2400.0f, 10.0f),
+				FRotator(0.0f, 45.0f, 0.0f),
+				CivSpawnParams
+			);
+			if (VendorCiv)
+			{
+				VendorCiv->ConfigureOccupation(ECivilianOccupation::FairVendor);
+				UE_LOG(LogREVOLUTION, Log, TEXT("Spawned missing Civilian NPC: Chacha Milkha (Baisakhi Fair Vendor) at (1050, 2400, 10)"));
 			}
 		}
 	}
@@ -1773,6 +1871,12 @@ bool ARevolutionGameMode::SaveGameToSlot(const FString& SlotName, int32 UserInde
 		}
 	}
 
+	// Persist community trust cluster stances and scores
+	if (UCommunityTrustSubsystem* TrustSub = GetWorld()->GetSubsystem<UCommunityTrustSubsystem>())
+	{
+		TrustSub->WriteToSaveGame(SaveInst);
+	}
+
 	const bool bSaved = UGameplayStatics::SaveGameToSlot(SaveInst, SlotName, UserIndex);
 	if (bSaved)
 	{
@@ -1835,6 +1939,12 @@ bool ARevolutionGameMode::LoadGameFromSlot(const FString& SlotName, int32 UserIn
 			Kabir->ApplyAudioSettings();
 			Kabir->ApplyHandheldScalability(SaveInst->bHandheldSteamOSMode);
 		}
+	}
+
+	// Restore community trust cluster stances and scores
+	if (UCommunityTrustSubsystem* TrustSub = GetWorld()->GetSubsystem<UCommunityTrustSubsystem>())
+	{
+		TrustSub->PopulateFromSaveGame(SaveInst);
 	}
 
 	UE_LOG(LogREVOLUTION, Log, TEXT("[SaveGame] Successfully restored state from slot '%s' (User %d). Timestamp: %s"), *SlotName, UserIndex, *SaveInst->SaveTimestamp.ToString());

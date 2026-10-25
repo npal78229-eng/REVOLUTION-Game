@@ -1,0 +1,448 @@
+{
+  "suite": "TEST-32",
+  "name": "End-to-End Interactive QA Playthrough Bot",
+  "target_level": "/Game/Maps/L_Validation_Gym",
+  "total_actors": 299,
+  "total_stages": 29,
+  "total_distance_meters": 205.47,
+  "total_simulated_time_seconds": 58.71,
+  "status": "PASS",
+  "timestamp": "2026-10-25T12:26:23Z",
+  "milestones": [
+    {
+      "step": 1,
+      "stage_enum": "<CourierMissionStage.STAGE_MORNING_FATHER_TAILOR: 0>",
+      "objective_name": "Ram Lubhaya's Tailor Shop",
+      "target_coordinates": {
+        "x": 480.0,
+        "y": 500.0,
+        "z": 88.0
+      },
+      "segment_distance_m": 5.56,
+      "cumulative_distance_m": 5.56,
+      "simulated_time_s": 1.59,
+      "atmosphere_phase": "MorningDawn",
+      "status": "PASS"
+    },
+    {
+      "step": 2,
+      "stage_enum": "<CourierMissionStage.STAGE_MORNING_ROOFTOP_KITE: 1>",
+      "objective_name": "Haveli Rooftop Basant Kite",
+      "target_coordinates": {
+        "x": 380.0,
+        "y": 200.0,
+        "z": 480.0
+      },
+      "segment_distance_m": 5.04,
+      "cumulative_distance_m": 10.6,
+      "simulated_time_s": 3.03,
+      "atmosphere_phase": "MorningDawn",
+      "status": "PASS"
+    },
+    {
+      "step": 3,
+      "stage_enum": "<CourierMissionStage.STAGE_MORNING_WELL_BHISHTI: 2>",
+      "objective_name": "Ghasita Bhishti (Mohalla Well)",
+      "target_coordinates": {
+        "x": -80.0,
+        "y": 1320.0,
+        "z": 88.0
+      },
+      "segment_distance_m": 12.73,
+      "cumulative_distance_m": 23.32,
+      "simulated_time_s": 6.66,
+      "atmosphere_phase": "MorningDawn",
+      "status": "PASS"
+    },
+    {
+      "step": 4,
+      "stage_enum": "<CourierMissionStage.STAGE_MORNING_DELIVER_CLOTH: 3>",
+      "objective_name": "Lala Karam Chand (Cloth Merchant)",
+      "target_coordinates": {
+        "x": 200.0,
+        "y": 1980.0,
+        "z": 88.0
+      },
+      "segment_distance_m": 7.17,
+      "cumulative_distance_m": 30.49,
+      "simulated_time_s": 8.71,
+      "atmosphere_phase": "MorningDawn",
+      "status": "PASS"
+    },
+    {
+      "step": 5,
+      "stage_enum": "<CourierMissionStage.STAGE_MORNING_CHAI_HALWAI: 4>",
+      "objective_name": "Hira Halwai's Tea Stall",
+      "target_coordinates": {
+        "x": -200.0,
+        "y": 1680.0,
+        "z": 88.0
+      },
+      "segment_distance_m": 5.0,
+      "cumulative_distance_m": 35.49,
+      "simulated_time_s": 10.14,
+      "atmosphere_phase": "MorningDawn",
+      "status": "PASS"
+    },
+    {
+      "step": 6,
+      "stage_enum": "<CourierMissionStage.STAGE_MORNING_PROCLAMATION_BOARD: 5>",
+      "objective_name": "Section 144 Proclamation Board",
+      "target_coordinates": {
+        "x": -80.0,
+        "y": 1850.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 2.12,
+      "cumulative_distance_m": 37.61,
+      "simulated_time_s": 10.74,
+      "atmosphere_phase": "MorningDawn",
+      "status": "PASS"
+    },
+    {
+      "step": 7,
+      "stage_enum": "<CourierMissionStage.STAGE_MORNING_SCHOOL_BELL: 6>",
+      "objective_name": "Vernacular Middle School Bell",
+      "target_coordinates": {
+        "x": 1350.0,
+        "y": 1350.0,
+        "z": 60.0
+      },
+      "segment_distance_m": 15.15,
+      "cumulative_distance_m": 52.76,
+      "simulated_time_s": 15.07,
+      "atmosphere_phase": "MorningDawn",
+      "status": "PASS"
+    },
+    {
+      "step": 8,
+      "stage_enum": "<CourierMissionStage.STAGE_MORNING_CLASSROOM_DESK: 7>",
+      "objective_name": "Classroom 4B Student Desk",
+      "target_coordinates": {
+        "x": 1150.0,
+        "y": 1850.0,
+        "z": 35.0
+      },
+      "segment_distance_m": 5.39,
+      "cumulative_distance_m": 58.15,
+      "simulated_time_s": 16.61,
+      "atmosphere_phase": "MorningDawn",
+      "status": "PASS"
+    },
+    {
+      "step": 9,
+      "stage_enum": "<CourierMissionStage.STAGE_AFTERNOON_MUNADI_PROCLAMATION: 8>",
+      "objective_name": "Munadi Proclamation Drum",
+      "target_coordinates": {
+        "x": 80.0,
+        "y": 1920.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 10.72,
+      "cumulative_distance_m": 68.87,
+      "simulated_time_s": 19.68,
+      "atmosphere_phase": "BaisakhiMidday",
+      "status": "PASS"
+    },
+    {
+      "step": 10,
+      "stage_enum": "<CourierMissionStage.STAGE_AFTERNOON_BAGH_NARROW_ENTRY: 9>",
+      "objective_name": "Jallianwala Bagh Choke-Point",
+      "target_coordinates": {
+        "x": 900.0,
+        "y": 2250.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 8.84,
+      "cumulative_distance_m": 77.71,
+      "simulated_time_s": 22.2,
+      "atmosphere_phase": "BaisakhiMidday",
+      "status": "PASS"
+    },
+    {
+      "step": 11,
+      "stage_enum": "<CourierMissionStage.STAGE_AFTERNOON_EAVESDROP_CHECKPOST: 10>",
+      "objective_name": "Colonial Checkpost Eavesdropping Post",
+      "target_coordinates": {
+        "x": -40.0,
+        "y": 2080.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 9.55,
+      "cumulative_distance_m": 87.26,
+      "simulated_time_s": 24.93,
+      "atmosphere_phase": "BaisakhiMidday",
+      "status": "PASS"
+    },
+    {
+      "step": 12,
+      "stage_enum": "<CourierMissionStage.STAGE_AFTERNOON_CLOTH_BOLT_LEAFLETS: 11>",
+      "objective_name": "Lala Karam Chand's Cloth Bolt Stash",
+      "target_coordinates": {
+        "x": 210.0,
+        "y": 1960.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 2.77,
+      "cumulative_distance_m": 90.04,
+      "simulated_time_s": 25.72,
+      "atmosphere_phase": "BaisakhiMidday",
+      "status": "PASS"
+    },
+    {
+      "step": 13,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_II_BAISAKHI_GATHERING: 12>",
+      "objective_name": "Baisakhi Assembly Pandal",
+      "target_coordinates": {
+        "x": 1450.0,
+        "y": 3100.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 16.84,
+      "cumulative_distance_m": 106.88,
+      "simulated_time_s": 30.54,
+      "atmosphere_phase": "BaisakhiMidday",
+      "status": "PASS"
+    },
+    {
+      "step": 14,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_II_THE_FIRING: 13>",
+      "objective_name": "The Firing Line",
+      "target_coordinates": {
+        "x": 1250.0,
+        "y": 2800.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 3.61,
+      "cumulative_distance_m": 110.48,
+      "simulated_time_s": 31.57,
+      "atmosphere_phase": "BaisakhiMidday",
+      "status": "PASS"
+    },
+    {
+      "step": 15,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_II_FIND_ESCAPE_ROUTE: 14>",
+      "objective_name": "Escape Route in Enclosure",
+      "target_coordinates": {
+        "x": 950.0,
+        "y": 3100.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 4.24,
+      "cumulative_distance_m": 114.73,
+      "simulated_time_s": 32.78,
+      "atmosphere_phase": "BaisakhiMidday",
+      "status": "PASS"
+    },
+    {
+      "step": 16,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_II_VAULT_WALL_BREACH: 15>",
+      "objective_name": "Crumbling Wall Breach",
+      "target_coordinates": {
+        "x": 680.0,
+        "y": 3320.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 3.48,
+      "cumulative_distance_m": 118.21,
+      "simulated_time_s": 33.77,
+      "atmosphere_phase": "BaisakhiMidday",
+      "status": "PASS"
+    },
+    {
+      "step": 17,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_II_COMPLETED: 16>",
+      "objective_name": "Crumbling Wall Breach",
+      "target_coordinates": {
+        "x": 680.0,
+        "y": 3320.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 0.0,
+      "cumulative_distance_m": 118.21,
+      "simulated_time_s": 33.77,
+      "atmosphere_phase": "BaisakhiMidday",
+      "status": "PASS"
+    },
+    {
+      "step": 18,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_III_NIGHT_CURFEW_FALL: 17>",
+      "objective_name": "Central Chowk Curfew Notice",
+      "target_coordinates": {
+        "x": -80.0,
+        "y": 1850.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 16.55,
+      "cumulative_distance_m": 134.76,
+      "simulated_time_s": 38.5,
+      "atmosphere_phase": "CurfewNight",
+      "status": "PASS"
+    },
+    {
+      "step": 19,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_III_EVADE_SEARCHLIGHT_PICKET: 18>",
+      "objective_name": "Imperial Searchlight Picket",
+      "target_coordinates": {
+        "x": 0.0,
+        "y": 2260.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 4.18,
+      "cumulative_distance_m": 138.94,
+      "simulated_time_s": 39.7,
+      "atmosphere_phase": "CurfewNight",
+      "status": "PASS"
+    },
+    {
+      "step": 20,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_III_AID_WOUNDED_SURVIVORS: 19>",
+      "objective_name": "Alley Makeshift Stretcher",
+      "target_coordinates": {
+        "x": -120.0,
+        "y": 950.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 13.15,
+      "cumulative_distance_m": 152.09,
+      "simulated_time_s": 43.45,
+      "atmosphere_phase": "CurfewNight",
+      "status": "PASS"
+    },
+    {
+      "step": 21,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_III_COMPLETED: 20>",
+      "objective_name": "Alley Makeshift Stretcher",
+      "target_coordinates": {
+        "x": -120.0,
+        "y": 950.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 0.0,
+      "cumulative_distance_m": 152.09,
+      "simulated_time_s": 43.45,
+      "atmosphere_phase": "CurfewNight",
+      "status": "PASS"
+    },
+    {
+      "step": 22,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_IV_REACH_CANAL_DISTRIBUTARY: 21>",
+      "objective_name": "Canal Sluice Regulator",
+      "target_coordinates": {
+        "x": -950.0,
+        "y": 2200.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 15.0,
+      "cumulative_distance_m": 167.1,
+      "simulated_time_s": 47.74,
+      "atmosphere_phase": "CanalNight",
+      "status": "PASS"
+    },
+    {
+      "step": 23,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_IV_PERSIAN_WHEEL_CONTACT: 22>",
+      "objective_name": "Persian Wheel (Rahat) Well",
+      "target_coordinates": {
+        "x": -1150.0,
+        "y": 2050.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 2.5,
+      "cumulative_distance_m": 169.6,
+      "simulated_time_s": 48.46,
+      "atmosphere_phase": "CanalNight",
+      "status": "PASS"
+    },
+    {
+      "step": 24,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_IV_BRICK_KILN_SAFEHOUSE: 23>",
+      "objective_name": "Brick Kiln Resistance Stash",
+      "target_coordinates": {
+        "x": -1180.0,
+        "y": 2520.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 4.71,
+      "cumulative_distance_m": 174.3,
+      "simulated_time_s": 49.8,
+      "atmosphere_phase": "CanalNight",
+      "status": "PASS"
+    },
+    {
+      "step": 25,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_IV_COMPLETED: 24>",
+      "objective_name": "Brick Kiln Resistance Stash",
+      "target_coordinates": {
+        "x": -1180.0,
+        "y": 2520.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 0.0,
+      "cumulative_distance_m": 174.3,
+      "simulated_time_s": 49.8,
+      "atmosphere_phase": "CanalNight",
+      "status": "PASS"
+    },
+    {
+      "step": 26,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_V_REACH_RAILWAY_CUTTING: 25>",
+      "objective_name": "North Western Railway Cutting",
+      "target_coordinates": {
+        "x": 900.0,
+        "y": 3900.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 24.96,
+      "cumulative_distance_m": 199.27,
+      "simulated_time_s": 56.93,
+      "atmosphere_phase": "CanalNight",
+      "status": "PASS"
+    },
+    {
+      "step": 27,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_V_CLIMB_SIGNAL_GANTRY: 26>",
+      "objective_name": "Semaphore Signal Gantry",
+      "target_coordinates": {
+        "x": 1160.0,
+        "y": 3960.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 2.67,
+      "cumulative_distance_m": 201.93,
+      "simulated_time_s": 57.7,
+      "atmosphere_phase": "CanalNight",
+      "status": "PASS"
+    },
+    {
+      "step": 28,
+      "stage_enum": "<CourierMissionStage.STAGE_ACT_V_CROSS_CIVIL_LINES_PALISADE: 27>",
+      "objective_name": "Civil Lines Palisade Perimeter",
+      "target_coordinates": {
+        "x": 900.0,
+        "y": 4200.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 3.54,
+      "cumulative_distance_m": 205.47,
+      "simulated_time_s": 58.71,
+      "atmosphere_phase": "CanalNight",
+      "status": "PASS"
+    },
+    {
+      "step": 29,
+      "stage_enum": "<CourierMissionStage.STAGE_COMPLETED: 28>",
+      "objective_name": "Journey Complete (Act V Finale)",
+      "target_coordinates": {
+        "x": 900.0,
+        "y": 4200.0,
+        "z": 50.0
+      },
+      "segment_distance_m": 0.0,
+      "cumulative_distance_m": 205.47,
+      "simulated_time_s": 58.71,
+      "atmosphere_phase": "GoldenSunrise",
+      "status": "PASS"
+    }
+  ]
+}

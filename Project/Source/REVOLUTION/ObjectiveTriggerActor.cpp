@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "ObjectiveTriggerActor.h"
 #include "RevolutionCharacter.h"
@@ -22,7 +22,8 @@ AObjectiveTriggerActor::AObjectiveTriggerActor()
 
 	MeshComponent = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("MeshComponent"));
 	MeshComponent->SetupAttachment(RootComponent);
-	MeshComponent->SetCollisionProfileName(TEXT("BlockAllDynamic"));
+	MeshComponent->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	MeshComponent->SetCollisionResponseToAllChannels(ECR_Ignore);
 }
 
 bool AObjectiveTriggerActor::CanInteract_Implementation(const ARevolutionCharacter* Interactor) const
@@ -36,7 +37,21 @@ bool AObjectiveTriggerActor::CanInteract_Implementation(const ARevolutionCharact
 	{
 		if (const URevolutionMissionSubsystem* Subsystem = World->GetSubsystem<URevolutionMissionSubsystem>())
 		{
-			return Subsystem->GetCurrentStage() == RequiredMissionStage;
+			if (Subsystem->GetCurrentStage() != RequiredMissionStage)
+			{
+				return false;
+			}
+		}
+	}
+
+	if (bRequireStealthForInteraction && Interactor)
+	{
+		const bool bIsCrouched = Interactor->bIsCrouched;
+		const bool bIsConcealed = Interactor->GetConcealmentScore() > 0.25f;
+		const bool bIsCrowdBlended = Interactor->bIsCrowdBlended;
+		if (!bIsCrouched && !bIsConcealed && !bIsCrowdBlended)
+		{
+			return false;
 		}
 	}
 
@@ -105,8 +120,12 @@ void AObjectiveTriggerActor::OnInteract_Implementation(ARevolutionCharacter* Int
 
 	if (Interactor)
 	{
+		if (AwardPamphletsOnTrigger > 0)
+		{
+			Interactor->AddPamphlets(AwardPamphletsOnTrigger);
+		}
 		Interactor->StartInspection(ItemTitle, HistoricalLoreUponInteraction);
 	}
 
-	UE_LOG(LogREVOLUTION, Log, TEXT("ObjectiveTriggerActor triggered: %s"), *ItemTitle.ToString());
+	UE_LOG(LogREVOLUTION, Log, TEXT("ObjectiveTriggerActor triggered: %s (Pamphlets awarded: %d)"), *ItemTitle.ToString(), AwardPamphletsOnTrigger);
 }

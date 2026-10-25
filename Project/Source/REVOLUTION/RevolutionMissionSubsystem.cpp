@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RevolutionMissionSubsystem.h"
 #include "UObject/ConstructorHelpers.h"
@@ -181,6 +181,22 @@ void URevolutionMissionSubsystem::AdvanceMissionStage()
 		break;
 
 	case ECourierMissionStage::Stage_Afternoon_BaghNarrowEntry:
+		if (CurfewWhistleSound && World)
+		{
+			UGameplayStatics::PlaySound2D(World, CurfewWhistleSound, 1.0f);
+		}
+		CurrentStage = ECourierMissionStage::Stage_Afternoon_EavesdropCheckpost;
+		break;
+
+	case ECourierMissionStage::Stage_Afternoon_EavesdropCheckpost:
+		if (PamphletRetrieveSound && World)
+		{
+			UGameplayStatics::PlaySound2D(World, PamphletRetrieveSound, 1.0f);
+		}
+		CurrentStage = ECourierMissionStage::Stage_Afternoon_ClothBoltLeaflets;
+		break;
+
+	case ECourierMissionStage::Stage_Afternoon_ClothBoltLeaflets:
 		if (RallySpeechSound && World)
 		{
 			UGameplayStatics::PlaySound2D(World, RallySpeechSound, 1.0f);
@@ -393,6 +409,16 @@ void URevolutionMissionSubsystem::UpdateDirectiveStrings()
 		CachedDirective = FText::FromString(TEXT("Follow the Baisakhi festival crowd through the marigold chowk archway toward the historic northern passage into Jallianwala Bagh."));
 		break;
 
+	case ECourierMissionStage::Stage_Afternoon_EavesdropCheckpost:
+		CachedTitle = FText::FromString(TEXT("COLONIAL CHECKPOST EAVESDROPPING"));
+		CachedDirective = FText::FromString(TEXT("Conceal yourself in the shadows behind the police checkpost sandbag barricade. Overhear Constable Gurdial and the British officer discussing General Dyer's secret deployment orders."));
+		break;
+
+	case ECourierMissionStage::Stage_Afternoon_ClothBoltLeaflets:
+		CachedTitle = FText::FromString(TEXT("RETRIEVE SATYAGRAHA HANDBILLS"));
+		CachedDirective = FText::FromString(TEXT("Infiltrate Lala Karam Chand's textile mandi stall without alerting the patrolling sentries. Retrieve the clandestine Satyagraha rally handbills stashed inside the Swadeshi khadi cloth bolts."));
+		break;
+
 	case ECourierMissionStage::Stage_ActII_BaisakhiGathering:
 		CachedTitle = FText::FromString(TEXT("ASSEMBLY AT THE WALLED GARDEN"));
 		CachedDirective = FText::FromString(TEXT("Navigate the 2.2m claustrophobic corridor gateway into the enclosed garden where thousands of peaceful families have assembled."));
@@ -567,7 +593,12 @@ bool URevolutionMissionSubsystem::GetActiveObjectiveLocation(FVector& OutLocatio
 			for (TActorIterator<AActor> It(World); It; ++It)
 			{
 				AActor* Act = *It;
-				if (Act && (Act->GetActorLabel() == TEXT("Haveli_Rooftop_Basant_Kite") || Act->GetActorLabel() == TEXT("Story_Rooftop_Patang_Charkhi")))
+				if (!Act) continue;
+				FString ActLabel = Act->GetName();
+#if WITH_EDITOR
+				ActLabel = Act->GetActorLabel();
+#endif
+				if (ActLabel.Contains(TEXT("Basant_Kite"), ESearchCase::IgnoreCase) || ActLabel.Contains(TEXT("Patang_Charkhi"), ESearchCase::IgnoreCase))
 				{
 					OutLocation = Act->GetActorLocation();
 					OutObjectiveName = FText::FromString(TEXT("Haveli Rooftop Basant Kite"));
@@ -580,7 +611,12 @@ bool URevolutionMissionSubsystem::GetActiveObjectiveLocation(FVector& OutLocatio
 			for (TActorIterator<AActor> It(World); It; ++It)
 			{
 				AActor* Act = *It;
-				if (Act && Act->GetActorLabel() == TEXT("Story_Curfew_Notice_Martial_Law_Chowk"))
+				if (!Act) continue;
+				FString ActLabel = Act->GetName();
+#if WITH_EDITOR
+				ActLabel = Act->GetActorLabel();
+#endif
+				if (ActLabel.Contains(TEXT("Curfew_Notice"), ESearchCase::IgnoreCase) || ActLabel.Contains(TEXT("Proclamation"), ESearchCase::IgnoreCase))
 				{
 					OutLocation = Act->GetActorLocation() + FVector(0.0f, 0.0f, 50.0f);
 					OutObjectiveName = FText::FromString(TEXT("Section 144 Proclamation Board"));
@@ -593,7 +629,12 @@ bool URevolutionMissionSubsystem::GetActiveObjectiveLocation(FVector& OutLocatio
 			for (TActorIterator<AActor> It(World); It; ++It)
 			{
 				AActor* Act = *It;
-				if (Act && Act->GetActorLabel() == TEXT("School_Bell_Tower"))
+				if (!Act) continue;
+				FString ActLabel = Act->GetName();
+#if WITH_EDITOR
+				ActLabel = Act->GetActorLabel();
+#endif
+				if (ActLabel.Contains(TEXT("School_Bell"), ESearchCase::IgnoreCase))
 				{
 					OutLocation = Act->GetActorLocation() + FVector(0.0f, 0.0f, 60.0f);
 					OutObjectiveName = FText::FromString(TEXT("Vernacular Middle School Bell"));
@@ -606,7 +647,12 @@ bool URevolutionMissionSubsystem::GetActiveObjectiveLocation(FVector& OutLocatio
 			for (TActorIterator<AActor> It(World); It; ++It)
 			{
 				AActor* Act = *It;
-				if (Act && Act->GetActorLabel() == TEXT("Story_School_Takhti_Slate"))
+				if (!Act) continue;
+				FString ActLabel = Act->GetName();
+#if WITH_EDITOR
+				ActLabel = Act->GetActorLabel();
+#endif
+				if (ActLabel.Contains(TEXT("Takhti_Slate"), ESearchCase::IgnoreCase) || ActLabel.Contains(TEXT("Desk"), ESearchCase::IgnoreCase))
 				{
 					OutLocation = Act->GetActorLocation() + FVector(0.0f, 0.0f, 20.0f);
 					OutObjectiveName = FText::FromString(TEXT("Classroom 4B Student Desk"));
@@ -667,6 +713,16 @@ bool URevolutionMissionSubsystem::GetActiveObjectiveLocation(FVector& OutLocatio
 	case ECourierMissionStage::Stage_Afternoon_BaghNarrowEntry:
 		OutLocation = FVector(900.0f, 2250.0f, 50.0f);
 		OutObjectiveName = FText::FromString(TEXT("Jallianwala Bagh Choke-Point"));
+		return true;
+
+	case ECourierMissionStage::Stage_Afternoon_EavesdropCheckpost:
+		OutLocation = FVector(-40.0f, 2080.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Colonial Checkpost Eavesdropping Post"));
+		return true;
+
+	case ECourierMissionStage::Stage_Afternoon_ClothBoltLeaflets:
+		OutLocation = FVector(210.0f, 1960.0f, 50.0f);
+		OutObjectiveName = FText::FromString(TEXT("Lala Karam Chand's Cloth Bolt Stash"));
 		return true;
 
 	case ECourierMissionStage::Stage_ActII_BaisakhiGathering:

@@ -1,7 +1,7 @@
 """
 PROJECT REVOLUTION — Task 21: Assemble Civilian Voice Audio on Level Actors
 Binds the localized Punjabi voice sound assets and attenuation settings
-to all 6 Civilian NPCs and the Curfew Patrol AI / Constable in /Game/Maps/L_Validation_Gym.
+to all Civilian NPCs and Curfew Patrol sentries in /Game/Maps/L_Validation_Gym.
 """
 
 import unreal
@@ -25,7 +25,7 @@ def main():
     att_voice = editor_asset_lib.load_asset("/Game/Audio/Attenuation/ATT_Voice_Proximity")
     assert att_voice is not None, "Failed to load ATT_Voice_Proximity!"
 
-    # Voice mappings for civilian archetypes (enum int or name)
+    # Voice mappings for civilian archetypes
     voice_map = {
         0: { # FatherTailor
             "dialogue": "/Game/Audio/Voice/SFX_Voice_RamLubhaya_Dialogue",
@@ -62,7 +62,38 @@ def main():
             "bark": "/Game/Audio/Voice/SFX_Voice_KartarSingh_Bark",
             "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_03",
             "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
+        },
+        6: { # MunadiTownCrier
+            "dialogue": "/Game/Audio/Voice/SFX_Voice_RamLubhaya_Dialogue",
+            "bark": "/Game/Audio/Voice/SFX_Voice_RamLubhaya_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
+        },
+        7: { # ProtestElder
+            "dialogue": "/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Dialogue",
+            "bark": "/Game/Audio/Voice/SFX_Voice_PanditKashiRam_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
+        },
+        8: { # BaisakhiPilgrim
+            "dialogue": "/Game/Audio/Voice/SFX_Voice_RamLubhaya_Dialogue",
+            "bark": "/Game/Audio/Voice/SFX_Voice_Majhi_ChanaVendor_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
+        },
+        9: { # FairVendor
+            "dialogue": "/Game/Audio/Voice/SFX_Voice_HiraHalwai_Dialogue",
+            "bark": "/Game/Audio/Voice/SFX_Voice_Doabi_KulfiWalla_Bark",
+            "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_02",
+            "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_02"
         }
+    }
+
+    fallback_cfg = {
+        "dialogue": "/Game/Audio/Voice/SFX_Voice_RamLubhaya_Dialogue",
+        "bark": "/Game/Audio/Voice/SFX_Voice_RamLubhaya_Bark",
+        "stumble": "/Game/Audio/Voice/SFX_Voice_Civilian_Stumble_01",
+        "curiosity": "/Game/Audio/Voice/SFX_Voice_Civilian_Curiosity_01"
     }
 
     all_actors = actor_sub.get_all_level_actors()
@@ -77,27 +108,50 @@ def main():
 
         if cname == "CivilianNPCActor":
             occ = actor.get_editor_property("occupation")
-            # Enum can be int or Enum object
             occ_idx = occ if isinstance(occ, int) else occ.value if hasattr(occ, "value") else int(occ)
             
-            cfg = voice_map.get(occ_idx)
-            if cfg:
+            cfg = voice_map.get(occ_idx, fallback_cfg)
+            try:
                 actor.configure_occupation(occ)
-                dlg_asset = editor_asset_lib.load_asset(cfg["dialogue"])
-                bark_asset = editor_asset_lib.load_asset(cfg["bark"])
-                stumble_asset = editor_asset_lib.load_asset(cfg["stumble"])
-                curiosity_asset = editor_asset_lib.load_asset(cfg["curiosity"])
+            except:
+                pass
                 
-                actor.set_editor_property("interaction_voice_sound", dlg_asset)
-                actor.set_editor_property("ambient_bark_voice_sound", bark_asset)
-                actor.set_editor_property("stumble_voice_sound", stumble_asset)
-                actor.set_editor_property("curiosity_voice_sound", curiosity_asset)
-                actor.set_editor_property("voice_attenuation", att_voice)
-                
-                actor_label = actor.get_actor_label()
-                civilian_name = str(actor.get_editor_property("civilian_name"))
-                log_warn(f"[BOUND CIVILIAN] '{actor_label}' ({civilian_name}) -> Dialogue: {cfg['dialogue']}, Bark: {cfg['bark']}, Stumble: {cfg['stumble']}, Curiosity: {cfg['curiosity']}")
-                civilian_count += 1
+            dlg_asset = editor_asset_lib.load_asset(cfg["dialogue"])
+            bark_asset = editor_asset_lib.load_asset(cfg["bark"])
+            stumble_asset = editor_asset_lib.load_asset(cfg["stumble"])
+            curiosity_asset = editor_asset_lib.load_asset(cfg["curiosity"])
+            
+            actor.set_editor_property("interaction_voice_sound", dlg_asset)
+            actor.set_editor_property("ambient_bark_voice_sound", bark_asset)
+            actor.set_editor_property("stumble_voice_sound", stumble_asset)
+            actor.set_editor_property("curiosity_voice_sound", curiosity_asset)
+            actor.set_editor_property("voice_attenuation", att_voice)
+
+            # Ensure stumble barks and curiosity barks are populated
+            try:
+                sb = actor.get_editor_property("stumble_barks")
+                if len(sb) < 2:
+                    actor.set_editor_property("stumble_barks", [
+                        unreal.Text("Arey dhyaan naal chalo!"),
+                        unreal.Text("Vekh ke chalo, beta!")
+                    ])
+            except:
+                pass
+
+            try:
+                cb = actor.get_editor_property("curiosity_barks")
+                if len(cb) < 2:
+                    actor.set_editor_property("curiosity_barks", [
+                        unreal.Text("Oye, ki shor hai othe?"),
+                        unreal.Text("Koi taan hai gali vich...")
+                    ])
+            except:
+                pass
+            
+            actor_label = actor.get_actor_label()
+            civilian_name = str(actor.get_editor_property("civilian_name"))
+            log_warn(f"[BOUND CIVILIAN] '{actor_label}' ({civilian_name}) -> Dialogue: {cfg['dialogue']}, Bark: {cfg['bark']}")
+            civilian_count += 1
 
         elif cname == "CurfewPatrolAI":
             actor.set_editor_property("curfew_voice_proclamation_sound", constable_curfew)

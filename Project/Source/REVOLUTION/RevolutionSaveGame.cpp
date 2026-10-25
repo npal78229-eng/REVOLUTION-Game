@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "RevolutionSaveGame.h"
 
@@ -29,4 +29,12 @@ URevolutionSaveGame::URevolutionSaveGame()
 	AmbienceVolume = 1.0f;
 	SubtitleScaleMultiplier = 1.0f;
 	bHandheldSteamOSMode = false;
+
+	CommunityStances.Add(FName(TEXT("Cluster_UBDC_CanalBasti")), 0); // Neutral
+	CommunityStances.Add(FName(TEXT("Cluster_KotGurdarshan_Bazaar")), 0);
+	CommunityStances.Add(FName(TEXT("Cluster_Bhatta_BrickKiln")), 0);
+
+	CommunityTrustScores.Add(FName(TEXT("Cluster_UBDC_CanalBasti")), 50);
+	CommunityTrustScores.Add(FName(TEXT("Cluster_KotGurdarshan_Bazaar")), 50);
+	CommunityTrustScores.Add(FName(TEXT("Cluster_Bhatta_BrickKiln")), 50);
 }

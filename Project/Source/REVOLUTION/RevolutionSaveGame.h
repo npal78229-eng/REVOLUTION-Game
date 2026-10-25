@@ -1,4 +1,4 @@
-// Copyright Epic Games, Inc. All Rights Reserved.
+﻿// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -98,4 +98,13 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|SaveGame")
 	bool bHandheldSteamOSMode;
+
+	// --- COMMUNITY TRUST ARCHITECTURE ---
+	/** Serialized community trust stances keyed by ClusterID (0=Neutral, 1=Cautious, 2=Trusted, 3=Compromised) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|SaveGame")
+	TMap<FName, uint8> CommunityStances;
+
+	/** Serialized numerical trust scores keyed by ClusterID (0-100) */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Revolution|SaveGame")
+	TMap<FName, int32> CommunityTrustScores;
 };
