@@ -936,7 +936,7 @@ def build_humanoid_armature(name, stage):
 
 def setup_studio_lighting_and_cameras(scene):
     # Floor & Backdrop
-    floor_mat = create_pbr_material("M_StudioFloor", Color((0.08, 0.09, 0.10, 1.0)), roughness=0.6)
+    floor_mat = create_pbr_material("M_StudioFloor", (0.08, 0.09, 0.10, 1.0), roughness=0.6)
     bpy.ops.mesh.primitive_plane_add(size=30, location=(0, 0, 0))
     floor = bpy.context.active_object
     floor.name = "Studio_Floor"
@@ -989,39 +989,39 @@ def main():
     # 1. Author Authentic Master Materials
     # Skin: Authentic North Indian Punjabi bronze complexion with warm flush
     mat_skin = create_pbr_material("M_Kabir_v06_Skin", 
-                                   Color((0.36, 0.20, 0.12, 1.0)), # #B37F56 in linear
+                                   (0.36, 0.20, 0.12, 1.0), # #B37F56 in linear
                                    roughness=0.48, specular=0.55, 
-                                   sss_weight=0.22, sss_color=Color((0.55, 0.18, 0.12, 1.0)))
+                                   sss_weight=0.22, sss_color=(0.55, 0.18, 0.12, 1.0))
     
     # Eye: Deep dark brown iris with natural cornea specularity
     mat_eye = create_pbr_material("M_Kabir_v06_Eye", 
-                                  Color((0.08, 0.04, 0.02, 1.0)), 
+                                  (0.08, 0.04, 0.02, 1.0), 
                                   roughness=0.10, specular=0.90)
     
     # Hair: Natural espresso hair
     mat_hair = create_pbr_material("M_Kabir_v06_Hair", 
-                                   Color((0.03, 0.02, 0.015, 1.0)), 
+                                   (0.03, 0.02, 0.015, 1.0), 
                                    roughness=0.65, specular=0.45)
     
     # Khadi Kurta: Unbleached handloom ecru/cream cotton
     mat_khadi_cream = create_khadi_procedural_material("M_Kabir_v06_Khadi_Cream", 
-                                                        Color((0.82, 0.77, 0.69, 1.0)), roughness=0.88)
+                                                        (0.82, 0.77, 0.69, 1.0), roughness=0.88)
     
     # Khadi Lower: Pale warm wheat / oatmeal cotton
     mat_khadi_pajama = create_khadi_procedural_material("M_Kabir_v06_Khadi_Pajama", 
-                                                         Color((0.74, 0.68, 0.60, 1.0)), roughness=0.85)
+                                                         (0.74, 0.68, 0.60, 1.0), roughness=0.85)
 
     # Khadi Angavastram: Muted saffron/madder border handloom cotton
     mat_angavastram = create_khadi_procedural_material("M_Kabir_v06_Angavastram", 
-                                                       Color((0.70, 0.38, 0.20, 1.0)), roughness=0.86)
+                                                       (0.70, 0.38, 0.20, 1.0), roughness=0.86)
 
     # Leather: Aged saddle brown leather
     mat_leather = create_pbr_material("M_Kabir_v06_Leather", 
-                                      Color((0.15, 0.08, 0.04, 1.0)), 
+                                      (0.15, 0.08, 0.04, 1.0), 
                                       roughness=0.42, specular=0.40)
                                       
     mat_brass = create_pbr_material("M_Kabir_v06_Brass", 
-                                    Color((0.75, 0.58, 0.25, 1.0)), 
+                                    (0.75, 0.58, 0.25, 1.0), 
                                     roughness=0.30, specular=0.80, metallic=0.90)
 
     # 2. Build the Three Life Stages

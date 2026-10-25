@@ -73,7 +73,12 @@ flowchart TD
   - *Compromised Bark:* *"Bhaag yahan se! You brought the British rifles to our doorstep!"*
   - *Trusted Bark:* *"Quick, Kabir, step into the shadows here. The horse patrol is turning the corner."*
 
-### 2.5 Disk Persistence (`URevolutionSaveGame`)
+### 2.5 Active Restitution & Reparation Cache (`ARestitutionDropActor`)
+- Interactive cache (`IInteractableInterface`) placed on artisan workbenches (e.g. Potter Rahim's courtyard bench).
+- Allows Kabir to make amends after causing collateral disturbance (e.g. breaking earthenware or alerting patrols).
+- Leaving 2 copper annas (`SFX_Pebble_Impact`) immediately restores community standing (+35 trust score bonus), restoring `Compromised` stance back to `Neutral` and automatically unbolting locked bypass *deorhi* gates.
+
+### 2.6 Disk Persistence (`URevolutionSaveGame`)
 - Serializes `TMap<FName, uint8> CommunityStances` and `TMap<FName, int32> CommunityTrustScores`.
 - Subsystem methods `WriteToSaveGame` and `PopulateFromSaveGame` ensure persistence across game restarts.
 
@@ -88,16 +93,18 @@ Headless automation suite `Scripts/verify_community_trust.py` was executed via `
 | **Subtest 1** | Subsystem & Canonical Clusters | Clusters initialized in `Neutral` stance with score 50 | **PASS** |
 | **Subtest 2** | `ADoorDeorhiActor` Barricade Mechanics | `Compromised` bolts door; `Trusted` unbolts door | **PASS** |
 | **Subtest 3** | `ACivilianNPCActor` Dialogue Barks | Stance accurately switches between scolding and sheltering barks | **PASS** |
-| **Subtest 4** | Incident Perception & Degradation | Pottery destruction applies -35 penalty, degrades to `Compromised`, propagates to door | **PASS** |
-| **Subtest 5** | Save/Load Disk Persistence | `URevolutionSaveGame` accurately preserves and restores stances and scores | **PASS** |
+| **Subtest 4** | Incident Perception & Active Restitution | Terracotta destruction degrades score to Compromised (-35); paying 2 copper annas at `ARestitutionDropActor` restores score (+35) and unbolts door | **PASS** |
+| **Subtest 5** | Save/Load Disk Persistence | `URevolutionSaveGame` accurately preserves and restores stances and scores across physical disk cycles | **PASS** |
 
 **Summary Result:** **5 / 5 SUBTESTS PASSED (0 ERRORS)**  
-Execution Duration: **0.27 seconds**  
+Execution Duration: **0.26 seconds**  
 JSON Audit Artifact: `Tests/TASK_39_COMMUNITY_TRUST_VERIFICATION.json`
 
 ---
 
-## 4. Master CI Regression Certification
+## 4. Master CI Regression & Standalone Packaging Certification
 
-Integrated into master test harness `Scripts/run_all_tests.py` and `Scripts/run_all_tests.ps1` as **TEST-31**.  
-Master verification status: **31 / 31 QA Suites Certified**.
+- Integrated into master test harness `Scripts/run_all_tests.py` and `Scripts/run_all_tests.ps1` as **TEST-31**.
+- Certified with **TEST-32** End-to-End interactive bot traversal across all 29 story stages.
+- Master verification status: **32 / 32 QA Suites Certified (100% PASS)**.
+- Release Distribution: Standalone Win64 release package cooked and archived via IoStore (`Build/Development/Windows/REVOLUTION.exe`, 933.2 MB package footprint, 100% PASS on `verify_standalone_package.py`).
