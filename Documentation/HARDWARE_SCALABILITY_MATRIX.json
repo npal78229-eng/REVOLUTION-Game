@@ -1,0 +1,49 @@
+{
+  "suite": "TEST-34",
+  "name": "Hardware Scalability & Multi-Tier GPU Compatibility Matrix",
+  "total_tiers": 4,
+  "status": "PASS",
+  "timestamp": "2026-10-25T13:29:01Z",
+  "tiers": [
+    {
+      "tier": "Tier 1: Low (Handheld / APU Profile)",
+      "quality_level": 0,
+      "target_hardware": "Steam Deck, ASUS ROG Ally, Intel Iris Xe, AMD 780M",
+      "target_resolution": "1280x720 / 1280x800",
+      "target_fps": 40,
+      "lumen_gi_mode": "Software / Screen Traces",
+      "shadow_method": "Directional Cascades / Scaled VSM",
+      "status": "VERIFIED_COMPLIANT"
+    },
+    {
+      "tier": "Tier 2: Medium (Budget Discrete)",
+      "quality_level": 1,
+      "target_hardware": "NVIDIA GTX 1050 Ti, AMD RX 560, Intel Arc A380",
+      "target_resolution": "1600x900 / 1920x1080 (TSR 67%)",
+      "target_fps": 50,
+      "lumen_gi_mode": "Standard Lumen Software Tracing",
+      "shadow_method": "Virtual Shadow Maps (Performance)",
+      "status": "VERIFIED_COMPLIANT"
+    },
+    {
+      "tier": "Tier 3: High (Baseline Recommended Target)",
+      "quality_level": 2,
+      "target_hardware": "NVIDIA GTX 1650, AMD RX 580, Intel Arc A580",
+      "target_resolution": "1920x1080 (Native / TSR 75%)",
+      "target_fps": 60,
+      "lumen_gi_mode": "Lumen Dynamic Global Illumination",
+      "shadow_method": "Virtual Shadow Maps (Standard)",
+      "status": "VERIFIED_COMPLIANT"
+    },
+    {
+      "tier": "Tier 4: Epic (AAA Enthusiast High Refresh)",
+      "quality_level": 3,
+      "target_hardware": "NVIDIA RTX 3060 / 4060, AMD RX 6600 / 7600, Intel Arc A770",
+      "target_resolution": "2560x1440 / 1920x1080 Epic",
+      "target_fps": 75,
+      "lumen_gi_mode": "Lumen Hardware Ray Tracing / High Quality Detail",
+      "shadow_method": "Virtual Shadow Maps (High Resolution)",
+      "status": "VERIFIED_COMPLIANT"
+    }
+  ]
+}

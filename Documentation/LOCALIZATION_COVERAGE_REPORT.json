@@ -1,0 +1,55 @@
+{
+  "suite": "TEST-36",
+  "name": "Multi-Language Localization Coverage & UTF-8 Text Integrity Audit",
+  "supported_languages": [
+    {
+      "code": "en",
+      "name": "English",
+      "script": "Latin",
+      "coverage_percent": 100.0
+    },
+    {
+      "code": "pa",
+      "name": "Punjabi",
+      "script": "Gurmukhi",
+      "coverage_percent": 100.0
+    },
+    {
+      "code": "hi",
+      "name": "Hindi",
+      "script": "Devanagari",
+      "coverage_percent": 100.0
+    },
+    {
+      "code": "ur",
+      "name": "Urdu",
+      "script": "Nastaliq / Arabic",
+      "coverage_percent": 100.0
+    }
+  ],
+  "total_corpus_keys": 9,
+  "source_encoding_audit": [
+    {
+      "file": "RevolutionHUD.cpp",
+      "has_bom": true,
+      "status": "UTF-8 BOM (Valid)"
+    },
+    {
+      "file": "RevolutionGameMode.cpp",
+      "has_bom": true,
+      "status": "UTF-8 BOM (Valid)"
+    },
+    {
+      "file": "RevolutionMissionSubsystem.cpp",
+      "has_bom": true,
+      "status": "UTF-8 BOM (Valid)"
+    },
+    {
+      "file": "CivilianNPCActor.cpp",
+      "has_bom": false,
+      "status": "Standard UTF-8"
+    }
+  ],
+  "status": "PASS",
+  "timestamp": "2026-10-25T13:29:09Z"
+}

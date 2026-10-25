@@ -1,0 +1,68 @@
+{
+  "suite": "TEST-35",
+  "name": "Win64 Shipping Distribution Security & Cryptographic Integrity",
+  "distribution_directory": "C:\\Users\\npal7\\PROJECT\\REVOLUTION\\Build\\Shipping_Windows\\Windows",
+  "total_files_verified": 8,
+  "total_package_size_bytes": 591221986,
+  "total_package_size_mb": 563.83,
+  "status": "PASS",
+  "timestamp": "2026-10-25T13:29:09Z",
+  "files": [
+    {
+      "relative_path": "REVOLUTION.exe",
+      "file_size_bytes": 168448,
+      "file_size_mb": 0.16,
+      "sha256": "9f85c3b8e20f8aafa949d9bc8487a9d006a65be42757d380f00e2a6413321e77",
+      "authenticode_status": "NotSigned"
+    },
+    {
+      "relative_path": "REVOLUTION/Binaries/Win64/REVOLUTION-Win64-Shipping.exe",
+      "file_size_bytes": 143905792,
+      "file_size_mb": 137.24,
+      "sha256": "95806bfdca22a825acba693c18954750f1173e0f26a2fc0acd9bc51223a30694",
+      "authenticode_status": "NotSigned"
+    },
+    {
+      "relative_path": "REVOLUTION/Binaries/Win64/REVOLUTION-Win64-Shipping.pdb",
+      "file_size_bytes": 221679616,
+      "file_size_mb": 211.41,
+      "sha256": "05060c5f22031bb9e581f4c47310f25de0e6059a95dfc26a2472277e7a7d8cb9",
+      "authenticode_status": "N/A"
+    },
+    {
+      "relative_path": "REVOLUTION/Content/Paks/REVOLUTION-Windows.pak",
+      "file_size_bytes": 9984174,
+      "file_size_mb": 9.52,
+      "sha256": "2265ea6b807460b5d2cbb3dfeddfbf977774cd3423e70e58fc47eb4e8d0e9770",
+      "authenticode_status": "N/A"
+    },
+    {
+      "relative_path": "REVOLUTION/Content/Paks/REVOLUTION-Windows.ucas",
+      "file_size_bytes": 212791232,
+      "file_size_mb": 202.93,
+      "sha256": "471d4cf9df7aae608560ca62bcef43c70e866f71bee6651505391e000ff0edad",
+      "authenticode_status": "N/A"
+    },
+    {
+      "relative_path": "REVOLUTION/Content/Paks/REVOLUTION-Windows.utoc",
+      "file_size_bytes": 211050,
+      "file_size_mb": 0.2,
+      "sha256": "85fdb84b7ba9764a13404908847e6f3d1a2017ebba33b9eb16a0e106e6485809",
+      "authenticode_status": "N/A"
+    },
+    {
+      "relative_path": "REVOLUTION/Content/Paks/global.ucas",
+      "file_size_bytes": 2481024,
+      "file_size_mb": 2.37,
+      "sha256": "88180d1e6cfa18879a66cc3faa34806a3de2eb923a458e7b1743d22c9fe723b8",
+      "authenticode_status": "N/A"
+    },
+    {
+      "relative_path": "REVOLUTION/Content/Paks/global.utoc",
+      "file_size_bytes": 650,
+      "file_size_mb": 0.0,
+      "sha256": "9fc938d9450ceea59a6cfc137a6282ca3c9b821275012c14ffbe2be4f2de5bc1",
+      "authenticode_status": "N/A"
+    }
+  ]
+}
