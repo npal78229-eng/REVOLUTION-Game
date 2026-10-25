@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #pragma once
 
@@ -44,6 +44,10 @@ public:
 	/** Returns current numerical trust score (0-100) */
 	UFUNCTION(BlueprintPure, Category = "Revolution|CommunityTrust")
 	int32 GetClusterScore(FName ClusterID) const;
+
+	/** Resolves canonical cluster ID based on world coordinates */
+	UFUNCTION(BlueprintPure, Category = "Revolution|CommunityTrust")
+	FName GetClusterAtLocation(const FVector& Location) const;
 
 	/** Directly sets a cluster stance */
 	UFUNCTION(BlueprintCallable, Category = "Revolution|CommunityTrust")

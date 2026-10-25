@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "PebbleProjectile.h"
 #include "CurfewPatrolAI.h"
@@ -6,6 +6,7 @@
 #include "PariahDogActor.h"
 #include "ChaffDustDecoyActor.h"
 #include "CivilianNPCActor.h"
+#include "CommunityTrustSubsystem.h"
 #include "Components/SphereComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "GameFramework/ProjectileMovementComponent.h"
@@ -85,6 +86,17 @@ void APebbleProjectile::OnHit(UPrimitiveComponent* HitComp, AActor* OtherActor, 
 					if (Dist <= SoundAlertRadius)
 					{
 						Watchman->InvestigateSoundLocation(Hit.ImpactPoint);
+
+						if (UCommunityTrustSubsystem* TrustSubsystem = World->GetSubsystem<UCommunityTrustSubsystem>())
+						{
+							FName ClusterID = TrustSubsystem->GetClusterAtLocation(Hit.ImpactPoint);
+							TrustSubsystem->AdjustClusterScore(
+								ClusterID,
+								+5,
+								FName(TEXT("Incident_PebbleDiversionCreated")),
+								Watchman
+							);
+						}
 					}
 				}
 			}

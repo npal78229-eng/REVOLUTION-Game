@@ -1,10 +1,11 @@
 """
 PROJECT REVOLUTION — Full In-Engine Verification of Kabir v06
 Verifies:
-1. 3 Skeletal Meshes (Child 12, Teen 16, Adult 25)
-2. 8 PBR Heritage Materials
+1. 8 PBR Heritage Materials
+2. 3 Skeletal Meshes (Child 12, Teen 16, Adult 25)
 3. 16 Game Animation Sequences
-4. Zero-Regression on Kabir v05
+4. 3 Playable Character Blueprints (Child 12, Teen 16, Adult 25)
+5. Zero-Regression on Kabir v05
 """
 
 import sys
@@ -19,9 +20,9 @@ def main():
     log("================================================================================")
     
     stages = [
-        "/Game/Characters/Kabir_v06/SKM_Kabir_v06_Child_12",
-        "/Game/Characters/Kabir_v06/SKM_Kabir_v06_Teen_16",
-        "/Game/Characters/Kabir_v06/SKM_Kabir_v06_Adult_25"
+        ("SKM_Kabir_v06_Child_12", "/Game/Characters/Kabir_v06/SKM_Kabir_v06_Child_12"),
+        ("SKM_Kabir_v06_Teen_16",  "/Game/Characters/Kabir_v06/SKM_Kabir_v06_Teen_16"),
+        ("SKM_Kabir_v06_Adult_25", "/Game/Characters/Kabir_v06/SKM_Kabir_v06_Adult_25")
     ]
     
     materials = [
@@ -54,9 +55,15 @@ def main():
         "Anim_Kabir_v06_Curfew_Listen"
     ]
     
+    blueprints = [
+        ("BP_Kabir_v06_Child_12", "SKM_Kabir_v06_Child_12"),
+        ("BP_Kabir_v06_Teen_16",  "SKM_Kabir_v06_Teen_16"),
+        ("BP_Kabir_v06_Adult_25", "SKM_Kabir_v06_Adult_25")
+    ]
+    
     passed = True
     
-    # 1. Check Materials
+    # 1. Check Materials (8)
     log("\n--- Checking 8 PBR Heritage Materials ---")
     for mpath in materials:
         mat = unreal.load_asset(mpath)
@@ -66,9 +73,9 @@ def main():
         else:
             log(f"  [PASS] {mat.get_name()}")
             
-    # 2. Check Skeletal Meshes
+    # 2. Check Skeletal Meshes (3)
     log("\n--- Checking 3 Life-Stage Skeletal Meshes ---")
-    for spath in stages:
+    for name, spath in stages:
         skm = unreal.load_asset(spath)
         if not skm:
             log(f"  [FAIL] Missing Skeletal Mesh: {spath}")
@@ -78,7 +85,7 @@ def main():
             mats = skm.get_editor_property("materials")
             log(f"  [PASS] {skm.get_name()} | Skeleton: {skel.get_name() if skel else 'NONE'} | Slots: {len(mats)}")
             
-    # 3. Check 16 Animation Sequences
+    # 3. Check 16 Animation Sequences (16)
     log("\n--- Checking 16 Game Animation Sequences ---")
     for aname in anims:
         apath = f"/Game/Characters/Kabir_v06/Animations/{aname}"
@@ -91,7 +98,40 @@ def main():
             dur = seq.get_editor_property("sequence_length")
             log(f"  [PASS] {aname:<30} ({nkeys} keys, {dur:.2f}s)")
             
-    # 4. Check Kabir v05 Zero-Regression
+    # 4. Check 3 Character Blueprints (3)
+    log("\n--- Checking 3 Playable Character Blueprints ---")
+    for bp_name, expected_skm_name in blueprints:
+        bp_path = f"/Game/Characters/Kabir_v06/{bp_name}"
+        bp = unreal.load_asset(bp_path)
+        if not bp:
+            log(f"  [FAIL] Missing Character Blueprint: {bp_path}")
+            passed = False
+            continue
+            
+        gen_cls = bp.generated_class()
+        if not gen_cls:
+            log(f"  [FAIL] Generated class not found for {bp_name}")
+            passed = False
+            continue
+            
+        cdo = unreal.get_default_object(gen_cls)
+        mesh_comp = cdo.get_editor_property("mesh")
+        if not mesh_comp:
+            log(f"  [FAIL] CharacterMesh not found on CDO of {bp_name}")
+            passed = False
+            continue
+            
+        skm_asset = mesh_comp.get_editor_property("skeletal_mesh_asset")
+        if not skm_asset or skm_asset.get_name() != expected_skm_name:
+            actual_name = skm_asset.get_name() if skm_asset else "None"
+            log(f"  [FAIL] {bp_name} has incorrect mesh: expected {expected_skm_name}, got {actual_name}")
+            passed = False
+        else:
+            rel_loc = mesh_comp.get_editor_property("relative_location")
+            anim_mode = mesh_comp.get_editor_property("animation_mode")
+            log(f"  [PASS] {bp_name} | Mesh: {expected_skm_name} | Z={rel_loc.z:.1f} | AnimMode: {anim_mode}")
+            
+    # 5. Check Kabir v05 Zero-Regression
     log("\n--- Checking Kabir v05 Zero-Regression Preservation ---")
     v05_mesh = unreal.load_asset("/Game/Characters/Kabir_v05/SKM_Kabir_v05")
     if not v05_mesh:
@@ -102,7 +142,7 @@ def main():
         
     log("================================================================================")
     if passed:
-        log("  AUDIT RESULT: 100% PASS — ALL 27 KABIR v06 ASSETS OPERATIONAL IN UE 5.5")
+        log("  AUDIT RESULT: 100% PASS — ALL 30 KABIR v06 ASSETS OPERATIONAL IN UE 5.5")
         log("================================================================================")
         sys.exit(0)
     else:

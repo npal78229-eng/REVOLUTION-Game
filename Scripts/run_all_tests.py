@@ -212,6 +212,30 @@ def main():
             "name": "End-to-End Interactive QA Playthrough Bot & 29-Stage Telemetry",
             "script": os.path.join(scripts_dir, "verify_e2e_interactive_playthrough.py"),
             "type": "commandlet"
+        },
+        {
+            "id": "TEST-33",
+            "name": "Extended Soak & Memory Stability Verification (300 Cycles)",
+            "script": os.path.join(scripts_dir, "verify_extended_soak_test.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-34",
+            "name": "Hardware Scalability & Multi-Tier GPU Compatibility Matrix",
+            "script": os.path.join(scripts_dir, "verify_hardware_scalability_matrix.py"),
+            "type": "commandlet"
+        },
+        {
+            "id": "TEST-35",
+            "name": "Win64 Shipping Distribution Security & Cryptographic Integrity",
+            "script": os.path.join(scripts_dir, "verify_distribution_manifest.py"),
+            "type": "python"
+        },
+        {
+            "id": "TEST-36",
+            "name": "Multi-Language Localization Coverage & UTF-8 Text Integrity Audit",
+            "script": os.path.join(scripts_dir, "verify_localization_coverage.py"),
+            "type": "python"
         }
     ]
 

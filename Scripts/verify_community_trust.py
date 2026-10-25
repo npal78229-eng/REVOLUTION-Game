@@ -188,6 +188,15 @@ def main():
     assert test_door.is_door_bolted() == False, "Door was not unbolted after restitution!"
     actor_sub.destroy_actor(rest_actor)
 
+    # 4. Coordinate-based Cluster Resolution & Extended Incidents
+    canal_loc_cluster = trust_subsystem.get_cluster_at_location(unreal.Vector(-1020.0, 2180.0, 0.0))
+    kiln_loc_cluster = trust_subsystem.get_cluster_at_location(unreal.Vector(-1200.0, 2540.0, 0.0))
+    bazaar_loc_cluster = trust_subsystem.get_cluster_at_location(unreal.Vector(200.0, 1980.0, 0.0))
+    assert canal_loc_cluster == unreal.Name("Cluster_UBDC_CanalBasti"), f"Expected Cluster_UBDC_CanalBasti, got {canal_loc_cluster}"
+    assert kiln_loc_cluster == unreal.Name("Cluster_Bhatta_BrickKiln"), f"Expected Cluster_Bhatta_BrickKiln, got {kiln_loc_cluster}"
+    assert bazaar_loc_cluster == unreal.Name("Cluster_KotGurdarshan_Bazaar"), f"Expected Cluster_KotGurdarshan_Bazaar, got {bazaar_loc_cluster}"
+    log_warn("  [PASS] Dynamic coordinate-based cluster resolution verified across all 3 zones.")
+
     # Re-apply compromised state for Subtest 5 save/load verification
     trust_subsystem.set_cluster_stance(test_cluster, unreal.CommunityStance.COMPROMISED)
 

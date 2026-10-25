@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CurfewPatrolAI.h"
 #include "RevolutionCharacter.h"
@@ -19,6 +19,7 @@
 #include "ChalkMarkActor.h"
 #include "ProclamationBoardActor.h"
 #include "ChaffDustDecoyActor.h"
+#include "CommunityTrustSubsystem.h"
 #include "EngineUtils.h"
 #include "REVOLUTION.h"
 
@@ -618,6 +619,21 @@ void ACurfewPatrolAI::SetAlertState(ECurfewAlertState NewState)
 			if (WatchmanWhistleSound)
 			{
 				UGameplayStatics::PlaySoundAtLocation(this, WatchmanWhistleSound, GetActorLocation(), 1.15f);
+			}
+
+			if (UWorld* World = GetWorld())
+			{
+				if (UCommunityTrustSubsystem* TrustSubsystem = World->GetSubsystem<UCommunityTrustSubsystem>())
+				{
+					FName ClusterID = TrustSubsystem->GetClusterAtLocation(GetActorLocation());
+					TrustSubsystem->RecordIncident(
+						ClusterID,
+						FName(TEXT("Incident_SentryPursuitSpillover")),
+						UGameplayStatics::GetPlayerCharacter(this, 0),
+						this,
+						-25
+					);
+				}
 			}
 		}
 

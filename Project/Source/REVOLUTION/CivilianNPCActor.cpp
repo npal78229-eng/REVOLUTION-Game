@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CivilianNPCActor.h"
 #include "RevolutionCharacter.h"
@@ -1009,6 +1009,17 @@ void ACivilianNPCActor::OnInteract_Implementation(ARevolutionCharacter* Interact
 				{
 					Interactor->DeliverPamphlets(1);
 					UE_LOG(LogREVOLUTION, Log, TEXT("Kabir stealthily passed underground strike handbills to %s!"), *CivilianName.ToString());
+
+					if (UCommunityTrustSubsystem* TrustSubsystem = World->GetSubsystem<UCommunityTrustSubsystem>())
+					{
+						TrustSubsystem->RecordIncident(
+							CommunityClusterID,
+							FName(TEXT("Incident_ContrabandLeafletDelivered")),
+							Interactor,
+							this,
+							+15
+						);
+					}
 				}
 			}
 		}

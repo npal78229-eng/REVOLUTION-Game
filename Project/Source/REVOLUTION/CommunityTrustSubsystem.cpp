@@ -1,4 +1,4 @@
-﻿// Copyright Epic Games, Inc. All Rights Reserved.
+// Copyright Epic Games, Inc. All Rights Reserved.
 
 #include "CommunityTrustSubsystem.h"
 #include "DoorDeorhiActor.h"
@@ -75,6 +75,22 @@ int32 UCommunityTrustSubsystem::GetClusterScore(FName ClusterID) const
 		return Found->NumericalTrustScore;
 	}
 	return 50;
+}
+
+FName UCommunityTrustSubsystem::GetClusterAtLocation(const FVector& Location) const
+{
+	// Canal Basti (Zone F / Act IV Outskirts)
+	if (Location.X < -500.0f && Location.Y <= 2400.0f)
+	{
+		return FName(TEXT("Cluster_UBDC_CanalBasti"));
+	}
+	// Brick Kiln (Zone G / Act IV Climax)
+	if (Location.X < -500.0f && Location.Y > 2400.0f)
+	{
+		return FName(TEXT("Cluster_Bhatta_BrickKiln"));
+	}
+	// Default to Walled City / Kot Gurdarshan Bazaar
+	return FName(TEXT("Cluster_KotGurdarshan_Bazaar"));
 }
 
 void UCommunityTrustSubsystem::SetClusterStance(FName ClusterID, ECommunityStance NewStance)
